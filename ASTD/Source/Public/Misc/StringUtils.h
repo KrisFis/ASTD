@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include "ModuleMinimal.h"
+#include "IntegerTypes.h"
+#include "STDMinimal.h"
 
 namespace NStringUtils
 {
