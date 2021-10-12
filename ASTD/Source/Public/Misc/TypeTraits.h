@@ -7,7 +7,7 @@
 template<bool T, typename R = void> 
 struct TEnableIf;
 
-template<typename R> struct TEnableIf<true, R> { typedef R Result; };
+template<typename R> struct TEnableIf<true, R> { typedef R Type; };
 template<typename R> struct TEnableIf<false, R> {};
 
 // [Is Reference]

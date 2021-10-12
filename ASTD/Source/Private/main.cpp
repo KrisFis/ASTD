@@ -10,8 +10,8 @@ int main(int argc, char *argv[])
 	while (true)
 	{
 		TSharedPtr<A> hello = MakeShared<A>();
-		TSharedPtr<B> castedHello = Cast<B>(hello);
-		TSharedPtr<A> hello2 = Cast<A>(castedHello);
+		TSharedPtr<B> castedHello = CastShared<B>(hello);
+		TSharedPtr<A> hello2 = CastShared<A>(castedHello);
 		TWeakPtr<A> helloWeak = TWeakPtr<A>(hello);
 		
 		hello.Reset();
@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
 		helloWeak.Reset();
 		
 		hello = MakeShareable<A>(new A());
-		castedHello = Cast<B>(hello);
-		hello2 = Cast<A>(castedHello);
+		castedHello = CastShared<B>(hello);
+		hello2 = CastShared<A>(castedHello);
 		helloWeak = TWeakPtr<A>(hello);
 		
 		hello.Reset();
@@ -29,8 +29,8 @@ int main(int argc, char *argv[])
 		hello2.Reset();
 		
 		hello = MakeShareable<A>(new B());
-		castedHello = Cast<B>(hello);
-		hello2 = Cast<A>(castedHello);
+		castedHello = CastShared<B>(hello);
+		hello2 = CastShared<A>(castedHello);
 		helloWeak = TWeakPtr<A>(hello);
 		
 		hello.Reset();

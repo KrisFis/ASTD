@@ -2,6 +2,7 @@
 // Header with exclusive ASTD headers
 
 #include "IntegerTypes.h"
+#include "TypeTraits.h"
+#include "EnsureMacros.h"
 
-#include "SharedObject.h"
-#include "SharedClass.h"
+#include "AlternityShared.h"

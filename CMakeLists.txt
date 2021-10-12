@@ -54,6 +54,8 @@ include_directories(
     "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public"
     "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Misc"
     "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Shared"
+    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Shared/Misc"
+    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Shared/Types"
 )
 
 # Sources
