@@ -10,18 +10,12 @@
 namespace NSharedInternals
 {
 	struct FNullType {};
-	enum EForceInit { Empty };
 	
 	class FReferencerBase
 	{
 	public: // Constructors
 		
 		inline FReferencerBase()
-			: SharedCount(1)
-			, WeakCount(0)
-		{}
-		
-		inline FReferencerBase(EForceInit)
 			: SharedCount(0)
 			, WeakCount(0)
 		{}
@@ -89,12 +83,6 @@ namespace NSharedInternals
 		
 	public: // Constructors
 	
-		inline TCustomReferencer(EForceInit Init)
-			: FReferencerBase(Init)
-			, Object(nullptr)
-			, Deleter(nullptr)
-		{}
-	
 		inline TCustomReferencer(ObjectType* InObject, DeleterType InDeleter)
 			: FReferencerBase()
 			, Object(InObject)
@@ -103,9 +91,11 @@ namespace NSharedInternals
 		
 		virtual ~TCustomReferencer() override
 		{
-			ENSURE(Deleter);
-			
-			Deleter(Object);
+			if (Object)
+			{
+				ENSURE(Deleter);
+				Deleter(Object);
+			}
 		}
 		
 	protected: // FReferencer overrides
@@ -117,10 +107,13 @@ namespace NSharedInternals
 		
 		virtual void DeconstructObjectImpl() override 
 		{
-			ENSURE(Deleter);
-		
-			Deleter(Object);
-			Object = nullptr;
+			if(Object)
+			{
+				ENSURE(Deleter);
+			
+				Deleter(Object);
+				Object = nullptr;
+			}
 		}
 		
 	private: // Fields
@@ -145,4 +138,90 @@ namespace NSharedInternals
 	{
 		delete Referencer;
 	}
+	
+	// Contains helper methods for referencer
+	// * Should be used internally
+	// * Handles even deconstruction of referencer
+	struct FReferencerProxy
+	{
+	
+	public: // Constructors
+	
+		inline FReferencerProxy()
+			: Referencer(nullptr)
+		{}
+	
+		inline FReferencerProxy(FReferencerBase* InReferencer)
+			: Referencer(InReferencer)
+		{}
+	
+	public: // Pointer operators
+	
+		inline FReferencerBase* operator->() { return Get(); }
+		inline const FReferencerBase* operator->() const { return Get(); }
+		
+		inline FReferencerBase& operator*() { return *Get(); }
+		inline const FReferencerBase& operator*() const { return *Get(); }
+	
+	public: // Checkers
+	
+		inline bool IsValid() const { return Referencer != nullptr; }
+		inline bool IsUnique() const { return Referencer != nullptr && Referencer->GetSharedNum() == 1; }
+		inline bool IsSafeToDereference() const { return Referencer != nullptr && Referencer->GetSharedNum() > 0; }
+	
+	public: // Getters
+	
+		inline FReferencerBase* Get() const { return Referencer; }
+	
+	public: // Setters
+	
+		inline void Set(FReferencerBase* InReferencer) { Referencer = InReferencer; }
+	
+	public: // Helper methods [Add]
+	
+		inline void AddShared()
+		{
+			if(!IsValid()) return;
+			
+			Referencer->AddShared();
+		}
+	
+		inline void AddWeak()
+		{
+			if(!IsValid()) return;
+			
+			Referencer->AddWeak();
+		}
+	
+	public: // Helper methods [Remove]
+	
+		inline void RemoveShared()
+		{
+			if(!IsValid()) return;
+			
+			Referencer->RemoveShared();
+			if(!Referencer->HasAnyReference())
+			{
+				DeleteReferencer(Referencer);
+				Referencer = nullptr;
+			}
+		}
+		
+		inline void RemoveWeak()
+		{
+			if(!IsValid()) return;
+			
+			Referencer->RemoveWeak();
+			if (!Referencer->HasAnyReference())
+			{
+				DeleteReferencer(Referencer);
+				Referencer = nullptr;
+			}
+		}
+	
+	private: // Fields
+	
+		FReferencerBase* Referencer;
+		
+	};
 }

@@ -5,6 +5,26 @@
 struct A {};
 struct B : A {};
 
+///////////////////////////////////////////////////////////////
+// Alloc test
+///////////////////////////////////////////////////////////////
+
+static uint64 AllocatedBytes = 0; 
+
+void* operator new(decltype(sizeof(0)) size)
+{
+	AllocatedBytes += (uint64)size;
+	std::cout << "Allocating " << size << " bytes [currently: " << AllocatedBytes << " ]" << std::endl;
+	return malloc(size);
+}
+
+void operator delete(void* ptr, decltype(sizeof(0)) size)
+{
+	AllocatedBytes -= (uint64)size;
+	std::cout << "Deallocating " << size << " bytes [currently: " << AllocatedBytes << " ]" << std::endl;
+	free(ptr);
+}
+
 int main(int argc, char *argv[])
 {
 	while (true)

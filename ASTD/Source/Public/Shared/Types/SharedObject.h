@@ -21,115 +21,134 @@ class TSharedPtr
 public: // Typedefs
 
 	typedef T ObjectType;
+	typedef TSharedPtr<T> SharedType;
+	typedef TWeakPtr<T> WeakType;
 
 public: // Constructor
 
-	inline TSharedPtr(NSharedInternals::FNullType* = nullptr)
-		: Referencer(nullptr)
-	{}
+	inline TSharedPtr(NSharedInternals::FNullType* = nullptr) {}
+	inline explicit TSharedPtr(NSharedInternals::FReferencerBase* InReferencer) : Referencer(InReferencer) { Referencer.AddShared(); }
 
-	template<typename WeakType, typename = TEnableIf<TIsSame<WeakType, TWeakPtr<ObjectType>>::Value>>
-	inline explicit TSharedPtr(const WeakType& WeakPtr)
-		: Referencer(WeakPtr.Referencer)
-	{
-		AddReference();
-	}
+public: // Copy/Move constructors [SharedPtr]
+	
+	inline TSharedPtr(const SharedType& Other) { ReplaceBy(Other); }
+	inline TSharedPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
+	
+public: // Copy/Move constructors [WeakPtr]
+
+	inline explicit TSharedPtr(const WeakType& Other) { ReplaceBy(Other); }
+	inline explicit TSharedPtr(WeakType&& Other) noexcept { ReplaceBy(Forward<WeakType>(Other)); }
 	
 public: // Destructor
 
-	~TSharedPtr()
-	{
-		Reset();
-	}
+	~TSharedPtr() { Reset(); }
+	
+public: // Comparison operators [SharedPtr]
 
-public: // Copy/Move constructors [SharedPtr]
+	inline bool operator==(const SharedType& Other) const { return Referencer.Get() == Other.Referencer.Get(); }
+	inline bool operator!=(const SharedType& Other) const { return !operator==(Other); }
+	
+public: // Comparison operators [WeakPtr]
 
-	inline TSharedPtr(const TSharedPtr& Other)
-		: Referencer(Other.Referencer)
-	{
-		AddReference();
-	}
+	inline bool operator==(const WeakType& Other) const { return Referencer.Get() == Other.Referencer.Get(); }
+	inline bool operator!=(const WeakType& Other) const { return !operator==(Other); }
 
-	inline TSharedPtr(TSharedPtr&& Other)
-		: Referencer(Other.Referencer)
-	{
-		Other.Referencer = nullptr;
-	}
-
-public: // Operators
-
-	inline bool operator==(const TSharedPtr& Other) const { return Referencer == Other.Referencer; }
-	inline bool operator!=(const TSharedPtr& Other) const { return !operator==(Other); }
-
-	inline TSharedPtr& operator=(const TSharedPtr& Other)
-	{
-		if (this == &Other) return *this;
-
-		RemoveReference();
-		Referencer = Other.Referencer;
-		if (Referencer) Referencer->AddShared();
-		return *this;
-	}
-
-	inline TSharedPtr& operator=(TSharedPtr&& Other) noexcept
-	{
-		if (this == &Other) return *this;
-
-		RemoveReference();
-		Referencer = Other.Referencer;
-		Other.Referencer = nullptr;
-		return *this;
-	}
+public: // Assignment operators
 
 	inline TSharedPtr& operator=(NSharedInternals::FNullType*) { Reset(); }
-	
-	inline const ObjectType* operator->() const	{ return Get(); }
+
+public: // Assignment operators [SharedPtr]
+
+	inline TSharedPtr& operator=(const SharedType& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
+	inline TSharedPtr& operator=(SharedType&& Other) { if(&Other != this) ReplaceBy(Forward<SharedType>(Other)); return *this; }
+
+public: // Assignment operators [WeakPtr]
+
+	inline TSharedPtr& operator=(const WeakType& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
+	inline TSharedPtr& operator=(WeakType&& Other) { if(&Other != this) ReplaceBy(Forward<WeakType>(Other)); return *this; }
+
+public: // Pointer operators
+
 	inline ObjectType* operator->()	{ return Get(); }
-	inline const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	inline const ObjectType* operator->() const	{ return Get(); }
+	
 	inline ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
+	inline const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
 
 public: // Validation
 
-	inline bool IsValid() const { return Referencer && Referencer->GetSharedNum() > 0; }
-	inline bool IsUnique() const { return Referencer && Referencer->GetSharedNum() == 1; }
+	inline bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
+	inline bool IsUnique() const { return Referencer.IsUnique(); }
 
 public: // Getters
 
-	inline const ObjectType* Get() const { return Referencer ? Referencer->GetObject<ObjectType>() : nullptr; }
-	inline ObjectType* Get() { return Referencer ? Referencer->GetObject<ObjectType>() : nullptr; }
+	inline const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	inline ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
 	
 public: // Other
 
-	inline void Reset() 
-	{ 
-		RemoveReference(); 
-		Referencer = nullptr;
-	}
+	inline void Reset() { Referencer.RemoveShared(); Referencer.Set(nullptr); }
 
-private: // Helper methods
+private: // Helper methods -> Replacing
 
-	inline void AddReference()
+	// const PtrType&
+	// * Copy
+	template<typename PtrType>
+	inline void ReplaceBy(const PtrType& Other)
 	{
-		if(Referencer)
-			Referencer->AddShared();
+		// How it should work ? (Copy implementation)
+		
+		// * SharedPtr as argument:
+		// ** 1) Remove shared reference from current
+		// ** 2) Add shared reference to other
+		// ** 3) Replace referencer
+		
+		// * WeakPtr as argument:
+		// ** 1) Remove weak reference from current
+		// ** 2) Add weak reference to other
+		// ** 3) Replace referencer
+	
+		Referencer.RemoveShared(); // 1
+		Other.Referencer.AddShared(); // 2
+		Referencer = Other.Referencer; // 3
 	}
-
-	inline void RemoveReference()
+	
+	// PtrType&&
+	// * Move
+	template<typename PtrType>
+	inline void ReplaceBy(PtrType&& Other)
 	{
-		if(Referencer)
+		// How it should work ? (move implementation)
+		
+		// * SharedPtr as argument:
+		// ** 1) Remove shared reference from current
+		// ** 2) Replace referencer
+		// ** 3) Clear other referencer
+		
+		// * WeakPtr as argument:
+		// ** We MUST ensure that reference of other does not get destroyed (if valid before passing)
+		// ** -2) Add shared reference to other
+		// ** -1) Remove weak reference from other
+		// ** 1) Remove shared reference from current
+		// ** 2) Replace referencer
+		// ** 3) Clear other referencer
+		
+		// * Only WeakPtr
+		if(TIsSame<typename TRemoveReference<PtrType>::Type, WeakType>::Value)
 		{
-			Referencer->RemoveShared();
-			if(!Referencer->HasAnyReference())
-			{
-				NSharedInternals::DeleteReferencer(Referencer);
-				Referencer = nullptr;
-			}
+			Other.Referencer.AddShared(); // -2
+			Other.Referencer.RemoveWeak(); // -1
 		}
+		
+		Referencer.RemoveShared(); // 1
+		Referencer = Other.Referencer; // 2
+		
+		Other.Referencer.Set(nullptr); // 3
 	}
-
+	
 private: // Fields
 
-	NSharedInternals::FReferencerBase* Referencer;
+	mutable NSharedInternals::FReferencerProxy Referencer;
 
 private: // Friends
 
@@ -154,109 +173,139 @@ class TWeakPtr
 public: // Typedefs
 
 	typedef T ObjectType;
+	typedef TWeakPtr<T> WeakType;
+	typedef TSharedPtr<T> SharedType;
 
 public: // Constructors
 
-	inline TWeakPtr(NSharedInternals::FNullType* = nullptr)
-			: Referencer(nullptr)
-	{}
-
-	template<typename SharedType, typename = TEnableIf<TIsSame<SharedType, TSharedPtr<ObjectType>>::Value>>
-	inline explicit TWeakPtr(const SharedType& SharedPtr)
-			: Referencer(SharedPtr.Referencer)
-	{
-		AddReference();
-	}
+	inline TWeakPtr(NSharedInternals::FNullType* = nullptr) {}
 
 public: // Copy/Move constructors [WeakPtr]
 
-	inline TWeakPtr(const TWeakPtr& Other)
-			: Referencer(Other.Referencer)
-	{
-		AddReference();
-	}
+	inline TWeakPtr(const WeakType& Other) { ReplaceBy(Other); }
+	inline TWeakPtr(WeakType&& Other) noexcept { ReplaceBy(Forward<WeakType>(Other)); }
 
-	inline TWeakPtr(TWeakPtr&& Other) noexcept
-			: Referencer(Other.Referencer)
-	{
-		Other.Referencer = nullptr;
-	}
+public: // Copy/Move constructors [SharedPtr]
+
+	inline explicit TWeakPtr(const SharedType& Other) { ReplaceBy(Other); }
+	inline explicit TWeakPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
 
 public: // Destructor
 
-	inline ~TWeakPtr()
-	{
-		Reset();
-	}
+	inline ~TWeakPtr() { Reset(); }
 
-public: // Operators
+public: // Comparison operators [WeakPtr]
 
-	inline bool operator==(const TWeakPtr& Other) const	{ return Referencer == Other.Referencer; }
-	inline bool operator!=(const TWeakPtr& Other) const	{ return !operator==(Other); }
+	inline bool operator==(const WeakType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
+	inline bool operator!=(const WeakType& Other) const	{ return !operator==(Other); }
 	
+public: // Comparison operators [SharedPtr]
+	
+	inline bool operator==(const SharedType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
+	inline bool operator!=(const SharedType& Other) const	{ return !operator==(Other); }
+	
+public: // Assignment operators
+
 	inline TWeakPtr& operator=(const NSharedInternals::FNullType*) { Reset(); }
 	
-	inline TWeakPtr& operator=(const TWeakPtr& Other)
-	{
-		if (&Other == this) return *this;
+public: // Assignment operators [WeakPtr]
 
-		RemoveReference();
-		Referencer = Other.Referencer;
-		if (Referencer) Referencer->AddWeak();
+	inline TWeakPtr& operator=(const WeakType& Other) { if (&Other != this) ReplaceBy(Other); return *this; };
+	inline TWeakPtr& operator=(WeakType&& Other) { if (&Other != this) ReplaceBy(Forward<WeakType>(Other)); return *this; };
+	
+public: // Assignment operators [SharedPtr]
 
-		return *this;
-	}
+	inline TWeakPtr& operator=(const SharedType& Other) { ReplaceBy(Other); return *this; };
+	inline TWeakPtr& operator=(SharedType&& Other) { ReplaceBy(Forward<SharedType>(Other)); return *this; };
+	
+public: // Pointer operators
+		// * Our weak pointer supports dereferencing without shared_ptr
 
-	inline TWeakPtr& operator=(TWeakPtr&& Other)
-	{
-		if (&Other == this) return *this;
-
-		RemoveReference();
-		Referencer = Other.Referencer;
-		Other.Referencer = nullptr;
-		return *this;
-	}
-
+	inline ObjectType* operator->()	{ return Get(); }
+	inline const ObjectType* operator->() const	{ return Get(); }
+	
+	inline ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
+	inline const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	
 public: // Validity
 
-	inline bool IsValid() const	{ return Referencer && (Referencer->GetSharedNum() > 0); }
+	inline bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
 
+public: // Getters
+
+	inline const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	inline ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	
 public: // Other
 
-	inline void Reset()
-	{
-		RemoveReference();
-	}
+	inline void Reset() { Referencer.RemoveWeak(); Referencer.Set(nullptr); }
 
-	inline TSharedPtr<ObjectType> Pin() const
+	inline SharedType Pin() const
 	{
 		if (!IsValid()) return nullptr;
-		return TSharedPtr<ObjectType>(*this);
+		return SharedType(*this);
 	}
 
-private: // Helper methods
+private: // Helper methods -> Replacing
 
-	inline void AddReference()
+	// const PtrType&
+	// * Copy
+	template<typename PtrType>
+	inline void ReplaceBy(const PtrType& Other)
 	{
-		if(Referencer)
-		{
-			Referencer->AddWeak();
-		}
+		// How it should work ? (Copy implementation)
+		
+		// * WeakPtr as argument:
+		// ** 1) Remove weak reference from current
+		// ** 2) Add weak reference to other
+		// ** 3) Replace referencer
+		
+		// * SharedPtr as argument:
+		// ** 1) Remove weak reference from current
+		// ** 2) Add weak reference to other
+		// ** 3) Replace referencer
+	
+		Referencer.RemoveWeak(); // 1
+		Other.Referencer.AddWeak(); // 2
+		Referencer = Other.Referencer; // 3
 	}
-
-	inline void RemoveReference()
+	
+	// PtrType&&
+	// * Move
+	template<typename PtrType>
+	inline void ReplaceBy(PtrType&& Other)
 	{
-		if (Referencer)
+		// How it should work ? (move implementation)
+		
+		// * WeakPtr as argument:
+		// ** 1) Remove weak reference from current
+		// ** 2) Replace referencer
+		// ** 3) Clear other referencer
+		
+		// * SharedPtr as argument:
+		// ** We MUST ensure that reference of other does not get destroyed (if valid before passing)
+		// ** -2) Add weak reference to other
+		// ** -1) Remove shared reference from other
+		// ** 1) Remove weak reference from current
+		// ** 2) Replace referencer
+		// ** 3) Clear other referencer
+		
+		// * Only SharedPtr
+		if(TIsSame<typename TRemoveReference<PtrType>::Type, SharedType>::Value)
 		{
-			Referencer->RemoveWeak();
-			if (!Referencer->HasAnyReference())
-				NSharedInternals::DeleteReferencer(Referencer);
+			Other.Referencer.AddWeak(); // -2
+			Other.Referencer.RemoveShared(); // -1
 		}
+		
+		Referencer.RemoveWeak(); // 1
+		Referencer = Other.Referencer; // 2
+		
+		Other.Referencer.Set(nullptr); // 3
 	}
 
 private: // Fields
 
-	NSharedInternals::FReferencerBase* Referencer;
+	mutable NSharedInternals::FReferencerProxy Referencer;
 
 private: // Friend class
 
