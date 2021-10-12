@@ -22,7 +22,6 @@ public: // Typedefs
 
 	typedef T ObjectType;
 	typedef TSharedPtr<T> SharedType;
-	typedef TWeakPtr<T> WeakType;
 
 public: // Constructor
 
@@ -34,11 +33,6 @@ public: // Copy/Move constructors [SharedPtr]
 	inline TSharedPtr(const SharedType& Other) { ReplaceBy(Other); }
 	inline TSharedPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
 	
-public: // Copy/Move constructors [WeakPtr]
-
-	inline explicit TSharedPtr(const WeakType& Other) { ReplaceBy(Other); }
-	inline explicit TSharedPtr(WeakType&& Other) noexcept { ReplaceBy(Forward<WeakType>(Other)); }
-	
 public: // Destructor
 
 	~TSharedPtr() { Reset(); }
@@ -47,25 +41,15 @@ public: // Comparison operators [SharedPtr]
 
 	inline bool operator==(const SharedType& Other) const { return Referencer.Get() == Other.Referencer.Get(); }
 	inline bool operator!=(const SharedType& Other) const { return !operator==(Other); }
-	
-public: // Comparison operators [WeakPtr]
-
-	inline bool operator==(const WeakType& Other) const { return Referencer.Get() == Other.Referencer.Get(); }
-	inline bool operator!=(const WeakType& Other) const { return !operator==(Other); }
 
 public: // Assignment operators
 
-	inline TSharedPtr& operator=(NSharedInternals::FNullType*) { Reset(); }
+	inline TSharedPtr& operator=(NSharedInternals::FNullType*) { Reset(); return *this; }
 
 public: // Assignment operators [SharedPtr]
 
 	inline TSharedPtr& operator=(const SharedType& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
 	inline TSharedPtr& operator=(SharedType&& Other) { if(&Other != this) ReplaceBy(Forward<SharedType>(Other)); return *this; }
-
-public: // Assignment operators [WeakPtr]
-
-	inline TSharedPtr& operator=(const WeakType& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
-	inline TSharedPtr& operator=(WeakType&& Other) { if(&Other != this) ReplaceBy(Forward<WeakType>(Other)); return *this; }
 
 public: // Pointer operators
 
@@ -93,19 +77,13 @@ private: // Helper methods -> Replacing
 
 	// const PtrType&
 	// * Copy
-	template<typename PtrType>
-	inline void ReplaceBy(const PtrType& Other)
+	inline void ReplaceBy(const SharedType& Other)
 	{
 		// How it should work ? (Copy implementation)
 		
 		// * SharedPtr as argument:
 		// ** 1) Remove shared reference from current
 		// ** 2) Add shared reference to other
-		// ** 3) Replace referencer
-		
-		// * WeakPtr as argument:
-		// ** 1) Remove weak reference from current
-		// ** 2) Add weak reference to other
 		// ** 3) Replace referencer
 	
 		Referencer.RemoveShared(); // 1
@@ -115,8 +93,7 @@ private: // Helper methods -> Replacing
 	
 	// PtrType&&
 	// * Move
-	template<typename PtrType>
-	inline void ReplaceBy(PtrType&& Other)
+	inline void ReplaceBy(SharedType&& Other)
 	{
 		// How it should work ? (move implementation)
 		
@@ -124,21 +101,6 @@ private: // Helper methods -> Replacing
 		// ** 1) Remove shared reference from current
 		// ** 2) Replace referencer
 		// ** 3) Clear other referencer
-		
-		// * WeakPtr as argument:
-		// ** We MUST ensure that reference of other does not get destroyed (if valid before passing)
-		// ** -2) Add shared reference to other
-		// ** -1) Remove weak reference from other
-		// ** 1) Remove shared reference from current
-		// ** 2) Replace referencer
-		// ** 3) Clear other referencer
-		
-		// * Only WeakPtr
-		if(TIsSame<typename TRemoveReference<PtrType>::Type, WeakType>::Value)
-		{
-			Other.Referencer.AddShared(); // -2
-			Other.Referencer.RemoveWeak(); // -1
-		}
 		
 		Referencer.RemoveShared(); // 1
 		Referencer = Other.Referencer; // 2
@@ -242,8 +204,8 @@ public: // Other
 
 	inline SharedType Pin() const
 	{
-		if (!IsValid()) return nullptr;
-		return SharedType(*this);
+		if (!IsValid()) return SharedType();
+		return SharedType(Referencer.Get());
 	}
 
 private: // Helper methods -> Replacing
