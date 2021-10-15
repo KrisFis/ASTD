@@ -49,13 +49,15 @@ endif()
 # Includes
 # -----------------------------------------------------------
 
-include(Scripts/CMake/ProjectFiles.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake/ProjectFiles.cmake)
 
 # Project Files
 # -----------------------------------------------------------
 
-ASTD_include_directories(Scripts/CMake)
-ASTD_file_sources(Scripts/CMake ALL_SOURCE_FILES)
+ASTD_file_public_directories(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_INCLUDE_DIRS)
+ASTD_file_private_files(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_SOURCE_FILES)
+
+include_directories("${ALL_INCLUDE_DIRS}")
 
 # Executable and linking
 # -----------------------------------------------------------
