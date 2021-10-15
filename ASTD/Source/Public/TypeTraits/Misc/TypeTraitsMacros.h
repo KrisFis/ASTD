@@ -19,7 +19,7 @@
 																																\
 	public:																														\
 																																\
-		enum { Value = FGetTestValue<PureType>::Value };																	\
+		static constexpr bool = Value = FGetTestValue<PureType>::Value;															\
 	};
 
 #define DECLARE_HAS_FIELD_TRAIT(InFieldName)																					\
@@ -38,5 +38,5 @@
 																																\
 	public:																														\
 																																\
-		enum { Value = FGetTestValue<PureType>::Value };																		\
+		static constexpr bool = Value = FGetTestValue<PureType>::Value;															\
 	};

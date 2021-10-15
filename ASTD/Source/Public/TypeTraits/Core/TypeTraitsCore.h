@@ -6,7 +6,7 @@
 // [Const bool]
 // * False and true type
 
-template<bool T> struct TConstBool { enum { Value = T } };
+template<bool T> struct TConstBool { static constexpr bool Value = T; };
 template<typename> struct TTrueValue : TConstBool<true> {};
 template<typename> struct TFalseValue : TConstBool<false> {};
 

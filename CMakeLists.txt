@@ -46,29 +46,16 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
     add_definitions(-D_RELEASE=1)
 endif()
 
+# Includes
+# -----------------------------------------------------------
+
+include(Scripts/CMake/ProjectFiles.cmake)
 
 # Project Files
 # -----------------------------------------------------------
 
-include_directories(
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Macros"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Macros/Core"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Macros/Ensure"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Primitives"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Primitives/Misc"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Shared"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Shared/Misc"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/Shared/Types"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/TypeTraits"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/TypeTraits/Core"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Public/TypeTraits/Misc"
-)
-
-# Sources
-file(GLOB_RECURSE "ALL_SOURCE_FILES"
-    "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Source/Private/*.cpp"
-)
+ASTD_include_directories(Scripts/CMake)
+ASTD_file_sources(Scripts/CMake ALL_SOURCE_FILES)
 
 # Executable and linking
 # -----------------------------------------------------------

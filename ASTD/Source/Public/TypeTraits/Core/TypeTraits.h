@@ -25,8 +25,8 @@ template<typename TrueType, typename FalseType> struct TChoose<false, TrueType, 
 // * Same as choose, but type is delayed by getting type from type
 
 template<bool Value, typename TrueTrait, typename FalseTrait> struct TChooseDelayed;
-template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<true, TrueTrait, FalseTrait> { typedef TrueTrait::Type Type; };
-template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<false, TrueTrait, FalseTrait> { typedef FalseTrait::Type Type; };
+template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<true, TrueTrait, FalseTrait> { typedef typename TrueTrait::Type Type; };
+template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<false, TrueTrait, FalseTrait> { typedef typename FalseTrait::Type Type; };
 
 
 // [Is Derived]
