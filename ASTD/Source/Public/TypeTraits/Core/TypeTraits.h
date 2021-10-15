@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "AlternityMacros.h"
 #include "TypeTraitsInternals.h"
 
 // [Decay]
@@ -12,6 +13,21 @@ struct TDecay
 {
 	typedef typename NTypeTraitsInternals::TDecayHelper<typename TRemoveReference<T>::Type>::Type Type;
 };
+
+// [Choose]
+// * Chooses between two different types based on a value
+
+template<bool Value, typename TrueType, typename FalseType> struct TChoose;
+template<typename TrueType, typename FalseType> struct TChoose<true, TrueType, FalseType> { typedef TrueType Type; };
+template<typename TrueType, typename FalseType> struct TChoose<false, TrueType, FalseType> { typedef FalseType Type; };
+
+// [Choose Delayed]
+// * Same as choose, but type is delayed by getting type from type
+
+template<bool Value, typename TrueTrait, typename FalseTrait> struct TChooseDelayed;
+template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<true, TrueTrait, FalseTrait> { typedef TrueTrait::Type Type; };
+template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<false, TrueTrait, FalseTrait> { typedef FalseTrait::Type Type; };
+
 
 // [Is Derived]
 // * Checks whether specific type is derived from other type
@@ -53,13 +69,19 @@ struct TIsCastable { enum { Value = TIsDerivedFrom<T, R>::Value || TIsDerivedFro
 // * Indicates that an specific object may be "moved from"
 
 template<typename T>
-typename TRemoveReference<T>::Type&& Move(T&& Obj) { return static_cast<typename TRemoveReference<T>::Type&&>(Obj); }
+FORCEINLINE typename TRemoveReference<T>::Type&& Move(T&& Obj) { return static_cast<typename TRemoveReference<T>::Type&&>(Obj); }
 
 // [Forward]
 // * Passed specific object with his type provided
 
 template<typename T>
-typename TRemoveReference<T>::Type& Forward(T& Obj) { return Obj; }
+FORCEINLINE typename TRemoveReference<T>::Type& Forward(T& Obj) { return Obj; }
 
 template<typename T>
-typename TRemoveReference<T>::Type&& Forward(T&& Obj) { return Obj; }
+FORCEINLINE typename TRemoveReference<T>::Type&& Forward(T&& Obj) { return Obj; }
+
+// [DeclVal]
+// * Converts to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors.
+
+template<typename T>
+typename TRemoveReference<T>::Type&& DeclVal();

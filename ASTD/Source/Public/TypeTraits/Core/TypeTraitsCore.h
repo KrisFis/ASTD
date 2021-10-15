@@ -3,12 +3,17 @@
 
 #include "IntegerTypes.h"
 
+// [Const bool]
+// * False and true type
+
+template<bool T> struct TConstBool { enum { Value = T } };
+template<typename> struct TTrueValue : TConstBool<true> {};
+template<typename> struct TFalseValue : TConstBool<false> {};
+
 // [Enable if]
 // * Enables compilation of specific template function/struct when condition met
 
-template<bool T, typename R = void> 
-struct TEnableIf;
-
+template<bool T, typename R = void> struct TEnableIf;
 template<typename R> struct TEnableIf<true, R> { typedef R Type; };
 template<typename R> struct TEnableIf<false, R> {};
 
