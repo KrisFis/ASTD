@@ -9,7 +9,7 @@
 template<typename T>
 class TSharedClass
 {
-private: // Typedefs
+public: // Typedefs
 
 	typedef T ClassType;
 	

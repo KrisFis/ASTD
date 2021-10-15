@@ -51,11 +51,8 @@ public: // Assignment operators [SharedPtr]
 
 public: // Pointer operators
 
-	FORCEINLINE ObjectType* operator->()	{ return Get(); }
-	FORCEINLINE const ObjectType* operator->() const	{ return Get(); }
-	
-	FORCEINLINE ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
-	FORCEINLINE const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE ObjectType* operator->() const { return Get(); }
+	FORCEINLINE ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
 
 public: // Validation
 
@@ -64,8 +61,7 @@ public: // Validation
 
 public: // Getters
 
-	FORCEINLINE const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
-	FORCEINLINE ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
 	
 public: // Other
 
@@ -181,11 +177,8 @@ public: // Assignment operators [SharedPtr]
 public: // Pointer operators
 		// * Our weak pointer supports dereferencing without shared_ptr
 
-	FORCEINLINE ObjectType* operator->()	{ return Get(); }
-	FORCEINLINE const ObjectType* operator->() const	{ return Get(); }
-	
-	FORCEINLINE ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
-	FORCEINLINE const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE ObjectType* operator->() const { return Get(); }
+	FORCEINLINE ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
 	
 public: // Validity
 
@@ -193,8 +186,7 @@ public: // Validity
 
 public: // Getters
 
-	FORCEINLINE const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
-	FORCEINLINE ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
 	
 public: // Other
 

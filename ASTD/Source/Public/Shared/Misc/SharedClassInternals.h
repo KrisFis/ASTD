@@ -21,12 +21,21 @@ namespace NSharedInternals
 		typedef char Yes[1];
 		typedef char No[2];
 
-		template<typename TestType> static Yes& Test(decltype(&TestType::Init_Private));
-		template<typename TestType>	static No& Test(...);
+		template<typename TestType> static Yes& HasMethodTest(decltype(&TestType::Init_Private));
+		template<typename TestType>	static No& HasMethodTest(...);
+		
+		template<typename TestType> static Yes& HasTypedefTest(decltype(&TestType::ClassType));
+		template<typename TestType> static No& HasTypedefTest(...);
 		
 	public:
 	
-		enum { Value = sizeof(Test<PureType>(0)) == sizeof(Yes) };
+		enum 
+		{ 
+			HasMethod = sizeof(HasMethodTest<PureType>(0)) == sizeof(Yes),
+			HasTypedef = sizeof(HasTypedefTest<PureType>(0)) == sizeof(Yes),
+			
+			Value = HasMethod && HasTypedef
+		};
 	
 	};
 	
@@ -35,7 +44,7 @@ namespace NSharedInternals
 	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(CReferencerBase* Referencer) 
 	{ 
 		auto resultPtr = TSharedPtr<ChildType>(Referencer);
-		resultPtr->Init_Private(resultPtr); 
+		resultPtr->Init_Private(TSharedPtr<typename ChildType::ClassType>(Referencer)); 
 		return resultPtr;
 	}
 	
