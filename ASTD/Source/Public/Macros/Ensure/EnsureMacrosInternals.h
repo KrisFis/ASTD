@@ -1,7 +1,7 @@
 
 #pragma once
 
-#if DEBUG
+#if DO_ENSURES
 
 	#include "PreprocessorMacros.h"
 	#include "PlatformMacros.h"

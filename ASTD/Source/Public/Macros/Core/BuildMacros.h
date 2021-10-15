@@ -1,6 +1,18 @@
 
 #pragma once
 
+// Build type
+// * Supported: Debug, Release
+// * Example: BUILD_RELEASE
+
+#if defined(_DEBUG)
+	#define BUILD_DEBUG 1
+#elif defined(_RELEASE)
+	#define BUILD_RELEASE 1
+#else
+	#error "Unsupported build type"
+#endif
+
 // Compiler
 // * Supported: MSVC, GNUC, GNUC_CLANG, GNUC_INTEL, GNUC_GCC
 // ** In case GNUC is defined, then one of GNUC type should be also

@@ -3,7 +3,7 @@
 
 #include "EnsureMacrosInternals.h"
 
-#if DEBUG
+#if DO_ENSURES
 	
 	// [No Return]
 	#define ENSURE(expression) ENSURE_IMPL(expression, __FILE__, __LINE__, true)
@@ -21,7 +21,7 @@
 	#define ENSURE_THIS_RET(...) ENSURE_RET((this && this->IsValid()), __VA_ARGS__)
 	#define ENSURE_VALID_RET(type, ...) ENSURE_RET(type.IsValid(), __VA_ARGS__)
 
-#elif RELEASE
+#else
 	
 	// [No Return]
 	#define ENSURE(...)
@@ -37,6 +37,4 @@
 	#define ENSURE_THIS_RET(...)
 	#define ENSURE_VALID_RET(...)
 
-#else
-	#error "Missing build type definition"
 #endif
