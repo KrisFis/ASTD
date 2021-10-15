@@ -5,18 +5,18 @@
 
 namespace NSharedInternals
 {
-	struct FNullType {};
+	struct SNullType {};
 	
-	class FReferencerBase
+	class CReferencerBase
 	{
 	public: // Constructors
 		
-		FORCEINLINE FReferencerBase()
+		FORCEINLINE CReferencerBase()
 			: SharedCount(0)
 			, WeakCount(0)
 		{}
 		
-		virtual ~FReferencerBase() = default;
+		virtual ~CReferencerBase() = default;
 		
 	public: // Getters
 	
@@ -70,7 +70,7 @@ namespace NSharedInternals
 	};
 	
 	template<typename T, typename DeleterT = void>
-	class TCustomReferencer : public FReferencerBase
+	class TCustomReferencer : public CReferencerBase
 	{
 	public: // Typedefs
 	
@@ -80,7 +80,7 @@ namespace NSharedInternals
 	public: // Constructors
 	
 		FORCEINLINE TCustomReferencer(ObjectType* InObject, DeleterType InDeleter)
-			: FReferencerBase()
+			: CReferencerBase()
 			, Object(InObject)
 			, Deleter(InDeleter)
 		{}
@@ -89,7 +89,7 @@ namespace NSharedInternals
 		{
 			if (Object)
 			{
-				ENSURE_NOT_NULL_RET(Deleter);
+				ENSURE_RET(Deleter);
 				Deleter(Object);
 			}
 		}
@@ -105,7 +105,7 @@ namespace NSharedInternals
 		{
 			if(Object)
 			{
-				ENSURE_NOT_NULL_RET(Deleter);
+				ENSURE_RET(Deleter);
 			
 				Deleter(Object);
 				Object = nullptr;
@@ -119,18 +119,18 @@ namespace NSharedInternals
 	};
 	
 	template<typename ObjectType>
-	FORCEINLINE FReferencerBase* NewCustomReferencer(ObjectType* Object)
+	FORCEINLINE CReferencerBase* NewCustomReferencer(ObjectType* Object)
 	{
 		return new TCustomReferencer(Object, [](ObjectType* ToDelete) { delete ToDelete; });
 	}
 	
 	template<typename ObjectType, typename DeleterType>
-	FORCEINLINE FReferencerBase* NewCustomReferencerWithDeleter(ObjectType* Object, DeleterType* Deleter)
+	FORCEINLINE CReferencerBase* NewCustomReferencerWithDeleter(ObjectType* Object, DeleterType* Deleter)
 	{
 		return new TCustomReferencer(Object, Deleter);
 	}
 	
-	FORCEINLINE void DeleteReferencer(FReferencerBase* Referencer)
+	FORCEINLINE void DeleteReferencer(CReferencerBase* Referencer)
 	{
 		delete Referencer;
 	}
@@ -138,26 +138,26 @@ namespace NSharedInternals
 	// Contains helper methods for referencer
 	// * Should be used internally
 	// * Handles even deconstruction of referencer
-	struct FReferencerProxy
+	struct SReferencerProxy
 	{
 	
 	public: // Constructors
 	
-		FORCEINLINE FReferencerProxy()
+		FORCEINLINE SReferencerProxy()
 			: Referencer(nullptr)
 		{}
 	
-		FORCEINLINE FReferencerProxy(FReferencerBase* InReferencer)
+		FORCEINLINE SReferencerProxy(CReferencerBase* InReferencer)
 			: Referencer(InReferencer)
 		{}
 	
 	public: // Pointer operators
 	
-		FORCEINLINE FReferencerBase* operator->() { return Get(); }
-		FORCEINLINE const FReferencerBase* operator->() const { return Get(); }
+		FORCEINLINE CReferencerBase* operator->() { return Get(); }
+		FORCEINLINE const CReferencerBase* operator->() const { return Get(); }
 		
-		FORCEINLINE FReferencerBase& operator*() { return *Get(); }
-		FORCEINLINE const FReferencerBase& operator*() const { return *Get(); }
+		FORCEINLINE CReferencerBase& operator*() { return *Get(); }
+		FORCEINLINE const CReferencerBase& operator*() const { return *Get(); }
 	
 	public: // Checkers
 	
@@ -167,11 +167,11 @@ namespace NSharedInternals
 	
 	public: // Getters
 	
-		FORCEINLINE FReferencerBase* Get() const { return Referencer; }
+		FORCEINLINE CReferencerBase* Get() const { return Referencer; }
 	
 	public: // Setters
 	
-		FORCEINLINE void Set(FReferencerBase* InReferencer) { Referencer = InReferencer; }
+		FORCEINLINE void Set(CReferencerBase* InReferencer) { Referencer = InReferencer; }
 	
 	public: // Helper methods [Add]
 	
@@ -217,7 +217,7 @@ namespace NSharedInternals
 	
 	private: // Fields
 	
-		FReferencerBase* Referencer;
+		CReferencerBase* Referencer;
 		
 	};
 }

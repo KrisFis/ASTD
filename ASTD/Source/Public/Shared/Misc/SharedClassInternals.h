@@ -32,7 +32,7 @@ namespace NSharedInternals
 	
 	// Is shared class
 	template<typename ChildType, typename TEnableIf<TIsSharedClassType<ChildType>::Value>::Type* = nullptr>
-	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(FReferencerBase* Referencer) 
+	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(CReferencerBase* Referencer) 
 	{ 
 		auto resultPtr = TSharedPtr<ChildType>(Referencer);
 		resultPtr->Init_Private(resultPtr); 
@@ -41,7 +41,7 @@ namespace NSharedInternals
 	
 	// Is not shared class
 	template<typename ChildType, typename TEnableIf<!TIsSharedClassType<ChildType>::Value>::Type* = nullptr>
-	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(FReferencerBase* Referencer) 
+	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(CReferencerBase* Referencer) 
 	{ return TSharedPtr<ChildType>(Referencer); }
 	
 }

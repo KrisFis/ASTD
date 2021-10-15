@@ -23,8 +23,8 @@ public: // Typedefs
 
 public: // Constructor
 
-	FORCEINLINE TSharedPtr(NSharedInternals::FNullType* = nullptr) {}
-	FORCEINLINE explicit TSharedPtr(NSharedInternals::FReferencerBase* InReferencer) : Referencer(InReferencer) { Referencer.AddShared(); }
+	FORCEINLINE TSharedPtr(NSharedInternals::SNullType* = nullptr) {}
+	FORCEINLINE explicit TSharedPtr(NSharedInternals::CReferencerBase* InReferencer) : Referencer(InReferencer) { Referencer.AddShared(); }
 
 public: // Copy/Move constructors [SharedPtr]
 	
@@ -42,7 +42,7 @@ public: // Comparison operators [SharedPtr]
 
 public: // Assignment operators
 
-	FORCEINLINE TSharedPtr& operator=(NSharedInternals::FNullType*) { Reset(); return *this; }
+	FORCEINLINE TSharedPtr& operator=(NSharedInternals::SNullType*) { Reset(); return *this; }
 
 public: // Assignment operators [SharedPtr]
 
@@ -108,7 +108,7 @@ private: // Helper methods -> Replacing
 	
 private: // Fields
 
-	mutable NSharedInternals::FReferencerProxy Referencer;
+	mutable NSharedInternals::SReferencerProxy Referencer;
 
 private: // Friends
 
@@ -138,7 +138,7 @@ public: // Typedefs
 
 public: // Constructors
 
-	FORCEINLINE TWeakPtr(NSharedInternals::FNullType* = nullptr) {}
+	FORCEINLINE TWeakPtr(NSharedInternals::SNullType* = nullptr) {}
 
 public: // Copy/Move constructors [WeakPtr]
 
@@ -166,7 +166,7 @@ public: // Comparison operators [SharedPtr]
 	
 public: // Assignment operators
 
-	FORCEINLINE TWeakPtr& operator=(const NSharedInternals::FNullType*) { Reset(); }
+	FORCEINLINE TWeakPtr& operator=(const NSharedInternals::SNullType*) { Reset(); }
 	
 public: // Assignment operators [WeakPtr]
 
@@ -265,7 +265,7 @@ private: // Helper methods -> Replacing
 
 private: // Fields
 
-	mutable NSharedInternals::FReferencerProxy Referencer;
+	mutable NSharedInternals::SReferencerProxy Referencer;
 
 private: // Friend class
 
