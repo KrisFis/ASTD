@@ -1,11 +1,7 @@
 
 #pragma once
 
-#include "IntegerTypes.h"
-#include "TypeTraits.h"
-#include "EnsureMacros.h"
-
-#include <cstdint>
+#include "ASTDCore.h"
 
 namespace NSharedInternals
 {
@@ -15,7 +11,7 @@ namespace NSharedInternals
 	{
 	public: // Constructors
 		
-		inline FReferencerBase()
+		FORCEINLINE FReferencerBase()
 			: SharedCount(0)
 			, WeakCount(0)
 		{}
@@ -24,41 +20,41 @@ namespace NSharedInternals
 		
 	public: // Getters
 	
-		inline bool HasAnyReference() const { return SharedCount + WeakCount > 0; }
-		inline uint16 GetSharedNum() const { return SharedCount; }
-		inline uint16 GetWeakCount() const { return WeakCount; }
+		FORCEINLINE bool HasAnyReference() const { return SharedCount + WeakCount > 0; }
+		FORCEINLINE uint16 GetSharedNum() const { return SharedCount; }
+		FORCEINLINE uint16 GetWeakCount() const { return WeakCount; }
 		
 		template<typename T>
-		inline T* GetObject() const { return reinterpret_cast<T*>(GetObjectImpl()); }
+		FORCEINLINE T* GetObject() const { return reinterpret_cast<T*>(GetObjectImpl()); }
 		
-		inline bool HasObject() const { return GetObjectImpl() != nullptr; }
+		FORCEINLINE bool HasObject() const { return GetObjectImpl() != nullptr; }
 		
 	public: // Setters [Add]
 	
-		inline void AddShared() 
+		FORCEINLINE_DEBUGGABLE void AddShared() 
 		{
-			ENSURE(SharedCount < UINT16_MAX);
+			ENSURE_RET(SharedCount < UINT16_MAX);
 			++SharedCount;
 		}
 		
-		inline void AddWeak() 
+		FORCEINLINE_DEBUGGABLE void AddWeak() 
 		{
-			ENSURE(WeakCount < UINT16_MAX); // overflow
+			ENSURE_RET(WeakCount < UINT16_MAX); // overflow
 			++WeakCount;
 		}
 		
 	public: // Setters [REMOVE]
 	
-		inline void RemoveShared()
+		FORCEINLINE_DEBUGGABLE void RemoveShared()
 		{
-			ENSURE(SharedCount > 0); // underflow
+			ENSURE_RET(SharedCount > 0); // underflow
 			if(SharedCount == 1) DeconstructObjectImpl();
 			--SharedCount;
 		}
 		
-		inline void RemoveWeak()
+		FORCEINLINE_DEBUGGABLE void RemoveWeak()
 		{
-			ENSURE(WeakCount > 0); // underflow
+			ENSURE_RET(WeakCount > 0); // underflow
 			--WeakCount;
 		}
 		
@@ -83,7 +79,7 @@ namespace NSharedInternals
 		
 	public: // Constructors
 	
-		inline TCustomReferencer(ObjectType* InObject, DeleterType InDeleter)
+		FORCEINLINE TCustomReferencer(ObjectType* InObject, DeleterType InDeleter)
 			: FReferencerBase()
 			, Object(InObject)
 			, Deleter(InDeleter)
@@ -93,23 +89,23 @@ namespace NSharedInternals
 		{
 			if (Object)
 			{
-				ENSURE(Deleter);
+				ENSURE_NOT_NULL_RET(Deleter);
 				Deleter(Object);
 			}
 		}
 		
 	protected: // FReferencer overrides
 	
-		virtual void* GetObjectImpl() const override 
+		FORCEINLINE virtual void* GetObjectImpl() const override 
 		{ 
 			return Object;
 		}
 		
-		virtual void DeconstructObjectImpl() override 
+		FORCEINLINE_DEBUGGABLE virtual void DeconstructObjectImpl() override 
 		{
 			if(Object)
 			{
-				ENSURE(Deleter);
+				ENSURE_NOT_NULL_RET(Deleter);
 			
 				Deleter(Object);
 				Object = nullptr;
@@ -123,18 +119,18 @@ namespace NSharedInternals
 	};
 	
 	template<typename ObjectType>
-	inline FReferencerBase* NewCustomReferencer(ObjectType* Object)
+	FORCEINLINE FReferencerBase* NewCustomReferencer(ObjectType* Object)
 	{
 		return new TCustomReferencer(Object, [](ObjectType* ToDelete) { delete ToDelete; });
 	}
 	
 	template<typename ObjectType, typename DeleterType>
-	inline FReferencerBase* NewCustomReferencerWithDeleter(ObjectType* Object, DeleterType* Deleter)
+	FORCEINLINE FReferencerBase* NewCustomReferencerWithDeleter(ObjectType* Object, DeleterType* Deleter)
 	{
 		return new TCustomReferencer(Object, Deleter);
 	}
 	
-	inline void DeleteReferencer(FReferencerBase* Referencer)
+	FORCEINLINE void DeleteReferencer(FReferencerBase* Referencer)
 	{
 		delete Referencer;
 	}
@@ -147,46 +143,46 @@ namespace NSharedInternals
 	
 	public: // Constructors
 	
-		inline FReferencerProxy()
+		FORCEINLINE FReferencerProxy()
 			: Referencer(nullptr)
 		{}
 	
-		inline FReferencerProxy(FReferencerBase* InReferencer)
+		FORCEINLINE FReferencerProxy(FReferencerBase* InReferencer)
 			: Referencer(InReferencer)
 		{}
 	
 	public: // Pointer operators
 	
-		inline FReferencerBase* operator->() { return Get(); }
-		inline const FReferencerBase* operator->() const { return Get(); }
+		FORCEINLINE FReferencerBase* operator->() { return Get(); }
+		FORCEINLINE const FReferencerBase* operator->() const { return Get(); }
 		
-		inline FReferencerBase& operator*() { return *Get(); }
-		inline const FReferencerBase& operator*() const { return *Get(); }
+		FORCEINLINE FReferencerBase& operator*() { return *Get(); }
+		FORCEINLINE const FReferencerBase& operator*() const { return *Get(); }
 	
 	public: // Checkers
 	
-		inline bool IsValid() const { return Referencer != nullptr; }
-		inline bool IsUnique() const { return Referencer != nullptr && Referencer->GetSharedNum() == 1; }
-		inline bool IsSafeToDereference() const { return Referencer != nullptr && Referencer->GetSharedNum() > 0; }
+		FORCEINLINE bool IsValid() const { return Referencer != nullptr; }
+		FORCEINLINE bool IsUnique() const { return Referencer != nullptr && Referencer->GetSharedNum() == 1; }
+		FORCEINLINE bool IsSafeToDereference() const { return Referencer != nullptr && Referencer->GetSharedNum() > 0; }
 	
 	public: // Getters
 	
-		inline FReferencerBase* Get() const { return Referencer; }
+		FORCEINLINE FReferencerBase* Get() const { return Referencer; }
 	
 	public: // Setters
 	
-		inline void Set(FReferencerBase* InReferencer) { Referencer = InReferencer; }
+		FORCEINLINE void Set(FReferencerBase* InReferencer) { Referencer = InReferencer; }
 	
 	public: // Helper methods [Add]
 	
-		inline void AddShared()
+		FORCEINLINE void AddShared()
 		{
 			if(!IsValid()) return;
 			
 			Referencer->AddShared();
 		}
 	
-		inline void AddWeak()
+		FORCEINLINE void AddWeak()
 		{
 			if(!IsValid()) return;
 			
@@ -195,7 +191,7 @@ namespace NSharedInternals
 	
 	public: // Helper methods [Remove]
 	
-		inline void RemoveShared()
+		FORCEINLINE_DEBUGGABLE void RemoveShared()
 		{
 			if(!IsValid()) return;
 			
@@ -207,7 +203,7 @@ namespace NSharedInternals
 			}
 		}
 		
-		inline void RemoveWeak()
+		FORCEINLINE_DEBUGGABLE void RemoveWeak()
 		{
 			if(!IsValid()) return;
 			

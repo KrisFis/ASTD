@@ -1,9 +1,11 @@
 
 #pragma once
 
-#include "SharedInternals.h"
+#include "ASTDCore.h"
+
 #include "SharedObject.h"
-#include "TypeTraits.h"
+#include "SharedObjectInternals.h"
+#include "SharedClassInternals.h"
 
 //////////////////////////////////////////////////
 // Utils
@@ -12,14 +14,14 @@
 template<typename T, typename... ArgTypes>
 inline TSharedPtr<T> MakeShared(ArgTypes&&... Args)
 {
-	return TSharedPtr<T>(NSharedInternals::NewCustomReferencer(new T(Forward<ArgTypes>(Args)...)));
+	return NSharedInternals::InitAsSharedClass<T>(NSharedInternals::NewCustomReferencer(new T(Forward<ArgTypes>(Args)...)));
 }
 
 template<typename T, typename R = T>
 inline TSharedPtr<R> MakeShareable(T* Instance)
 {
 	static_assert(TIsDerivedFrom<R,T>::Value, "Unrelated instance type to return type");
-	return TSharedPtr<R>(NSharedInternals::NewCustomReferencer(Instance));
+	return NSharedInternals::InitAsSharedClass<R>(NSharedInternals::NewCustomReferencer(Instance));
 }
 
 template<typename T, typename R = T>

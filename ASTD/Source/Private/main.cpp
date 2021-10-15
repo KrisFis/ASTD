@@ -1,8 +1,7 @@
 
-#include "ASTDMinimal.h"
-#include "STDMinimal.h"
+#include "ASTD.h"
 
-struct A {};
+struct A : TSharedClass<A> {};
 struct B : A {};
 
 ///////////////////////////////////////////////////////////////
@@ -33,6 +32,9 @@ int main(int argc, char *argv[])
 		TSharedPtr<B> castedHello = CastShared<B>(hello);
 		TSharedPtr<A> hello2 = CastShared<A>(castedHello);
 		TWeakPtr<A> helloWeak = TWeakPtr<A>(hello);
+		
+		TSharedPtr<A> testing = hello->AsShared();
+		TSharedPtr<B> testing2 = hello->AsShared<B>();
 		
 		hello.Reset();
 		castedHello.Reset();

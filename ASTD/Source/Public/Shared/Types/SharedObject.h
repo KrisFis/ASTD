@@ -1,10 +1,8 @@
 
 #pragma once
 
-#include "IntegerTypes.h"
-#include "SharedInternals.h"
-
-#include <assert.h>
+#include "ASTDCore.h"
+#include "SharedObjectInternals.h"
 
 // Forward declarations
 template<typename T>
@@ -25,59 +23,59 @@ public: // Typedefs
 
 public: // Constructor
 
-	inline TSharedPtr(NSharedInternals::FNullType* = nullptr) {}
-	inline explicit TSharedPtr(NSharedInternals::FReferencerBase* InReferencer) : Referencer(InReferencer) { Referencer.AddShared(); }
+	FORCEINLINE TSharedPtr(NSharedInternals::FNullType* = nullptr) {}
+	FORCEINLINE explicit TSharedPtr(NSharedInternals::FReferencerBase* InReferencer) : Referencer(InReferencer) { Referencer.AddShared(); }
 
 public: // Copy/Move constructors [SharedPtr]
 	
-	inline TSharedPtr(const SharedType& Other) { ReplaceBy(Other); }
-	inline TSharedPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
+	FORCEINLINE TSharedPtr(const SharedType& Other) { ReplaceBy(Other); }
+	FORCEINLINE TSharedPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
 	
 public: // Destructor
 
-	~TSharedPtr() { Reset(); }
+	FORCEINLINE ~TSharedPtr() { Reset(); }
 	
 public: // Comparison operators [SharedPtr]
 
-	inline bool operator==(const SharedType& Other) const { return Referencer.Get() == Other.Referencer.Get(); }
-	inline bool operator!=(const SharedType& Other) const { return !operator==(Other); }
+	FORCEINLINE bool operator==(const SharedType& Other) const { return Referencer.Get() == Other.Referencer.Get(); }
+	FORCEINLINE bool operator!=(const SharedType& Other) const { return !operator==(Other); }
 
 public: // Assignment operators
 
-	inline TSharedPtr& operator=(NSharedInternals::FNullType*) { Reset(); return *this; }
+	FORCEINLINE TSharedPtr& operator=(NSharedInternals::FNullType*) { Reset(); return *this; }
 
 public: // Assignment operators [SharedPtr]
 
-	inline TSharedPtr& operator=(const SharedType& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
-	inline TSharedPtr& operator=(SharedType&& Other) { if(&Other != this) ReplaceBy(Forward<SharedType>(Other)); return *this; }
+	FORCEINLINE TSharedPtr& operator=(const SharedType& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
+	FORCEINLINE TSharedPtr& operator=(SharedType&& Other) { if(&Other != this) ReplaceBy(Forward<SharedType>(Other)); return *this; }
 
 public: // Pointer operators
 
-	inline ObjectType* operator->()	{ return Get(); }
-	inline const ObjectType* operator->() const	{ return Get(); }
+	FORCEINLINE ObjectType* operator->()	{ return Get(); }
+	FORCEINLINE const ObjectType* operator->() const	{ return Get(); }
 	
-	inline ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
-	inline const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
 
 public: // Validation
 
-	inline bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
-	inline bool IsUnique() const { return Referencer.IsUnique(); }
+	FORCEINLINE bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
+	FORCEINLINE bool IsUnique() const { return Referencer.IsUnique(); }
 
 public: // Getters
 
-	inline const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
-	inline ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
 	
 public: // Other
 
-	inline void Reset() { Referencer.RemoveShared(); Referencer.Set(nullptr); }
+	FORCEINLINE void Reset() { Referencer.RemoveShared(); Referencer.Set(nullptr); }
 
 private: // Helper methods -> Replacing
 
 	// const PtrType&
 	// * Copy
-	inline void ReplaceBy(const SharedType& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(const SharedType& Other)
 	{
 		// How it should work ? (Copy implementation)
 		
@@ -93,7 +91,7 @@ private: // Helper methods -> Replacing
 	
 	// PtrType&&
 	// * Move
-	inline void ReplaceBy(SharedType&& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(SharedType&& Other)
 	{
 		// How it should work ? (move implementation)
 		
@@ -140,69 +138,69 @@ public: // Typedefs
 
 public: // Constructors
 
-	inline TWeakPtr(NSharedInternals::FNullType* = nullptr) {}
+	FORCEINLINE TWeakPtr(NSharedInternals::FNullType* = nullptr) {}
 
 public: // Copy/Move constructors [WeakPtr]
 
-	inline TWeakPtr(const WeakType& Other) { ReplaceBy(Other); }
-	inline TWeakPtr(WeakType&& Other) noexcept { ReplaceBy(Forward<WeakType>(Other)); }
+	FORCEINLINE TWeakPtr(const WeakType& Other) { ReplaceBy(Other); }
+	FORCEINLINE TWeakPtr(WeakType&& Other) noexcept { ReplaceBy(Forward<WeakType>(Other)); }
 
 public: // Copy/Move constructors [SharedPtr]
 
-	inline explicit TWeakPtr(const SharedType& Other) { ReplaceBy(Other); }
-	inline explicit TWeakPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
+	FORCEINLINE explicit TWeakPtr(const SharedType& Other) { ReplaceBy(Other); }
+	FORCEINLINE explicit TWeakPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
 
 public: // Destructor
 
-	inline ~TWeakPtr() { Reset(); }
+	FORCEINLINE ~TWeakPtr() { Reset(); }
 
 public: // Comparison operators [WeakPtr]
 
-	inline bool operator==(const WeakType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
-	inline bool operator!=(const WeakType& Other) const	{ return !operator==(Other); }
+	FORCEINLINE bool operator==(const WeakType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
+	FORCEINLINE bool operator!=(const WeakType& Other) const	{ return !operator==(Other); }
 	
 public: // Comparison operators [SharedPtr]
 	
-	inline bool operator==(const SharedType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
-	inline bool operator!=(const SharedType& Other) const	{ return !operator==(Other); }
+	FORCEINLINE bool operator==(const SharedType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
+	FORCEINLINE bool operator!=(const SharedType& Other) const	{ return !operator==(Other); }
 	
 public: // Assignment operators
 
-	inline TWeakPtr& operator=(const NSharedInternals::FNullType*) { Reset(); }
+	FORCEINLINE TWeakPtr& operator=(const NSharedInternals::FNullType*) { Reset(); }
 	
 public: // Assignment operators [WeakPtr]
 
-	inline TWeakPtr& operator=(const WeakType& Other) { if (&Other != this) ReplaceBy(Other); return *this; };
-	inline TWeakPtr& operator=(WeakType&& Other) { if (&Other != this) ReplaceBy(Forward<WeakType>(Other)); return *this; };
+	FORCEINLINE TWeakPtr& operator=(const WeakType& Other) { if (&Other != this) ReplaceBy(Other); return *this; };
+	FORCEINLINE TWeakPtr& operator=(WeakType&& Other) { if (&Other != this) ReplaceBy(Forward<WeakType>(Other)); return *this; };
 	
 public: // Assignment operators [SharedPtr]
 
-	inline TWeakPtr& operator=(const SharedType& Other) { ReplaceBy(Other); return *this; };
-	inline TWeakPtr& operator=(SharedType&& Other) { ReplaceBy(Forward<SharedType>(Other)); return *this; };
+	FORCEINLINE TWeakPtr& operator=(const SharedType& Other) { ReplaceBy(Other); return *this; };
+	FORCEINLINE TWeakPtr& operator=(SharedType&& Other) { ReplaceBy(Forward<SharedType>(Other)); return *this; };
 	
 public: // Pointer operators
 		// * Our weak pointer supports dereferencing without shared_ptr
 
-	inline ObjectType* operator->()	{ return Get(); }
-	inline const ObjectType* operator->() const	{ return Get(); }
+	FORCEINLINE ObjectType* operator->()	{ return Get(); }
+	FORCEINLINE const ObjectType* operator->() const	{ return Get(); }
 	
-	inline ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
-	inline const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE ObjectType& operator*() { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE const ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
 	
 public: // Validity
 
-	inline bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
+	FORCEINLINE bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
 
 public: // Getters
 
-	inline const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
-	inline ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE const ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
 	
 public: // Other
 
-	inline void Reset() { Referencer.RemoveWeak(); Referencer.Set(nullptr); }
+	FORCEINLINE void Reset() { Referencer.RemoveWeak(); Referencer.Set(nullptr); }
 
-	inline SharedType Pin() const
+	FORCEINLINE SharedType Pin() const
 	{
 		if (!IsValid()) return SharedType();
 		return SharedType(Referencer.Get());
@@ -213,7 +211,7 @@ private: // Helper methods -> Replacing
 	// const PtrType&
 	// * Copy
 	template<typename PtrType>
-	inline void ReplaceBy(const PtrType& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(const PtrType& Other)
 	{
 		// How it should work ? (Copy implementation)
 		
@@ -235,7 +233,7 @@ private: // Helper methods -> Replacing
 	// PtrType&&
 	// * Move
 	template<typename PtrType>
-	inline void ReplaceBy(PtrType&& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(PtrType&& Other)
 	{
 		// How it should work ? (move implementation)
 		

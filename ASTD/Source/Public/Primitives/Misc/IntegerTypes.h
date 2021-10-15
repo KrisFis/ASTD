@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 typedef char int8;
 typedef unsigned char uint8;
 
