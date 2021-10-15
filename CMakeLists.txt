@@ -72,5 +72,4 @@ file(GLOB_RECURSE "ALL_SOURCE_FILES"
 # Executable and linking
 # -----------------------------------------------------------
 
-add_executable(${PROJECT_NAME} "${ALL_SOURCE_FILES}")
-target_link_libraries(${PROJECT_NAME})
+add_library(${PROJECT_NAME} "${ALL_SOURCE_FILES}")
