@@ -14,27 +14,33 @@ namespace NSharedInternals
 	template<typename T>
 	struct TIsSharedClassType
 	{
-	private:
+	
+	private: // Typedefs
 
 		typedef typename TDecay<T>::Type PureType;
 
-		typedef char Yes[1];
-		typedef char No[2];
+	private: // WeakThis test
+		
+		template<typename TestType> static auto TestHasSharedInit(int32)->TTrueValue<decltype(DeclVal<TestType>().IsSharedInitialized())>;
+		template<typename TestType>	static auto TestHasSharedInit(int64)->TConstBool<false>;
+		
+		template<typename TestType> struct FGetHasSharedInitTest : decltype(TestHasSharedInit<TestType>(0)) {};
 
-		template<typename TestType> static Yes& HasMethodTest(decltype(&TestType::Init_Private));
-		template<typename TestType>	static No& HasMethodTest(...);
+	private: // Private init method
+
+		template<typename TestType> static auto TestHasAsShared(int32)->TTrueValue<decltype(DeclVal<TestType>().AsShared())>;
+		template<typename TestType>	static auto TestHasAsShared(int64)->TConstBool<false>;
 		
-		template<typename TestType> static Yes& HasTypedefTest(decltype(&TestType::ClassType));
-		template<typename TestType> static No& HasTypedefTest(...);
-		
+		template<typename TestType> struct FGetHasAsSharedTest : decltype(TestHasAsShared<TestType>(0)) {};
+
 	public:
 	
 		enum 
-		{ 
-			HasMethod = sizeof(HasMethodTest<PureType>(0)) == sizeof(Yes),
-			HasTypedef = sizeof(HasTypedefTest<PureType>(0)) == sizeof(Yes),
+		{
+			HasSharedInit = FGetHasSharedInitTest<PureType>::Value,
+			HasAsShared = FGetHasAsSharedTest<PureType>::Value,
 			
-			Value = HasMethod && HasTypedef
+			Value = HasSharedInit && HasAsShared
 		};
 	
 	};

@@ -57,5 +57,4 @@ private: // Fields
 private: // Primitive fields
 
 	bool bIsSharedInitialized;
-
 };
