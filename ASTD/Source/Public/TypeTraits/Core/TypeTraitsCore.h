@@ -44,7 +44,7 @@ template <typename T> struct TRemoveReference<T& > { typedef T Type; };
 template <typename T> struct TRemoveReference<T&&> { typedef T Type; };
 
 // [Is Const]
-// * Checks whether provided type is const, volatiole or both
+// * Checks whether provided type is const, volatile or both
 
 template<typename T> struct TIsConstVolatile { enum { Value = false }; };
 template<typename T> struct TIsConstVolatile<const T> { enum { Value = true }; };
@@ -72,3 +72,10 @@ template <typename T> struct TIsPointer<const T*> { enum { Value = true }; };
 template<typename T> struct TRemovePointer { typedef T Type; };
 template<typename T> struct TRemovePointer<T*> { typedef T Type; };
 template<typename T> struct TRemovePointer<const T*> { typedef T Type; };
+
+// [Floating Type]
+// * Checks whether specific type is floating type
+
+template<typename T> struct TIsFloatingType { enum { Value = false }; };
+template<> struct TIsFloatingType<float> { enum { Value = true }; };
+template<> struct TIsFloatingType<double> { enum { Value = true }; };

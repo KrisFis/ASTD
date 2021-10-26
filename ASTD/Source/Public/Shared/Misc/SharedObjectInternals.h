@@ -144,11 +144,11 @@ namespace NSharedInternals
 	public: // Constructors
 	
 		FORCEINLINE SReferencerProxy()
-			: Referencer(nullptr)
+			: Inner(nullptr)
 		{}
 	
 		FORCEINLINE SReferencerProxy(CReferencerBase* InReferencer)
-			: Referencer(InReferencer)
+			: Inner(InReferencer)
 		{}
 	
 	public: // Pointer operators
@@ -161,17 +161,17 @@ namespace NSharedInternals
 	
 	public: // Checkers
 	
-		FORCEINLINE bool IsValid() const { return Referencer != nullptr; }
-		FORCEINLINE bool IsUnique() const { return Referencer != nullptr && Referencer->GetSharedNum() == 1; }
-		FORCEINLINE bool IsSafeToDereference() const { return Referencer != nullptr && Referencer->GetSharedNum() > 0; }
+		FORCEINLINE bool IsValid() const { return Inner != nullptr; }
+		FORCEINLINE bool IsUnique() const { return Inner != nullptr && Inner->GetSharedNum() == 1; }
+		FORCEINLINE bool IsSafeToDereference() const { return Inner != nullptr && Inner->GetSharedNum() > 0; }
 	
 	public: // Getters
 	
-		FORCEINLINE CReferencerBase* Get() const { return Referencer; }
+		FORCEINLINE CReferencerBase* Get() const { return Inner; }
 	
 	public: // Setters
 	
-		FORCEINLINE void Set(CReferencerBase* InReferencer) { Referencer = InReferencer; }
+		FORCEINLINE void Set(CReferencerBase* InReferencer) { Inner = InReferencer; }
 	
 	public: // Helper methods [Add]
 	
@@ -179,14 +179,14 @@ namespace NSharedInternals
 		{
 			if(!IsValid()) return;
 			
-			Referencer->AddShared();
+			Inner->AddShared();
 		}
 	
 		FORCEINLINE void AddWeak()
 		{
 			if(!IsValid()) return;
 			
-			Referencer->AddWeak();
+			Inner->AddWeak();
 		}
 	
 	public: // Helper methods [Remove]
@@ -195,11 +195,11 @@ namespace NSharedInternals
 		{
 			if(!IsValid()) return;
 			
-			Referencer->RemoveShared();
-			if(!Referencer->HasAnyReference())
+			Inner->RemoveShared();
+			if(!Inner->HasAnyReference())
 			{
-				DeleteReferencer(Referencer);
-				Referencer = nullptr;
+				DeleteReferencer(Inner);
+				Inner = nullptr;
 			}
 		}
 		
@@ -207,17 +207,17 @@ namespace NSharedInternals
 		{
 			if(!IsValid()) return;
 			
-			Referencer->RemoveWeak();
-			if (!Referencer->HasAnyReference())
+			Inner->RemoveWeak();
+			if (!Inner->HasAnyReference())
 			{
-				DeleteReferencer(Referencer);
-				Referencer = nullptr;
+				DeleteReferencer(Inner);
+				Inner = nullptr;
 			}
 		}
 	
 	private: // Fields
 	
-		CReferencerBase* Referencer;
+		CReferencerBase* Inner;
 		
 	};
 }

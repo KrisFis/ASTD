@@ -31,5 +31,5 @@ inline TSharedPtr<T> CastShared(const TSharedPtr<R>& From)
 	static_assert(TIsCastable<T,R>::Value, "Unrelated types for casting");
 	
 	// We only need a check for valid cast, cast is made afterwards by Get()
-	return TSharedPtr<T>(From.Referencer.Get());
+	return TSharedPtr<T>(From.ReferencerProxy.Get());
 }

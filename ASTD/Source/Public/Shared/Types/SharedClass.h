@@ -42,6 +42,7 @@ public: // External method
 
 public: // Private methods
 
+	// Do not call this method DIRECTLY!
 	FORCEINLINE void Init_Private(const TSharedPtr<ClassType>& InPtr)
 	{
 		ENSURE_RET(!bIsSharedInitialized);

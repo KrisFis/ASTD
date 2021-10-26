@@ -24,7 +24,7 @@ public: // Typedefs
 public: // Constructor
 
 	FORCEINLINE TSharedPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE explicit TSharedPtr(NSharedInternals::CReferencerBase* InReferencer) : Referencer(InReferencer) { Referencer.AddShared(); }
+	FORCEINLINE explicit TSharedPtr(NSharedInternals::CReferencerBase* InReferencer) : ReferencerProxy(InReferencer) { ReferencerProxy.AddShared(); }
 
 public: // Copy/Move constructors [SharedPtr]
 	
@@ -37,7 +37,7 @@ public: // Destructor
 	
 public: // Comparison operators [SharedPtr]
 
-	FORCEINLINE bool operator==(const SharedType& Other) const { return Referencer.Get() == Other.Referencer.Get(); }
+	FORCEINLINE bool operator==(const SharedType& Other) const { return ReferencerProxy.Get() == Other.ReferencerProxy.Get(); }
 	FORCEINLINE bool operator!=(const SharedType& Other) const { return !operator==(Other); }
 
 public: // Assignment operators
@@ -56,16 +56,16 @@ public: // Pointer operators
 
 public: // Validation
 
-	FORCEINLINE bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
-	FORCEINLINE bool IsUnique() const { return Referencer.IsUnique(); }
+	FORCEINLINE bool IsValid() const	{ return ReferencerProxy.IsSafeToDereference(); }
+	FORCEINLINE bool IsUnique() const { return ReferencerProxy.IsUnique(); }
 
 public: // Getters
 
-	FORCEINLINE ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() const { return ReferencerProxy.IsValid() ? ReferencerProxy->GetObject<ObjectType>() : nullptr; }
 	
 public: // Other
 
-	FORCEINLINE void Reset() { Referencer.RemoveShared(); Referencer.Set(nullptr); }
+	FORCEINLINE void Reset() { ReferencerProxy.RemoveShared(); ReferencerProxy.Set(nullptr); }
 
 private: // Helper methods -> Replacing
 
@@ -80,9 +80,9 @@ private: // Helper methods -> Replacing
 		// ** 2) Add shared reference to other
 		// ** 3) Replace referencer
 	
-		Referencer.RemoveShared(); // 1
-		Other.Referencer.AddShared(); // 2
-		Referencer = Other.Referencer; // 3
+		ReferencerProxy.RemoveShared(); // 1
+		Other.ReferencerProxy.AddShared(); // 2
+		ReferencerProxy = Other.ReferencerProxy; // 3
 	}
 	
 	// PtrType&&
@@ -96,15 +96,15 @@ private: // Helper methods -> Replacing
 		// ** 2) Replace referencer
 		// ** 3) Clear other referencer
 		
-		Referencer.RemoveShared(); // 1
-		Referencer = Other.Referencer; // 2
+		ReferencerProxy.RemoveShared(); // 1
+		ReferencerProxy = Other.ReferencerProxy; // 2
 		
-		Other.Referencer.Set(nullptr); // 3
+		Other.ReferencerProxy.Set(nullptr); // 3
 	}
 	
 private: // Fields
 
-	mutable NSharedInternals::SReferencerProxy Referencer;
+	mutable NSharedInternals::SReferencerProxy ReferencerProxy;
 
 private: // Friends
 
@@ -152,12 +152,12 @@ public: // Destructor
 
 public: // Comparison operators [WeakPtr]
 
-	FORCEINLINE bool operator==(const WeakType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
+	FORCEINLINE bool operator==(const WeakType& Other) const	{ return ReferencerProxy.Get() == Other.ReferencerProxy.Get(); }
 	FORCEINLINE bool operator!=(const WeakType& Other) const	{ return !operator==(Other); }
 	
 public: // Comparison operators [SharedPtr]
 	
-	FORCEINLINE bool operator==(const SharedType& Other) const	{ return Referencer.Get() == Other.Referencer.Get(); }
+	FORCEINLINE bool operator==(const SharedType& Other) const	{ return ReferencerProxy.Get() == Other.ReferencerProxy.Get(); }
 	FORCEINLINE bool operator!=(const SharedType& Other) const	{ return !operator==(Other); }
 	
 public: // Assignment operators
@@ -182,20 +182,20 @@ public: // Pointer operators
 	
 public: // Validity
 
-	FORCEINLINE bool IsValid() const	{ return Referencer.IsSafeToDereference(); }
+	FORCEINLINE bool IsValid() const	{ return ReferencerProxy.IsSafeToDereference(); }
 
 public: // Getters
 
-	FORCEINLINE ObjectType* Get() const { return Referencer.IsValid() ? Referencer->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() const { return ReferencerProxy.IsValid() ? ReferencerProxy->GetObject<ObjectType>() : nullptr; }
 	
 public: // Other
 
-	FORCEINLINE void Reset() { Referencer.RemoveWeak(); Referencer.Set(nullptr); }
+	FORCEINLINE void Reset() { ReferencerProxy.RemoveWeak(); ReferencerProxy.Set(nullptr); }
 
 	FORCEINLINE SharedType Pin() const
 	{
 		if (!IsValid()) return SharedType();
-		return SharedType(Referencer.Get());
+		return SharedType(ReferencerProxy.Get());
 	}
 
 private: // Helper methods -> Replacing
@@ -217,9 +217,9 @@ private: // Helper methods -> Replacing
 		// ** 2) Add weak reference to other
 		// ** 3) Replace referencer
 	
-		Referencer.RemoveWeak(); // 1
-		Other.Referencer.AddWeak(); // 2
-		Referencer = Other.Referencer; // 3
+		ReferencerProxy.RemoveWeak(); // 1
+		Other.ReferencerProxy.AddWeak(); // 2
+		ReferencerProxy = Other.ReferencerProxy; // 3
 	}
 	
 	// PtrType&&
@@ -245,19 +245,19 @@ private: // Helper methods -> Replacing
 		// * Only SharedPtr
 		if(TIsSame<typename TRemoveReference<PtrType>::Type, SharedType>::Value)
 		{
-			Other.Referencer.AddWeak(); // -2
-			Other.Referencer.RemoveShared(); // -1
+			Other.ReferencerProxy.AddWeak(); // -2
+			Other.ReferencerProxy.RemoveShared(); // -1
 		}
 		
-		Referencer.RemoveWeak(); // 1
-		Referencer = Other.Referencer; // 2
+		ReferencerProxy.RemoveWeak(); // 1
+		ReferencerProxy = Other.ReferencerProxy; // 2
 		
-		Other.Referencer.Set(nullptr); // 3
+		Other.ReferencerProxy.Set(nullptr); // 3
 	}
 
 private: // Fields
 
-	mutable NSharedInternals::SReferencerProxy Referencer;
+	mutable NSharedInternals::SReferencerProxy ReferencerProxy;
 
 private: // Friend class
 
