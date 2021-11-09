@@ -62,6 +62,7 @@ public: // Validation
 public: // Getters
 
 	FORCEINLINE ObjectType* Get() const { return ReferencerProxy.IsValid() ? ReferencerProxy->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType& GetRef() const { return *Get(); }
 	
 public: // Other
 
@@ -187,6 +188,7 @@ public: // Validity
 public: // Getters
 
 	FORCEINLINE ObjectType* Get() const { return ReferencerProxy.IsValid() ? ReferencerProxy->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType& GetRef() const { return *Get(); }
 	
 public: // Other
 
