@@ -9,10 +9,7 @@
 // * applies array-to-pointer and function-to-pointer conversions.
 
 template<typename T>
-struct TDecay
-{
-	typedef typename NTypeTraitsInternals::TDecayHelper<typename TRemoveReference<T>::Type>::Type Type;
-};
+struct TDecay { typedef typename NTypeTraitsInternals::TDecayHelper<typename TRemoveReference<T>::Type>::Type Type; };
 
 // [Choose]
 // * Chooses between two different types based on a value
@@ -65,6 +62,12 @@ template<typename T> struct TIsSame<T, T> { enum { Value = true }; };
 template<typename T, typename R>
 struct TIsCastable { enum { Value = TIsDerivedFrom<T, R>::Value || TIsDerivedFrom<R, T>::Value }; };
 
+// [Get Nth type]
+// * Gets Nth type from parameter pack
+
+template<uint32 N, typename T, typename... ArgTypes> struct TGetNthType { typedef typename TGetNthType<N - 1, ArgTypes...>::Type Type; };
+template<typename T, typename... ArgTypes> struct TGetNthType<0, T, ArgTypes...> { typedef T Type; };
+
 // [Move]
 // * Indicates that an specific object may be "moved from"
 
@@ -80,8 +83,15 @@ FORCEINLINE typename TRemoveReference<T>::Type& Forward(T& Obj) { return Obj; }
 template<typename T>
 FORCEINLINE typename TRemoveReference<T>::Type&& Forward(T&& Obj) { return Obj; }
 
-// [DeclVal]
+// [Decl Val]
 // * Converts to a reference type, making it possible to use member functions in decltype expressions without the need to go through constructors.
 
 template<typename T>
 typename TRemoveReference<T>::Type&& DeclVal();
+
+// [Size Of]
+// * Returns size of specific type
+// * Is only wrapper around sizeof(T)
+
+template<typename T>
+uint32 TSizeOf() { return sizeof(T); }

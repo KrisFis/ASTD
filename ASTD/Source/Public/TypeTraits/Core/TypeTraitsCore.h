@@ -73,9 +73,43 @@ template<typename T> struct TRemovePointer { typedef T Type; };
 template<typename T> struct TRemovePointer<T*> { typedef T Type; };
 template<typename T> struct TRemovePointer<const T*> { typedef T Type; };
 
-// [Floating Type]
+// [Is Array Type]
+// * Checks whether specific type is array type
+
+template<typename T> struct TIsArrayType { enum { Value = false }; };
+template<typename T> struct TIsArrayType<T[]> { enum { Value = true }; };
+template<typename T, uint32 N> struct TIsArrayType<T[N]> { enum { Value = true }; };
+
+// [Is Bool Type]
+// * Checks whether specific type is bool type
+
+template<typename T> struct TIsBoolType { enum { Value = false }; };
+template<> struct TIsBoolType<bool> { enum { Value = true }; };
+
+// [Is Floating Type]
 // * Checks whether specific type is floating type
+// * Floating types are: float, double
 
 template<typename T> struct TIsFloatingType { enum { Value = false }; };
 template<> struct TIsFloatingType<float> { enum { Value = true }; };
 template<> struct TIsFloatingType<double> { enum { Value = true }; };
+
+// [Is Integer Type]
+// * Checks whether specific type is integer type
+// * Integer types are: int8, int16, int32, int64, uint8, uint16, uint32, uint64
+
+template<typename T> struct TIsIntegerType { enum { Value = false }; };
+template<> struct TIsIntegerType<int8> { enum { Value = true }; };
+template<> struct TIsIntegerType<int16> { enum { Value = true }; };
+template<> struct TIsIntegerType<int32> { enum { Value = true }; };
+template<> struct TIsIntegerType<int64> { enum { Value = true }; };
+template<> struct TIsIntegerType<uint8> { enum { Value = true }; };
+template<> struct TIsIntegerType<uint16> { enum { Value = true }; };
+template<> struct TIsIntegerType<uint32> { enum { Value = true }; };
+template<> struct TIsIntegerType<uint64> { enum { Value = true }; };
+
+// [Is Primitive Type]
+// * Checks whether specific type is primitive type
+// * Primitive types are: array type, floating type, integer type, bool type
+
+template<typename T> struct TIsPrimitiveType { enum { Value = TIsArrayType<T>::Value || TIsFloatingType<T>::Value || TIsIntegerType<T>::Value || TIsBoolType<T>::Value }; };

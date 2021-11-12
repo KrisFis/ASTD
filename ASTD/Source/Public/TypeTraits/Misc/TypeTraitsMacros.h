@@ -2,16 +2,63 @@
 #pragma once
 
 #include "TypeTraitsCore.h"
+#include "PlatformMacros.h"
 
-#define DECLARE_HAS_METHOD_TRAIT(InMethodName, InMethodCall)																	\
+////////////////////////////////////////////////////////
+// VARIADIC ITERATOR TRAIT
+// * Iterates through var args and calls method with each type
+// * Iterates from the very last var type to first var type
+// * !!ONLY STATIC METHODS!! for now
+// * @param1 -> Name of iterator
+// * @param2 -> Return value
+// * @param3 -> Operator to use between each iteration
+// * @param4 -> Method name to call
+// * @param... -> Values to pass to call
+// * Example usage:
+// **
+// ** DECLARE_VARIADIC_ITERATOR_RET_TRAIT(FMyVarIterator, uint32, *, MyMethod)
+// **
+// ** template<typename T> uint32 MyMethod() { /* implementation dependent to T */ }
+// ** template<typename... MyArgs> void CalculateMyMethodResults() { uint32 result = EXECUTE_VARIADIC_ITERATOR_TRAIT(FMyVarIterator, MyArgs); }
+// **
+////////////////////////////////////////////////////////
+
+#define EXECUTE_VARIADIC_ITERATOR_TRAIT(DeclareName, VarTypesName) DeclareName<sizeof...(VarTypesName)-1, VarTypesName...>::Execute()
+
+#define DECLARE_VARIADIC_ITERATOR_RET_TRAIT(DeclareName, RetType, Operator, InMethodName)										\
+	template<uint32 N, typename T, typename... A>																				\
+	struct DeclareName 																											\
+	{																															\
+	public:																														\
+																																\
+		FORCEINLINE static RetType Execute() { return InMethodName<T>() Operator DeclareName<N-1, A...>::Execute(); }			\
+																																\
+	};																															\
+																																\
+	template<typename T, typename... A>																							\
+	struct DeclareName<0, T, A...> 																								\
+	{																															\
+	public:																														\
+																																\
+		FORCEINLINE static RetType Execute() { return InMethodName<T>(); }														\
+																																\
+	};
+
+#define DECLARE_VARIADIC_ITERATOR_TRAIT(DeclareName, InMethodName) DECLARE_VARIADIC_ITERATOR_RET_TRAIT(DeclareName, void, ;, InMethodName)
+
+////////////////////////////////////////////////////////
+// TODO(kristian.fisera): BETTER IMPLEMENTATION
+////////////////////////////////////////////////////////
+
+#define DECLARE_HAS_METHOD_TRAIT(DeclareName, MethodCall)																		\
 	template <typename CheckType>																								\
-	struct THas ## InMethodName ## Method																						\
+	struct DeclareName																											\
 	{																															\
 	private:																													\
 																																\
 		typedef typename TDecay<CheckType>::Type PureType;																		\
 																																\
-		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(DeclVal<TestType>().InMethodCall)>;	\
+		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(DeclVal<TestType>().MethodCall)>;		\
 																																\
 		template<typename> static auto TestHasMethod(int64)->TConstBool<false>;													\
 																																\
@@ -22,15 +69,15 @@
 		static constexpr bool = Value = FGetTestValue<PureType>::Value;															\
 	};
 
-#define DECLARE_HAS_FIELD_TRAIT(InFieldName)																					\
+#define DECLARE_HAS_FIELD_TRAIT(DeclareName, FieldName)																			\
 	template <typename CheckType>																								\
-	struct THas ## InFieldName ## Field																							\
+	struct DeclareName																											\
 	{																															\
 	private:																													\
 																																\
 		typedef typename TDecay<CheckType>::Type PureType;																		\
 																																\
-		template<typename TestType> static auto TestHasField(int32)->TTrueValue<decltype(&TestType::InFieldName)>;				\
+		template<typename TestType> static auto TestHasField(int32)->TTrueValue<decltype(&TestType::FieldName)>;				\
 																																\
 		template<typename> static auto TestHasField(int64)->TConstBool<false>;													\
 																																\
