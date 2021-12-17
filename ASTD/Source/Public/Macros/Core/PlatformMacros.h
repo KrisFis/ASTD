@@ -21,7 +21,12 @@
 	#define FORCENOINLINE __attribute__ ((noinline))
 	#define FORCEINLINE_DEBUGGABLE inline
 	
-	#define DEBUG_BREAK() asm { int 3 }
+#if __has_builtin(__builtin_debugtrap)
+	#define DEBUG_BREAK() __builtin_debugtrap()
+#else
+	#define DEBUG_BREAK() throw
+	//#define DEBUG_BREAK() asm { int3 }
+#endif
 
 #else
 
