@@ -17,7 +17,7 @@
 	
 #elif COMPILER_GNUC
 
-	#define FORCEINLINE __attribute__ ((always_inline))
+	#define FORCEINLINE __attribute__ ((always_inline)) inline
 	#define FORCENOINLINE __attribute__ ((noinline))
 	#define FORCEINLINE_DEBUGGABLE inline
 	

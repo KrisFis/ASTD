@@ -87,3 +87,4 @@
 																																\
 		static constexpr bool = Value = FGetTestValue<PureType>::Value;															\
 	};
+	
