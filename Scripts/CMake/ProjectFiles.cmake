@@ -14,6 +14,8 @@ set(${DIRECTORIES}
     "${CURRENT_DIR}/../../ASTD/Source/Public/TypeTraits"
     "${CURRENT_DIR}/../../ASTD/Source/Public/TypeTraits/Core"
     "${CURRENT_DIR}/../../ASTD/Source/Public/TypeTraits/Misc"
+    "${CURRENT_DIR}/../../ASTD/Source/Public/Utils"
+    "${CURRENT_DIR}/../../ASTD/Source/Public/Utils/Misc"
     PARENT_SCOPE)
 
 endfunction()

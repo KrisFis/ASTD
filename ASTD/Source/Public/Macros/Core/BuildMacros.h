@@ -38,21 +38,21 @@
 
 // Architecture
 // * Supported: 64, 32
-// * Example: ARCH_64
+// * Example: ARCHITECTURE_64
 
 #if defined(_MSC_VER)
 	#if defined(_WIN64)
-		#define ARCH_64 1
+		#define ARCHITECTURE_64 1
 	#elif defined(_WIN32)
-		#define ARCH_32 1
+		#define ARCHITECTURE_32 1
 	#else
 		#error "Unsupported architecture of MSVC"
 	#endif
 #elif defined(__GNUC__)
 	#if defined(__i386__)
-		#define ARCH_32 1
+		#define ARCHITECTURE_32 1
 	#elif defined(__x86_64__) || defined(__aarch64__)
-		#define ARCH_64 1
+		#define ARCHITECTURE_64 1
 	#else
 		#error "Unsupported architecture of GNU C" 
 	#endif
