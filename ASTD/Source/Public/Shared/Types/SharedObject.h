@@ -24,7 +24,7 @@ public: // Typedefs
 public: // Constructor
 
 	FORCEINLINE TSharedPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE explicit TSharedPtr(NSharedInternals::CReferencerBase* InReferencer) : ReferencerProxy(InReferencer) { ReferencerProxy.AddShared(); }
+	FORCEINLINE TSharedPtr(NSharedInternals::CReferencerBase& InProxy) : ReferencerProxy(&InProxy) { ReferencerProxy.AddShared(); }
 
 public: // Copy/Move constructors [SharedPtr]
 	
@@ -35,9 +35,17 @@ public: // Destructor
 
 	FORCEINLINE ~TSharedPtr() { Reset(); }
 	
+public: // Cast operators
+
+	template<typename OtherT, typename TEnableIf<TIsCastable<T, OtherT>::Value>::Type* = nullptr>
+	FORCEINLINE operator TSharedPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TSharedPtr<OtherT>(*ReferencerProxy) : nullptr; }
+	
+	template<typename OtherT, typename TEnableIf<!TIsCastable<T, OtherT>::Value>::Type* = nullptr>
+	FORCEINLINE operator TSharedPtr<OtherT>() const { static_assert(false, "Unrelated types for casting"); }
+
 public: // Comparison operators [SharedPtr]
 
-	FORCEINLINE bool operator==(const SharedType& Other) const { return ReferencerProxy.Get() == Other.ReferencerProxy.Get(); }
+	FORCEINLINE bool operator==(const SharedType& Other) const { return ReferencerProxy == Other.ReferencerProxy; }
 	FORCEINLINE bool operator!=(const SharedType& Other) const { return !operator==(Other); }
 
 public: // Assignment operators
@@ -111,15 +119,6 @@ private: // Friends
 
 	template<typename OtherT> friend class TSharedPtr;
 	template<typename OtherT> friend class TWeakPtr;
-
-	template<typename R, typename... ArgTypes>
-	friend TSharedPtr<R> MakeShared(ArgTypes&&... Args);
-	
-	template<typename R, typename W>
-	friend TSharedPtr<W> MakeShareable(R* Instance);
-
-	template<typename R, typename W>
-	friend TSharedPtr<R> CastShared(const TSharedPtr<W>& From);
 };
 
 // Equivalent of std's weak_ptr
@@ -136,6 +135,7 @@ public: // Typedefs
 public: // Constructors
 
 	FORCEINLINE TWeakPtr(NSharedInternals::SNullType* = nullptr) {}
+	FORCEINLINE TWeakPtr(NSharedInternals::SReferencerProxy& InProxy) : ReferencerProxy(*InProxy) { ReferencerProxy.AddWeak();}
 
 public: // Copy/Move constructors [WeakPtr]
 
@@ -151,14 +151,22 @@ public: // Destructor
 
 	FORCEINLINE ~TWeakPtr() { Reset(); }
 
+public: // Cast operators
+
+	template<typename OtherT, typename TEnableIf<TIsCastable<T, OtherT>::Value>::Type* = nullptr>
+	FORCEINLINE operator TWeakPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TWeakPtr<OtherT>(*ReferencerProxy) : nullptr; }
+	
+	template<typename OtherT, typename TEnableIf<!TIsCastable<T, OtherT>::Value>::Type* = nullptr>
+	FORCEINLINE operator TWeakPtr<OtherT>() const { static_assert(false, "Unrelated types for casting"); }
+
 public: // Comparison operators [WeakPtr]
 
-	FORCEINLINE bool operator==(const WeakType& Other) const	{ return ReferencerProxy.Get() == Other.ReferencerProxy.Get(); }
+	FORCEINLINE bool operator==(const WeakType& Other) const	{ return ReferencerProxy == Other.ReferencerProxy; }
 	FORCEINLINE bool operator!=(const WeakType& Other) const	{ return !operator==(Other); }
 	
 public: // Comparison operators [SharedPtr]
 	
-	FORCEINLINE bool operator==(const SharedType& Other) const	{ return ReferencerProxy.Get() == Other.ReferencerProxy.Get(); }
+	FORCEINLINE bool operator==(const SharedType& Other) const	{ return ReferencerProxy == Other.ReferencerProxy; }
 	FORCEINLINE bool operator!=(const SharedType& Other) const	{ return !operator==(Other); }
 	
 public: // Assignment operators
@@ -197,7 +205,7 @@ public: // Other
 	FORCEINLINE SharedType Pin() const
 	{
 		if (!IsValid()) return SharedType();
-		return SharedType(ReferencerProxy.Get());
+		return SharedType(ReferencerProxy);
 	}
 
 private: // Helper methods -> Replacing

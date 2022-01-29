@@ -151,8 +151,13 @@ namespace NSharedInternals
 			: Inner(InReferencer)
 		{}
 	
+	public: // Compare operators
+
+		FORCEINLINE bool operator==(const SReferencerProxy& Other) const { return Inner == Other.Inner; }
+		FORCEINLINE bool operator!=(const SReferencerProxy& Other) const { return !operator==(Other); }
+
 	public: // Pointer operators
-	
+
 		FORCEINLINE CReferencerBase* operator->() { return Get(); }
 		FORCEINLINE const CReferencerBase* operator->() const { return Get(); }
 		
