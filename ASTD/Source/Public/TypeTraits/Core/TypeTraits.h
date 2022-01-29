@@ -25,8 +25,7 @@ template<bool Value, typename TrueTrait, typename FalseTrait> struct TChooseDela
 template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<true, TrueTrait, FalseTrait> { typedef typename TrueTrait::Type Type; };
 template<typename TrueTrait, typename FalseTrait> struct TChooseDelayed<false, TrueTrait, FalseTrait> { typedef typename FalseTrait::Type Type; };
 
-
-// [Is Derived]
+// [Is Derived From]
 // * Checks whether specific type is derived from other type
 
 template<typename DerivedType, typename BaseType>
@@ -50,6 +49,12 @@ public: // Value
 	enum { Value = sizeof(Test(ChildPtr())) == sizeof(Yes) };
 };
 
+// [Is Base Of]
+// * Checks whether specific type is base of other type
+
+template<typename BaseType, typename DerivedType>
+struct TIsBaseOf : TIsDerivedFrom<DerivedType, BaseType> {};
+
 // [Is Same]
 // * Checks whether specified types are the same
 
@@ -60,7 +65,7 @@ template<typename T> struct TIsSame<T, T> { enum { Value = true }; };
 // * Checks whether specific types could be casted to each other
 
 template<typename T, typename R>
-struct TIsCastable { enum { Value = TIsDerivedFrom<T, R>::Value || TIsDerivedFrom<R, T>::Value }; };
+struct TIsCastable { enum { Value = TIsDerivedFrom<T, R>::Value || TIsBaseOf<T, R>::Value }; };
 
 // [Get Nth type]
 // * Gets Nth type from parameter pack
