@@ -4,13 +4,6 @@
 #include "ASTDCore.h"
 #include "SharedObjectInternals.h"
 
-// Forward declarations
-template<typename T>
-class TSharedPtr;
-
-template<typename T>
-class TWeakPtr;
-
 // Equivalent of std's shared_ptr
 template<typename T>
 class TSharedPtr
