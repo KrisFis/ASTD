@@ -37,11 +37,11 @@ public: // Destructor
 	
 public: // Cast operators
 
-	template<typename OtherT, typename TEnableIf<TIsCastable<T, OtherT>::Value>::Type* = nullptr>
+	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE operator TSharedPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TSharedPtr<OtherT>(*ReferencerProxy) : nullptr; }
 	
-	template<typename OtherT, typename TEnableIf<!TIsCastable<T, OtherT>::Value>::Type* = nullptr>
-	FORCEINLINE operator TSharedPtr<OtherT>() const { static_assert(false, "Unrelated types for casting"); }
+	template<typename OtherT, typename TEnableIf<TIsBaseOf<OtherT, T>::Value>::Type* = nullptr>
+	FORCEINLINE explicit operator TSharedPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TSharedPtr<OtherT>(*ReferencerProxy) : nullptr; }
 
 public: // Comparison operators [SharedPtr]
 
@@ -153,11 +153,11 @@ public: // Destructor
 
 public: // Cast operators
 
-	template<typename OtherT, typename TEnableIf<TIsCastable<T, OtherT>::Value>::Type* = nullptr>
+	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE operator TWeakPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TWeakPtr<OtherT>(*ReferencerProxy) : nullptr; }
 	
-	template<typename OtherT, typename TEnableIf<!TIsCastable<T, OtherT>::Value>::Type* = nullptr>
-	FORCEINLINE operator TWeakPtr<OtherT>() const { static_assert(false, "Unrelated types for casting"); }
+	template<typename OtherT, typename TEnableIf<TIsBaseOf<OtherT, T>::Value>::Type* = nullptr>
+	FORCEINLINE explicit operator TWeakPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TWeakPtr<OtherT>(*ReferencerProxy) : nullptr; }
 
 public: // Comparison operators [WeakPtr]
 
