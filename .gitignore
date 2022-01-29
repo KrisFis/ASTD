@@ -1,7 +1,10 @@
 
-# Solutions
+# Solutions cache
 .vs
 .idea
+
+# Solutions
+*.code-workspace
 
 # Binaries
 **/Binaries
