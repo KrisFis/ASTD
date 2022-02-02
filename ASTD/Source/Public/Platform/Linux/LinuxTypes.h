@@ -1,8 +1,32 @@
 
 #pragma once
 
-// TODO(kristian.fisera): Implement custom version of containers
+#include <stdint.h>
+
+// Integers
+////////////////////////////////////////////////
+
+typedef char int8;
+typedef unsigned char uint8;
+
+typedef short int16;
+typedef unsigned short uint16;
+
+typedef int int32;
+typedef unsigned int uint32;
+
+typedef long int64;
+typedef unsigned long uint64;
+
+// Characters
+////////////////////////////////////////////////
+
+typedef pchar char; // platform char
+
+// Containers
+// * TODO(kristian.fisera): Implement custom version of containers
 // * Remains: TFastMap, TMap, TFastSet, TSet, TArray, FString
+////////////////////////////////////////////////
 
 #include <unordered_map>
 #include <unordered_set>

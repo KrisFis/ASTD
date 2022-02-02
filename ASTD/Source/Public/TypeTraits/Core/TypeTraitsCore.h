@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "IntegerTypes.h"
+#include PLATFORM_HEADER(Types)
 
 // [Const bool]
 // * False and true type
