@@ -10,5 +10,6 @@
 
 #include "ASTDTypeTraits.h"
 #include "ASTDShared.h"
+#include "ASTDContainers.h"
 
 #include "ASTDUtilities.h"
