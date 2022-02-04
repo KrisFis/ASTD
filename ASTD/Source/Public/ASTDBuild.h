@@ -1,5 +1,5 @@
 
 #pragma once
 
-#include "Build/Build.h"
-#include "Build/Preprocessor.h"
+#include "Build/BuildDefinitions.h"
+#include "Build/PreprocessorHelpers.h"
