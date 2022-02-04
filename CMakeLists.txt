@@ -25,7 +25,7 @@ if(MSVC)
     add_link_options("/NODEFAULTLIB:MSVCRT")
 endif(MSVC)
 
-# Definitions
+# Outputs
 # -----------------------------------------------------------
 
 if(WIN32)
@@ -37,29 +37,38 @@ elseif(UNIX)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug)
-    set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-    add_definitions(-D_DEBUG=1)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug)
+	set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release)
-    set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
-    add_definitions(-D_RELEASE=1)
+	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release)
+	set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
 endif()
 
 # Includes
 # -----------------------------------------------------------
 
+include(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake/Configuration.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake/ProjectFiles.cmake)
 
-# Project Files
+# Definitions
 # -----------------------------------------------------------
 
-ASTD_file_public_directories(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_INCLUDE_DIRS)
+ASTD_definitions(${CMAKE_BUILD_TYPE} ALL_DEFINITIONS)
+
+add_definitions(${ALL_DEFINITIONS})
+
+# Sources
+# -----------------------------------------------------------
+
+ASTD_file_public_directories(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_PUBLIC_INCLUDE_DIRS)
+ASTD_file_private_directories(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_PRIVATE_INCLUDE_DIRS)
+
 ASTD_file_private_files(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_SOURCE_FILES)
 
-include_directories("${ALL_INCLUDE_DIRS}")
+include_directories("${ALL_PUBLIC_INCLUDE_DIRS}" "${ALL_PRIVATE_INCLUDE_DIRS}")
 
 # Executable and linking
 # -----------------------------------------------------------
 
 add_library(${PROJECT_NAME} "${ALL_SOURCE_FILES}")
+#add_executable(${PROJECT_NAME} "${ALL_SOURCE_FILES}")
