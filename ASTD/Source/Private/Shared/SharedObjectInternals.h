@@ -1,7 +1,8 @@
 
 #pragma once
 
-#include "ASTDCore.h"
+#include "ASTDPlatform.h"
+#include "ASTDUtilities.h"
 
 namespace NSharedInternals
 {

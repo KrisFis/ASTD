@@ -21,7 +21,7 @@ typedef unsigned long uint64;
 // Characters
 ////////////////////////////////////////////////
 
-typedef pchar char; // platform char
+typedef char pchar; // platform char
 
 // Containers
 // * TODO(kristian.fisera): Implement custom version of containers

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "TypeTraitsCore.h"
+#include "TypeTraits/TypeTraitsCore.h"
 
 namespace NTypeTraitsInternals
 {

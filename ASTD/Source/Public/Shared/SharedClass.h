@@ -1,10 +1,8 @@
 
 #pragma once
 
-#include "ASTDCore.h"
-
-#include "SharedClassInternals.h"
-#include "AlternityShared.h"
+#include "Shared/SharedClassInternals.h"
+#include "Shared/SharedObject.h"
 
 template<typename T>
 class TSharedClass
@@ -37,7 +35,7 @@ public: // External method
 	FORCEINLINE TSharedPtr<ChildType> AsShared()
 	{
 		ENSURE_RET(WeakThis.IsValid(), nullptr);
-		return CastShared<ChildType>(WeakThis.Pin());
+		return (TSharedPtr<ChildType>)WeakThis.Pin();
 	}
 
 public: // Private methods

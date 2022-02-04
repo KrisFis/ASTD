@@ -1,15 +1,8 @@
 
 #pragma once
 
-#include "ASTDCore.h"
-
-#include "SharedObject.h"
-#include "SharedObjectInternals.h"
-#include "SharedClassInternals.h"
-
-//////////////////////////////////////////////////
-// Utils
-//////////////////////////////////////////////////
+#include "Shared/SharedClass.h"
+#include "Shared/SharedObject.h"
 
 template<typename T, typename... ArgTypes>
 static TSharedPtr<T> MakeShared(ArgTypes&&... Args)

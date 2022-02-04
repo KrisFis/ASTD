@@ -1,8 +1,10 @@
 
 #pragma once
 
-#include "ASTDCore.h"
-#include "SharedObject.h"
+#include "ASTDPlatform.h"
+#include "ASTDTypeTraits.h"
+
+#include "Shared/SharedObject.h"
 
 // Forward declaration
 template<typename T> class TSharedClass;

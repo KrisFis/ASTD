@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include "TypeTraitsCore.h"
-#include "PlatformMacros.h"
+#include "TypeTraits/TypeTraitsCore.h"
 
 ////////////////////////////////////////////////////////
 // VARIADIC ITERATOR TRAIT

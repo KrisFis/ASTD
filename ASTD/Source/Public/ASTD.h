@@ -1,10 +1,14 @@
 
 #pragma once
 
-#include "ASTDCore.h"
+// Main PCH
+// * Should include all features and functionality of ASTD
+/////////////////////////////////////////
 
-#include "SharedClass.h"
-#include "SharedObject.h"
+#include "ASTDBuild.h"
+#include "ASTDPlatform.h"
 
-#include "AlternityShared.h"
-#include "AlternityUtils.h"
+#include "ASTDTypeTraits.h"
+#include "ASTDShared.h"
+
+#include "ASTDUtilities.h"

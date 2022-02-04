@@ -5,5 +5,6 @@
 
 #include <Windows.h>
 
+#include "WindowsDefinitions.h"
 #include "WindowsTypes.h"
 #include "WindowsTimeUtils.h"

@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include "ASTDCore.h"
-#include "SharedObjectInternals.h"
+#include "Shared/SharedObjectInternals.h"
 
 // Equivalent of std's shared_ptr
 template<typename T>
@@ -17,7 +16,7 @@ public: // Typedefs
 public: // Constructor
 
 	FORCEINLINE TSharedPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE TSharedPtr(NSharedInternals::CReferencerBase& InProxy) : ReferencerProxy(&InProxy) { ReferencerProxy.AddShared(); }
+	FORCEINLINE TSharedPtr(NSharedInternals::CReferencerBase& Referencer) : ReferencerProxy(&Referencer) { ReferencerProxy.AddShared(); }
 
 public: // Copy/Move constructors [SharedPtr]
 	
@@ -128,7 +127,7 @@ public: // Typedefs
 public: // Constructors
 
 	FORCEINLINE TWeakPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE TWeakPtr(NSharedInternals::SReferencerProxy& InProxy) : ReferencerProxy(*InProxy) { ReferencerProxy.AddWeak();}
+	FORCEINLINE TWeakPtr(NSharedInternals::CReferencerBase& Referencer) : ReferencerProxy(&Referencer) { ReferencerProxy.AddWeak();}
 
 public: // Copy/Move constructors [WeakPtr]
 

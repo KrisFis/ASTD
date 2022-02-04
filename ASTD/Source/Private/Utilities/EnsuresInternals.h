@@ -1,10 +1,11 @@
 
 #pragma once
 
+#include "ASTDBuild.h"
+#include "ASTDPlatform.h"
+
 #if DO_ENSURES
 
-	#include "PreprocessorMacros.h"
-	#include "PlatformMacros.h"
 	#include <iostream>
 
 	#define ENSURE_IMPL(expression, file, line, breakOnce) 													\
