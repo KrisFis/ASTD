@@ -3,7 +3,7 @@
 
 #include "WindowsTypes.h"
 
-namespace NPlatformTimeUtils
+namespace NTimeUtils
 {
 	static constexpr double MS_PER_SECOND = 10e2;
 	static constexpr double MICROS_PER_SECOND = 10e5;

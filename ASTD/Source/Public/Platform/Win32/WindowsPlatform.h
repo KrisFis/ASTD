@@ -8,3 +8,4 @@
 #include "WindowsDefinitions.h"
 #include "WindowsTypes.h"
 #include "WindowsTimeUtils.h"
+#include "WindowsMemory.h"
