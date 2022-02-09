@@ -1,16 +1,12 @@
 
 #pragma once
 
-#include "LinuxTypes.h"
+#include "Platform/Base/BaseTime.h"
 
 #include <time.h>
 
-namespace NTimeUtils
+struct SPlatformTime : public SBasePlatformTime
 {
-	static constexpr double MS_PER_SECOND = 10e2;
-	static constexpr double MICROS_PER_SECOND = 10e5;
-	static constexpr double NS_PER_SECOND = 10e8;
-
 	static double GetSecondsSinceEpoch()
 	{
 		timespec ts;
@@ -18,4 +14,4 @@ namespace NTimeUtils
 
 		return (double)ts.tv_sec + (double)ts.tv_nsec / NS_PER_SECOND;
 	}
-}
+};
