@@ -6,7 +6,7 @@
 // TODO(jan.kristian.fisera): Add custom implementations!
 #include <math.h>
 
-struct SBasePlatformMath
+struct SGenericPlatformMath
 {
 	template<typename T>
 	FORCEINLINE static T Min(T ValueA, T ValueB) { return ValueA > ValueB ? ValueB : ValueA; }

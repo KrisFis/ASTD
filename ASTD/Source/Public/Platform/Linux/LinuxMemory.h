@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Platform/Base/BaseMemory.h"
+#include "Platform/Generic/GenericMemory.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://linux.die.net/man/2/mmap
-typedef SBasePlatformMemory SPlatformMemory;
+typedef SGenericPlatformMemory SLinuxPlatformMemory;

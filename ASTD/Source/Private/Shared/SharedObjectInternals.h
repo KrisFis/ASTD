@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "ASTDPlatform.h"
-#include "ASTDUtilities.h"
+#include "Platform/PlatformTypes.h"
+#include "Utilities/Ensures.h"
 
 namespace NSharedInternals
 {

@@ -5,7 +5,7 @@
 
 #include "Platform/PlatformTypes.h"
 
-struct SBasePlatformMemory
+struct SGenericPlatformMemory
 {
 	template<typename T = void>
 	FORCEINLINE static T* Alloc(uint32 NumOfElements) { return (T*)malloc(sizeof(T)*NumOfElements); }
@@ -21,13 +21,13 @@ struct SBasePlatformMemory
 ////////////////////////////////////////////////////////////////////
 
 template<>
-FORCEINLINE void* SBasePlatformMemory::Alloc<void>(uint32 Size)
+FORCEINLINE void* SGenericPlatformMemory::Alloc<void>(uint32 Size)
 {
 	return malloc(Size);
 }
 
 template<>
-FORCEINLINE void* SBasePlatformMemory::AllocZeroed<void>(uint32 Size)
+FORCEINLINE void* SGenericPlatformMemory::AllocZeroed<void>(uint32 Size)
 {
 	return calloc(Size, sizeof(uint8));
 }

@@ -2,9 +2,9 @@
 #pragma once
 
 #include <Windows.h>
-#include "Platform/Base/BaseTime.h"
+#include "Platform/Generic/GenericTime.h"
 
-struct SPlatformTime : public SBasePlatformTime
+struct SWindowsPlatformTime : public SGenericPlatformTime
 {
 	static double GetSecondsSinceEpoch()
 	{
