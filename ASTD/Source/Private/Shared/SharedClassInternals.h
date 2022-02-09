@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "ASTDPlatform.h"
-#include "ASTDTypeTraits.h"
+#include "Platform/PlatformTypes.h"
+#include "TypeTraits/TypeTraits.h"
 
 #include "Shared/SharedObject.h"
 

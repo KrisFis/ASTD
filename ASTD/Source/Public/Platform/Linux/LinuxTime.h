@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "Platform/Base/BaseTime.h"
+#include "Platform/Generic/GenericTime.h"
 
 #include <time.h>
 
-struct SPlatformTime : public SBasePlatformTime
+struct SLinuxPlatformTime : public SGenericPlatformTime
 {
 	static double GetSecondsSinceEpoch()
 	{

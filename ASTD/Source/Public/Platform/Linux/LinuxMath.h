@@ -1,6 +1,6 @@
 
 #pragma once
 
-#include "Platform/Base/BaseMath.h"
+#include "Platform/Generic/GenericMath.h"
 
-typedef SBasePlatformMath SPlatformMath;
+typedef SGenericPlatformMath SLinuxPlatformMath;

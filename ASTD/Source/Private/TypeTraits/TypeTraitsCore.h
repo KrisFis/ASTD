@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "ASTDPlatform.h"
+#include "Platform/PlatformTypes.h"
 
 // [Const bool]
 // * False and true type

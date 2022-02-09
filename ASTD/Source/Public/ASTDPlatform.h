@@ -3,6 +3,7 @@
 
 #include "Platform/PlatformDefinitions.h"
 
-#include PLATFORM_HEADER(Types)
-#include PLATFORM_HEADER(Memory)
-#include PLATFORM_HEADER(Math)
+#include "Platform/PlatformTypes.h"
+#include "Platform/PlatformMath.h"
+#include "Platform/PlatformMemory.h"
+#include "Platform/PlatformTime.h"
