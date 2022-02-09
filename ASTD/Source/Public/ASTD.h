@@ -28,5 +28,8 @@
 // Utilities
 #include "Utilities/Ensures.h"
 
+// Math
+#include "Math/MathUtilities.h"
+
 // Containers
 #include "Containers/ContainerTypes.h"

@@ -16,3 +16,6 @@
 
 #define PLATFORM_HEADER(name) STRINGIFY(Platform/Linux/Linux ## name.h)
 #define PLATFORM_STRUCT(name) SLinuxPlatform ## name
+
+#define DLL_EXPORT
+#define DLL_IMPORT

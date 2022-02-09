@@ -13,3 +13,6 @@
 
 #define PLATFORM_HEADER(name) STRINGIFY(Platform/Win32/Windows ## name.h)
 #define PLATFORM_STRUCT(name) SWindowsPlatform ## name
+
+#define DLL_EXPORT __declspec(dllexport)
+#define DLL_IMPORT __declspec(dllimport)
