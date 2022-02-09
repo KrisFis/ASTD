@@ -1,8 +1,7 @@
 
 #pragma once
 
-#include "ASTDBuild.h"
-#include "ASTDPlatform.h"
+#include "Platform/PlatformDefinitions.h"
 
 #if DO_ENSURES
 
