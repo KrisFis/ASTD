@@ -4,48 +4,28 @@
 #include "Memory/Allocator/AllocatorBase.h"
 #include "Memory/MemoryUtilities.h"
 
+// Very primitive allocator, that allocates memory
+// * Does a lot of fragmentation
+// * Does NOT hold reference to any memory block
 template<typename T>
-class TInlineAllocator : public TAllocatorBase<T>
+class TPrimitiveAllocator : public TAllocatorBase<T>
 {
 
 public: // Typedefs
 
 	typedef typename TAllocatorBase<T>::ElementType ElementType;
 
-public: // Constructor
-
-	FORCEINLINE TInlineAllocator() : Data(nullptr), Count(0) {}
-	FORCEINLINE virtual ~TInlineAllocator() override
-	{
-		if(Data)
-		{
-			SMemory::DeallocateTyped(Data, Count);
-			Data = nullptr;
-		}
-	}
-
 public: // TAllocatorBase overrides
 
 	FORCEINLINE virtual ElementType* Allocate(uint32 Num) override
 	{
 		// NOTE(jan.kristian.fisera): Unmanaged memory raise in allocations
-		ElementType* newData = SMemory::AllocateTyped<ElementType>(Count + Num);
-		if(Data)
-		{
-			SMemory::MemoryMoveTyped(newData, Data, Count);
-			SMemory::DeallocateTyped(Data, Count);
-		}
-
-		Data = newData;
-		Count += Num;
-
-		return Data + Count;
+		return SMemory::AllocateTyped<ElementType>(Num);
 	}
 
 	FORCEINLINE virtual void Deallocate(ElementType* Ptr, uint32 Num) override
 	{
-		// Allocation is kept
-		// SMemory::DeallocateTyped(Ptr, Num);
+		SMemory::DeallocateTyped(Ptr, Num);
 	}
 
 	FORCEINLINE virtual void Construct(ElementType* Ptr, const ElementType& Value) override
@@ -57,9 +37,4 @@ public: // TAllocatorBase overrides
 	{
 		Ptr->~ElementType();
 	}
-
-private: // Fields
-
-	ElementType* Data;
-	uint32 Count;
 };

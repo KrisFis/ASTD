@@ -31,6 +31,7 @@
 // Memory
 #include "Memory/MemoryUtilities.h"
 #include "Memory/Allocator/AllocatorBase.h"
+#include "Memory/Allocator/PrimitiveAllocator.h"
 #include "Memory/Allocator/InlineAllocator.h"
 
 // Containers

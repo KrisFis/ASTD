@@ -17,9 +17,6 @@ public: // Destructor
 
 public: // Interface
 
-	virtual void* GetData() const = 0;
-	virtual uint32 GetCount() const = 0;
-
 	virtual ElementType* Allocate(uint32 Num) = 0;
 	virtual void Deallocate(ElementType* Ptr, uint32 Num) = 0;
 
