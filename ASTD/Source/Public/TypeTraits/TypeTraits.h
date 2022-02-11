@@ -100,3 +100,8 @@ typename TRemoveReference<T>::Type&& DeclVal();
 
 template<typename T>
 uint32 TSizeOf() { return sizeof(T); }
+
+// [Size]
+// * Gets size without need of std
+
+typedef decltype(sizeof(0)) TSize;
