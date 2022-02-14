@@ -55,7 +55,7 @@ public: // Manipulation
 			Tail = newNode;
 		}
 
-		Tail->Next = Head;
+		Tail->Next = nullptr;
 
 		return &Tail->Value;
 	}
@@ -66,13 +66,12 @@ public: // Manipulation
 		{
 			ElementNode* currentNode = Head;
 
-			do
+			while(currentNode != nullptr)
 			{
 				ElementNode* nextNode = currentNode->Next;
 				SMemory::DeallocateTyped(currentNode);
 				currentNode = nextNode;
 			}
-			while(currentNode != Head);
 
 			Head = nullptr;
 			Tail = nullptr;
