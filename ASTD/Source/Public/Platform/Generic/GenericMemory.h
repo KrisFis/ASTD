@@ -2,32 +2,18 @@
 #pragma once
 
 #include <malloc.h>
+#include <memory.h>
 
+#include "TypeTraits/TypeTraits.h"
 #include "Platform/PlatformTypes.h"
 
 struct SGenericPlatformMemory
 {
-	template<typename T = void>
-	FORCEINLINE static T* Alloc(uint32 NumOfElements) { return (T*)malloc(sizeof(T)*NumOfElements); }
+	FORCEINLINE static void* Allocate(TSize Size) { return malloc(Size); }
+	FORCEINLINE static void* AllocateZeroed(TSize Size) { return calloc(Size, sizeof(uint8)); }
 
-	template<typename T = void>
-	FORCEINLINE static T* AllocZeroed(uint32 NumOfElements) { return (T*)calloc(NumOfElements, sizeof(T));	}
-	
-	template<typename T = void>
-	FORCEINLINE static void Dealoc(T* Pointer) { return free(Pointer); }
+	FORCEINLINE static void Deallocate(void* Ptr, TSize Size) { return free(Ptr); }
+
+	FORCEINLINE static void* MemoryCopy(void* Destination, void* Source, TSize Size) { return memcpy(Destination, Source, Size); }
+	FORCEINLINE static void* MemoryMove(void* Destination, void* Source, TSize Size) { return memmove(Destination, Source, Size); }
 };
-
-// Template specializations
-////////////////////////////////////////////////////////////////////
-
-template<>
-FORCEINLINE void* SGenericPlatformMemory::Alloc<void>(uint32 Size)
-{
-	return malloc(Size);
-}
-
-template<>
-FORCEINLINE void* SGenericPlatformMemory::AllocZeroed<void>(uint32 Size)
-{
-	return calloc(Size, sizeof(uint8));
-}
