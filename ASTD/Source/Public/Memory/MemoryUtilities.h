@@ -2,27 +2,24 @@
 #pragma once
 
 #include "Build/BuildDefinitions.h"
+#include "TypeTraits/TypeMethods.h"
 #include "TypeTraits/TypeTraits.h"
 #include "Platform/PlatformMemory.h"
 
-// Allocation info
+// Helpers
 ///////////////////////////////////////////////////////////
 
-#if BUILD_DEBUG
-
-void* operator new(TSize Size) 
+template<typename ElementType, typename... ArgTypes>
+FORCEINLINE void CallConstructor(ElementType* Object, ArgTypes... Args)
 {
-	std::cout << "Allocated memory of size [" << Size << "]\n";
-	return ::operator new(Size);
+	::new((void*)Object) ElementType(Forward<ArgTypes>(Args)...);
 }
 
-void operator delete(void* Ptr, TSize Size) noexcept
+template<typename ElementType>
+FORCEINLINE void CallDestructor(ElementType* Object)
 {
-	std::cout << "Deallocated memory of size [" << Size << "]\n";
-	::operator delete(Ptr, Size);
+	Object->~ElementType();
 }
-
-#endif // BUILD_DEBUG
 
 // Types
 ///////////////////////////////////////////////////////////
@@ -31,21 +28,21 @@ struct SMemory : public SPlatformMemory
 {
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
 	FORCEINLINE static T* AllocateTyped(uint32 Count) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::Allocate(TSizeOf<T>() * Count)); }
+	{ return reinterpret_cast<T*>(SPlatformMemory::Allocate(SizeOf<T>() * Count)); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
 	FORCEINLINE static T* AllocateZeroedTyped(uint32 Count) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::AllocateZeroed(TSizeOf<T>() * Count)); }
+	{ return reinterpret_cast<T*>(SPlatformMemory::AllocateZeroed(SizeOf<T>() * Count)); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
 	FORCEINLINE static void DeallocateTyped(T* Ptr, uint32 Count)
-	{ SPlatformMemory::Deallocate(Ptr, TSizeOf<T>() * Count); }
+	{ SPlatformMemory::Deallocate(Ptr, SizeOf<T>() * Count); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
 	FORCEINLINE static T* MemoryCopyTyped(T* Destination, T* Source, uint32 Num) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryCopy(Destination, Source, TSizeOf<T>() * Num)); }
+	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryCopy(Destination, Source, SizeOf<T>() * Num)); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
 	FORCEINLINE static T* MemoryMoveTyped(T* Destination, T* Source, uint32 Num) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryMove(Destination, Source, TSizeOf<T>() * Num)); }
+	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryMove(Destination, Source, SizeOf<T>() * Num)); }
 };

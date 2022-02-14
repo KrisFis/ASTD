@@ -17,6 +17,7 @@
 #include "Platform/PlatformTime.h"
 
 // TypeTraits
+#include "TypeTraits/TypeMethods.h"
 #include "TypeTraits/TypeTraits.h"
 #include "TypeTraits/TypeTraitsMacros.h"
 
@@ -30,7 +31,6 @@
 
 // Memory
 #include "Memory/MemoryUtilities.h"
-#include "Memory/Allocator/AllocatorBase.h"
 #include "Memory/Allocator/PrimitiveAllocator.h"
 #include "Memory/Allocator/InlineAllocator.h"
 

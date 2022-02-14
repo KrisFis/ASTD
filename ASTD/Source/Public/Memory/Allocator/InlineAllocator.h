@@ -1,21 +1,20 @@
 
 #pragma once
 
-#include "Memory/Allocator/AllocatorBase.h"
 #include "Memory/MemoryUtilities.h"
 
 template<typename T>
-class TInlineAllocator : public TAllocatorBase<T>
+class TInlineAllocator
 {
 
 public: // Typedefs
 
-	typedef typename TAllocatorBase<T>::ElementType ElementType;
+	typedef T ElementType;
 
 public: // Constructor
 
 	FORCEINLINE TInlineAllocator() : Data(nullptr), Count(0) {}
-	FORCEINLINE virtual ~TInlineAllocator() override
+	FORCEINLINE ~TInlineAllocator()
 	{
 		if(Data)
 		{
@@ -23,12 +22,16 @@ public: // Constructor
 			Data = nullptr;
 		}
 	}
+	
+public: // Getters
 
-public: // TAllocatorBase overrides
+	FORCEINLINE ElementType* GetData() const { return Data; }
+	FORCEINLINE uint32 GetCount() const { return Count; }
 
-	FORCEINLINE virtual ElementType* Allocate(uint32 Num) override
+public: // Elements manipulation
+
+	FORCEINLINE ElementType* Allocate(uint32 Num)
 	{
-		// NOTE(jan.kristian.fisera): Unmanaged memory raise in allocations
 		ElementType* newData = SMemory::AllocateTyped<ElementType>(Count + Num);
 		if(Data)
 		{
@@ -40,22 +43,6 @@ public: // TAllocatorBase overrides
 		Count += Num;
 
 		return Data + Count;
-	}
-
-	FORCEINLINE virtual void Deallocate(ElementType* Ptr, uint32 Num) override
-	{
-		// Allocation is kept
-		// SMemory::DeallocateTyped(Ptr, Num);
-	}
-
-	FORCEINLINE virtual void Construct(ElementType* Ptr, const ElementType& Value) override
-	{
-		::new((void*)Ptr) ElementType(Value);
-	}
-
-	FORCEINLINE virtual void Destruct(ElementType* Ptr) override
-	{
-		Ptr->~ElementType();
 	}
 
 private: // Fields
