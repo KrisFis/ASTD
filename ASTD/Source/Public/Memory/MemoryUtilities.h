@@ -9,17 +9,20 @@
 // Helpers
 ///////////////////////////////////////////////////////////
 
-template<typename ElementType, typename... ArgTypes>
-FORCEINLINE void CallConstructor(ElementType* Object, ArgTypes... Args)
+struct SMemoryUtils
 {
-	::new((void*)Object) ElementType(Forward<ArgTypes>(Args)...);
-}
+	template<typename ElementType, typename... ArgTypes>
+	FORCEINLINE static void CallConstructor(ElementType* Object, ArgTypes... Args)
+	{
+		::new((void*)Object) ElementType(Forward<ArgTypes>(Args)...);
+	}
 
-template<typename ElementType>
-FORCEINLINE void CallDestructor(ElementType* Object)
-{
-	Object->~ElementType();
-}
+	template<typename ElementType>
+	FORCEINLINE static void CallDestructor(ElementType* Object)
+	{
+		Object->~ElementType();
+	}
+};
 
 // Types
 ///////////////////////////////////////////////////////////
@@ -27,15 +30,15 @@ FORCEINLINE void CallDestructor(ElementType* Object)
 struct SMemory : public SPlatformMemory
 {
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static T* AllocateTyped(uint32 Count) 
+	FORCEINLINE static T* AllocateTyped(uint32 Count = 1) 
 	{ return reinterpret_cast<T*>(SPlatformMemory::Allocate(SizeOf<T>() * Count)); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static T* AllocateZeroedTyped(uint32 Count) 
+	FORCEINLINE static T* AllocateZeroedTyped(uint32 Count = 1) 
 	{ return reinterpret_cast<T*>(SPlatformMemory::AllocateZeroed(SizeOf<T>() * Count)); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static void DeallocateTyped(T* Ptr, uint32 Count)
+	FORCEINLINE static void DeallocateTyped(T* Ptr, uint32 Count = 1)
 	{ SPlatformMemory::Deallocate(Ptr, SizeOf<T>() * Count); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>

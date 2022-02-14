@@ -14,23 +14,16 @@ public: // Typedefs
 public: // Constructor
 
 	FORCEINLINE TInlineAllocator() : Data(nullptr), Count(0) {}
-	FORCEINLINE ~TInlineAllocator()
-	{
-		if(Data)
-		{
-			SMemory::DeallocateTyped(Data, Count);
-			Data = nullptr;
-		}
-	}
+	FORCEINLINE ~TInlineAllocator() { Reset(); }
 	
 public: // Getters
 
 	FORCEINLINE ElementType* GetData() const { return Data; }
 	FORCEINLINE uint32 GetCount() const { return Count; }
 
-public: // Elements manipulation
+public: // Manipulation
 
-	FORCEINLINE ElementType* Allocate(uint32 Num)
+	ElementType* Allocate(uint32 Num)
 	{
 		ElementType* newData = SMemory::AllocateTyped<ElementType>(Count + Num);
 		if(Data)
@@ -43,6 +36,16 @@ public: // Elements manipulation
 		Count += Num;
 
 		return Data + Count;
+	}
+
+	void Reset()
+	{
+		if(Data)
+		{
+			SMemory::DeallocateTyped(Data, Count);
+			Data = nullptr;
+			Count = 0;
+		}
 	}
 
 private: // Fields
