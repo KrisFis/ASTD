@@ -27,7 +27,7 @@ public: // Manipulation
 	FORCEINLINE void* Allocate(uint32 ElementSize, uint32 Num)
 	{
 		ENSURE_RET(((Allocator.GetSize() / ElementSize) + Num) <= InNumLimit, nullptr);
-		Allocator.Allocate(ElementSize, Num);
+		return Allocator.Allocate(ElementSize, Num);
 	}
 
 	FORCEINLINE void Reset() { Allocator.Reset(); }
