@@ -30,7 +30,8 @@ public: // Manipulation
 		return Allocator.Allocate(ElementSize, Num);
 	}
 
-	FORCEINLINE void Reset() { Allocator.Reset(); }
+	FORCEINLINE void Release() { Allocator.Release(); }
+	FORCEINLINE void Replace(void* InData, uint64 InSize) { Allocator.Replace(InData, InSize); }
 
 private: // Fields
 

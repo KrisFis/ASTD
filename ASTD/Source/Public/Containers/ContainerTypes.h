@@ -21,9 +21,6 @@ template<typename T, typename R>
 using TMap = std::map<T, R>;
 
 template<typename T>
-using TArray = std::vector<T>;
-
-template<typename T>
 using TFastSet = std::unordered_set<T>;
 
 template<typename T>

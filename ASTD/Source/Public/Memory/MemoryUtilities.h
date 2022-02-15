@@ -37,9 +37,9 @@ struct SMemory : public SPlatformMemory
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
 	FORCEINLINE static T* MemoryCopyTyped(T* Destination, T* Source, uint32 Num) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryCopy(Destination, Source, SizeOf<T>() * Num)); }
+	{ return reinterpret_cast<T*>(SPlatformMemory::Copy(Destination, Source, SizeOf<T>() * Num)); }
 
 	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
 	FORCEINLINE static T* MemoryMoveTyped(T* Destination, T* Source, uint32 Num) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryMove(Destination, Source, SizeOf<T>() * Num)); }
+	{ return reinterpret_cast<T*>(SPlatformMemory::Move(Destination, Source, SizeOf<T>() * Num)); }
 };

@@ -11,8 +11,11 @@ class CArrayAllocator
 public: // Constructor
 
 	FORCEINLINE CArrayAllocator() : Data(nullptr), Size(0) {}
-	FORCEINLINE ~CArrayAllocator() { Reset(); }
-	
+
+public: // Destructor
+
+	FORCEINLINE ~CArrayAllocator() { Release(); }
+
 public: // Operators
 
 	FORCEINLINE bool operator==(const CArrayAllocator& Other) { return Data == Other.Data; }
@@ -23,7 +26,7 @@ public: // Getters
 	// Gets allocated data
 	FORCEINLINE void* GetData() const { return Data; }
 
-	// Gets allocated memory size
+	// Gets allocated data size
 	FORCEINLINE uint64 GetSize() const { return Size; }
 
 public: // Manipulation
@@ -37,7 +40,7 @@ public: // Manipulation
 		void* newData = SMemory::Allocate(Size + (ElementSize * Num));
 		if(Data)
 		{
-			SMemory::MemoryMove(newData, Data, Size);
+			SMemory::Move(newData, Data, Size);
 			SMemory::Deallocate(Data, Size);
 		}
 
@@ -49,10 +52,9 @@ public: // Manipulation
 		return elementPtr;
 	}
 
-	// Resets instance
-	// * ie. Clears all caches
-	void Reset()
-	{
+	// Releases resources
+	void Release()
+	{	
 		if(Data)
 		{
 			SMemory::Deallocate(Data, Size);
@@ -61,6 +63,8 @@ public: // Manipulation
 			Size = 0;
 		}
 	}
+
+	FORCEINLINE void Replace(void* InData, uint64 InSize) { Data = InData; Size = InSize; }
 
 private: // Fields
 
