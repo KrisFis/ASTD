@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Platform/PlatformTypes.h"
+#include "Types/Types.h"
 
 // [Const bool]
 // * False and true type

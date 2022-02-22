@@ -21,25 +21,4 @@ struct SMemoryUtilities
 	}
 };
 
-struct SMemory : public SPlatformMemory
-{
-	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static T* AllocateTyped(uint32 Count = 1) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::Allocate(SizeOf<T>() * Count)); }
-
-	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static T* AllocateZeroedTyped(uint32 Count = 1) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::AllocateZeroed(SizeOf<T>() * Count)); }
-
-	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static void DeallocateTyped(T* Ptr, uint32 Count = 1)
-	{ SPlatformMemory::Deallocate(Ptr, SizeOf<T>() * Count); }
-
-	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static T* MemoryCopyTyped(T* Destination, T* Source, uint32 Num) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryCopy(Destination, Source, SizeOf<T>() * Num)); }
-
-	template<typename T, typename TEnableIf<!TIsSame<T, void>::Value>::Type* = nullptr>
-	FORCEINLINE static T* MemoryMoveTyped(T* Destination, T* Source, uint32 Num) 
-	{ return reinterpret_cast<T*>(SPlatformMemory::MemoryMove(Destination, Source, SizeOf<T>() * Num)); }
-};
+typedef SPlatformMemory SMemory;
