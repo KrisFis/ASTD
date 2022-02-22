@@ -1,13 +1,15 @@
 
 #pragma once
 
-#include "Platform/PlatformTypes.h"
+#include "Types/Types.h"
 #include "TypeTraits/TypeTraits.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Misc/ArrayPrivateUtils.h"
-#include "Containers/Array/Misc/ArrayPrivateTypeTraits.h"
 
+// TODO(jan.kristian.fisera): Implement
+// * Type traits
+// * Iterators
 template<typename InElementType, typename InAllocator = CArrayAllocator>
 class TArray
 {

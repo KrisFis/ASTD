@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Platform/PlatformTypes.h"
+#include "Types/Types.h"
 #include "TypeTraits/TypeTraits.h"
 
 #include "Shared/SharedObject.h"
