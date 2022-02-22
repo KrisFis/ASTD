@@ -3,7 +3,10 @@
 
 #include "Platform/PlatformTypes.h"
 #include "TypeTraits/TypeTraits.h"
+
 #include "Containers/Array/Allocator/ArrayAllocator.h"
+#include "Containers/Array/Misc/ArrayPrivateUtils.h"
+#include "Containers/Array/Misc/ArrayPrivateTypeTraits.h"
 
 template<typename InElementType, typename InAllocator = CArrayAllocator>
 class TArray
@@ -11,14 +14,16 @@ class TArray
 
 	static_assert(!TIsSame<InAllocator, void>::Value, "Invalid allocator type");
 
-public: // Typedefs
+private: // Setup
 
 	typedef InElementType ElementType;
 	typedef InAllocator AllocatorType;
 
+	static constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
+
 public: // Constructors
 
-	FORCEINLINE TArray() : Allocator(), Count(0), Reserved(0) {}
+	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) { CopyFrom(Other); }
 	FORCEINLINE TArray(TArray&& Other) { MoveFrom(Move(Other)); }
 
@@ -26,121 +31,288 @@ public: // Destructor
 
 	~TArray() {}
 
+public: // Operators
+
+	TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
+	TArray& operator=(TArray&& Other) { MoveFrom(Move(Other)); return *this; }
+
+	ElementType& operator[](uint32 Index) { return *GetElementAtImpl(Index); }
+	const ElementType& operator[](uint32 Index) const { return *GetElementAtImpl(Index); }
+
 public: // Property getters
 
 	FORCEINLINE const ElementType* GetData() const { return GetDataImpl(); }
 	FORCEINLINE ElementType* GetData() { return GetDataImpl(); }
 
 	FORCEINLINE uint32 GetCount() const { return Count; }
-	FORCEINLINE uint32 GetReserved() const { return Reserved; }
+	FORCEINLINE uint32 GetReserved() const { return Allocator.GetCount(); }
 
 public: // Validations
 
 	FORCEINLINE bool IsValidIndex(uint32 Idx) const { return Idx < Count; }
 
-public: // Reservation
-
-	void Reserve(uint32 Num)
-	{
-		if(Num <= Reserved) return;
-		GrowToImpl(Num);
-	}
-	
 public: // Add
 
-	void Add(const ElementType&)
+	uint32 Add(const ElementType& Value)
 	{
-		// IMPLEMENT!
+		AddImpl(Value);
+		return Count - 1;
 	}
 
-	void Add(ElementType&&)
+	uint32 Add(ElementType&& Value)
 	{
-		// IMPLEMENT!
+		AddImpl(Move(Value));
+		return Count - 1;
 	}
 
-private: // Helpers -> Getters
-
-	FORCEINLINE ElementType* GetDataImpl() const { return (ElementType*)Allocator.GetData(); }
-	FORCEINLINE ElementType* GetElementAtImpl(uint32 Idx) const { return (ElementType*)Allocator.GetData() + Idx; }
-
-private: // Helpers -> Allocations
-
-	FORCEINLINE void GrowToImpl(uint32 Num) { GrowByImpl(Num - Reserved); }
-	FORCEINLINE void ShrinkToImpl(uint32 Num) { ShrinkByImpl(Reserved - Num); }
-
-	void GrowByImpl(uint32 Num)
+	FORCEINLINE ElementType& Add_GetRef(const ElementType& Value)
 	{
-		Allocator.Allocate(SizeOf<ElementType>(), Num);
-		Reserved += Num;
+		return *AddImpl(Value);
 	}
 
-	void ShrinkByImpl(uint32 Num)
+	FORCEINLINE ElementType& Add_GetRef(ElementType&& Value)
 	{
-		const uint32 newReserved = Reserved - Num;
-		const uint32 newCount = SMath::Min(newReserved, Count);
+		return *AddImpl(Move(Value));
+	}
 
-		for(uint32 i = Count - 1; i >= newCount; --i)
+public: // Remove
+
+	FORCEINLINE void RemoveAt(uint32 Index)
+	{
+		// TODO(jan.kristian.fisera): Add better check
+		if(!IsValidIndex(Index)) return;
+		RemoveImpl(Index);
+	}
+
+	FORCEINLINE ElementType RemoveAt_GetCopy(uint32 Index)
+	{
+		// TODO(jan.kristian.fisera): Add better check
+		if(!IsValidIndex(Index)) return;
+
+		// Tries to use move constructor
+		ElementType copy(Move(*GetElementAtImpl(Index)));
+		RemoveImpl(Index);
+
+		return copy;
+	}
+
+public: // Get
+
+	const ElementType* GetAt(uint32 Index) const
+	{
+		if(!IsValidIndex(Index)) return nullptr;
+		return GetElementAtImpl(Index);
+	}
+
+	ElementType* GetAt(uint32 Index)
+	{
+		if(!IsValidIndex(Index)) return nullptr;
+		return GetElementAtImpl(Index);
+	}
+
+public: // Find Index
+
+	int64 FindIndex(const ElementType& Value) const 
+	{ 
+		for(uint32 i = 0; i < Count; ++i)
+		{
+			// Compare bytes instead of using == operator (that might not be provided)
+			if(SMemory::Compare(GetElementAtImpl(i), (void*)&Value, ELEMENT_SIZE) == 0)
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	template<typename Functor>
+	int64 FindIndexByFunc(Functor&& Func) const
+	{
+		for(uint32 i = 0; i < Count; ++i)
+		{
+			if(Func((const ElementType&)*GetElementAtImpl(i)))
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+	template<typename KeyType>
+	int64 FindIndexByKey(KeyType Key) const
+	{
+		for(uint32 i = 0; i < Count; ++i)
+		{
+			if(*GetElementAtImpl(i) == Key)
+			{
+				return i;
+			}
+		}
+
+		return -1;
+	}
+
+public: // Find Element
+
+	template<typename Functor>
+	const ElementType* FindByFunc(Functor&& Func) const
+	{
+		const int64 foundIdx = FindIndexByFunc(Move(Func));
+		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+	}
+
+	template<typename Functor>
+	ElementType* FindByFunc(Functor&& Func)
+	{
+		const int64 foundIdx = FindIndexByFunc(Move(Func));
+		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+	}
+
+	template<typename KeyType>
+	const ElementType* FindByKey(KeyType Key) const
+	{
+		const int64 foundIdx = FindByKey(Key);
+		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+	}
+
+	template<typename KeyType>
+	ElementType* FindByKey(KeyType Key)
+	{
+		const int64 foundIdx = FindByKey(Key);
+		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+	}
+
+public: // Contains
+
+	FORCEINLINE bool Contains(const ElementType& Value) const { return FindIndex(Value) != -1; }
+
+	template<typename Functor>
+	FORCEINLINE bool ContainsByFunc(Functor&& Func) const { return FindByFunc(Move(Func)) != -1; }
+
+	template<typename KeyType>
+	FORCEINLINE bool ContainsByKey(KeyType Key) const { return FindByKey(Key) != -1; }
+
+public: // Other
+
+	void Shrink(uint32 Num)
+	{
+		if(Num >= Allocator.GetCount()) return;
+		else if(Num == 0)
+		{
+			RemoveAll();
+			return;
+		}
+
+		for(uint32 i = Num; i < Count; ++i)
 		{
 			SMemoryUtilities::CallDestructor(
 				GetElementAtImpl(i)
 			);
 		}
 
-		AllocatorType tmpAllocator;
-		tmpAllocator.Allocate(SizeOf<ElementType>(), newReserved);
-		SMemory::Move(tmpAllocator.GetData(), Allocator.GetData(), newCount);
+		AllocatorType tmp;
+		NArrayPrivateUtils::AllocatorCopyData<ElementType>(
+			tmp, Allocator, Num
+		);
 
-		Allocator.Release();
-		Allocator.Replace(tmpAllocator.GetData(), tmpAllocator.GetSize());
-		tmpAllocator.Replace(nullptr, 0);
+		NArrayPrivateUtils::AllocatorReplace(
+			Allocator, tmp
+		);
+	}
 
-		Count = newCount;
-		Reserved = newReserved;
+	void Reserve(uint32 Num)
+	{
+		if(Num <= Allocator.GetCount()) return;
+		Allocator.Allocate(ELEMENT_SIZE, Allocator.GetCount() - Num);
+	}
+
+	FORCEINLINE void Reset() { RemoveAll(); }
+	FORCEINLINE void Empty() { RemoveAll(); }
+
+private: // Helpers -> Getters
+
+	FORCEINLINE ElementType* GetDataImpl() const { return (ElementType*)Allocator.GetData(); }
+	FORCEINLINE ElementType* GetElementAtImpl(uint32 Idx) const { return (ElementType*)Allocator.GetData() + Idx; }
+
+private: // Helpers -> Manipulation
+
+	ElementType* AddImpl(const ElementType& Value)
+	{
+		ElementType* newElement = GetNextImpl();
+		SMemoryUtilities::CallConstructor(newElement, Value);
+		return newElement;
+	}
+
+	ElementType* AddImpl(ElementType&& Value)
+	{
+		ElementType* newElement = GetNextImpl();
+		SMemoryUtilities::CallConstructor(newElement, Move(Value));
+		return newElement;
+	}
+
+	void RemoveImpl(uint32 Index)
+	{
+		// Pointer still can be used
+		// * NOTE(jan.kristian.fisera): Should we keep track of removed ?
+		SMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
+
+		// NOTE(jan.kristian.fisera): Automatic shrinkin ?
+	}
+
+	void RemoveAll() 
+	{
+		if(Count > 0)
+		{
+			for(uint32 i = 0; i < Count; ++i)
+			{
+				SMemoryUtilities::CallDestructor(
+					GetElementAtImpl(i)
+				);
+			}
+
+			Allocator.Release();
+			Count = 0; 
+		}
 	}
 
 private: // Helpers -> Cross manipulation (Array)
 
-	FORCEINLINE void CopyTo(TArray& Other) { Other.CopyFrom(*this); }
-
 	void CopyFrom(const TArray& Other)
 	{
-		Allocator.Release();
-		Allocator.Allocate(Other.Reserved);
-
-		SMemory::MemoryCopyTyped<ElementType>(
-			Allocator.GetData(), 
-			Other.Allocator.GetData(), 
-			Other.Count
+		NArrayPrivateUtils::AllocatorCopyData<ElementType>(
+			Allocator, Other.Allocator
 		);
 
 		Count = Other.Count;
-		Reserved = Other.Reserved;
 	}
 
-	FORCEINLINE void MoveTo(TArray& Other) { Other.MoveFrom(*this); }
-
-	template<typename OtherArrayType>
-	void MoveFrom(OtherArrayType&& Other)
+	void MoveFrom(TArray&& Other)
 	{
-		Allocator.Release();
-		Allocator.Replace(
-			Other.Allocator.GetData(), 
-			Other.Allocator.GetSize()
+		NArrayPrivateUtils::AllocatorReplace(
+			Allocator, Move(Other.Allocator)
 		);
 
 		Count = Other.Count;
-		Reserved = Other.Reserved;
+		Other.Count = 0;
+	}
 
+private: // Helpers -> Others
+
+	ElementType* GetNextImpl()
+	{
+		if(Allocator.GetCount() < Count + 1)
 		{
-			Other.Allocator.Replace(nullptr, 0);
-			Other.Count = 0;
-			Other.Reserved = 0;
+			Allocator.Allocate(ELEMENT_SIZE, (Count + 1) * 2);
 		}
+
+		++Count;
+		return ((ElementType*)Allocator.GetData()) + (Count - 1);
 	}
 
 private: // Fields
 
 	AllocatorType Allocator;
 	uint32 Count;
-	uint32 Reserved;
 };

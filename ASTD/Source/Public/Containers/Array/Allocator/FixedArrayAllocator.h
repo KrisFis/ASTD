@@ -20,18 +20,19 @@ public: // Operators
 public: // Getters
 
 	FORCEINLINE void* GetData() const { return Allocator.GetData(); }
-	FORCEINLINE uint64 GetSize() const { return Allocator.GetSize(); }
+	FORCEINLINE void SetData(void* InData) { Allocator.SetData(InData); }
+	FORCEINLINE uint32 GetCount() const { return Allocator.GetCount(); }
+	FORCEINLINE void GetCount(uint32 InCount) { Allocator.SetCount(InCount); }
 
 public: // Manipulation
 
 	FORCEINLINE void* Allocate(uint32 ElementSize, uint32 Num)
 	{
-		ENSURE_RET(((Allocator.GetSize() / ElementSize) + Num) <= InNumLimit, nullptr);
+		ENSURE_RET(GetCount() + Num <= InNumLimit, nullptr);
 		return Allocator.Allocate(ElementSize, Num);
 	}
 
 	FORCEINLINE void Release() { Allocator.Release(); }
-	FORCEINLINE void Replace(void* InData, uint64 InSize) { Allocator.Replace(InData, InSize); }
 
 private: // Fields
 

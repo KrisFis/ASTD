@@ -31,11 +31,11 @@
 
 // Memory
 #include "Memory/MemoryUtilities.h"
-#include "Memory/Allocator/ListAllocator.h"
-#include "Memory/Allocator/TwoWayListAllocator.h"
 
 // Containers
 #include "Containers/Array/Array.h"
+#include "Containers/Array/Misc/ArrayPrivateUtils.h"
+#include "Containers/Array/Misc/ArrayPrivateTypeTraits.h"
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Allocator/FixedArrayAllocator.h"
 #include "Containers/ContainerTypes.h"

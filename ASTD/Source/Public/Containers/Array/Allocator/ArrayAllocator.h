@@ -10,7 +10,7 @@ class CArrayAllocator
 
 public: // Constructor
 
-	FORCEINLINE CArrayAllocator() : Data(nullptr), Size(0) {}
+	FORCEINLINE CArrayAllocator() : Data(nullptr), Count(0) {}
 
 public: // Destructor
 
@@ -23,11 +23,13 @@ public: // Operators
 
 public: // Getters
 
-	// Gets allocated data
+	// Gets/Sets allocated data
 	FORCEINLINE void* GetData() const { return Data; }
+	FORCEINLINE void SetData(void* InData) { Data = InData; }
 
-	// Gets allocated data size
-	FORCEINLINE uint64 GetSize() const { return Size; }
+	// Gets/Sets allocated count
+	FORCEINLINE uint64 GetCount() const { return Count; }
+	FORCEINLINE void SetCount(uint64 InCount) { Count = InCount; }
 
 public: // Manipulation
 
@@ -37,17 +39,17 @@ public: // Manipulation
 	// @return - array of new elements
 	void* Allocate(uint32 ElementSize, uint32 Num)
 	{
-		void* newData = SMemory::Allocate(Size + (ElementSize * Num));
+		void* newData = SMemory::Allocate(ElementSize * (Count + Num));
 		if(Data)
 		{
-			SMemory::Move(newData, Data, Size);
-			SMemory::Deallocate(Data, Size);
+			SMemory::Move(newData, Data, ElementSize * Num);
+			SMemory::Deallocate(Data);
 		}
 
-		void* elementPtr = (uint8*)newData + Size;
+		void* elementPtr = (uint8*)newData + (ElementSize * Num);
 
 		Data = newData;
-		Size += ElementSize * Num;
+		Count += Num;
 
 		return elementPtr;
 	}
@@ -57,17 +59,15 @@ public: // Manipulation
 	{	
 		if(Data)
 		{
-			SMemory::Deallocate(Data, Size);
+			SMemory::Deallocate(Data);
 
 			Data = nullptr;
-			Size = 0;
+			Count = 0;
 		}
 	}
-
-	FORCEINLINE void Replace(void* InData, uint64 InSize) { Data = InData; Size = InSize; }
 
 private: // Fields
 
 	void* Data;
-	uint64 Size;
+	uint32 Count;
 };

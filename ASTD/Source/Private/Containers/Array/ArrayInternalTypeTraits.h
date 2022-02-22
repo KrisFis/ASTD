@@ -1,5 +1,0 @@
-
-#pragma once
-
-// TODO(jan.kristian.fisera): This should include internal type traits used by TArray
-//////////////////////////////////////////////////////////////////////
