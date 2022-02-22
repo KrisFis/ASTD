@@ -5,6 +5,8 @@
 
 #include <intrin.h>
 
+#define ASSEMBLY(code) __asm(code)
+
 #define FORCEINLINE __forceinline
 #define FORCENOINLINE __declspec(noinline)
 #define FORCEINLINE_DEBUGGABLE __inline

@@ -28,8 +28,8 @@ public: // Getters
 	FORCEINLINE void SetData(void* InData) { Data = InData; }
 
 	// Gets/Sets allocated count
-	FORCEINLINE uint64 GetCount() const { return Count; }
-	FORCEINLINE void SetCount(uint64 InCount) { Count = InCount; }
+	FORCEINLINE uint32 GetCount() const { return Count; }
+	FORCEINLINE void SetCount(uint32 InCount) { Count = InCount; }
 
 public: // Manipulation
 
