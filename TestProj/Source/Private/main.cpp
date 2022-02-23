@@ -43,9 +43,23 @@ int main()
 {
 	SLogger::Begin() << "Hello World" << SLogger::End();
 	
-	TArray<SCustomData> myArray;
+	TArray<SCustomData> myArray((SCustomData*)nullptr, 4);
+
 	SCustomData& data = myArray.Add_GetRef({1, 3});
 	data.A = 2;
+
+	myArray.Add({2, 4});
+	myArray.Add({2, 4});
+	myArray.Add({2, 4});
+	myArray.Add({2, 4});
+	myArray.Add({2, 4});
+	myArray.Add({2, 4});
+	myArray.Add({2, 4});
+
+	for(SCustomData& data : myArray)
+	{
+		SLogger::Begin() << "Read data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
+	}
 
 	SCustomData data2 = myArray[2];
 

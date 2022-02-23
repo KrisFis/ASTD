@@ -8,6 +8,10 @@
 class CArrayAllocator
 {
 
+public: // Types
+
+	typedef int64 SizeType;
+
 public: // Constructor
 
 	FORCEINLINE CArrayAllocator() : Data(nullptr), Count(0) {}
@@ -28,8 +32,8 @@ public: // Getters
 	FORCEINLINE void SetData(void* InData) { Data = InData; }
 
 	// Gets/Sets allocated count
-	FORCEINLINE uint32 GetCount() const { return Count; }
-	FORCEINLINE void SetCount(uint32 InCount) { Count = InCount; }
+	FORCEINLINE SizeType GetCount() const { return Count; }
+	FORCEINLINE void SetCount(SizeType InCount) { Count = InCount; }
 
 public: // Manipulation
 
@@ -37,7 +41,7 @@ public: // Manipulation
 	// @param - element size
 	// @param - how many of elements should be allocated
 	// @return - array of new elements
-	void* Allocate(uint32 ElementSize, uint32 Num)
+	void* Allocate(uint32 ElementSize, SizeType Num)
 	{
 		void* newData = SMemory::Allocate(ElementSize * (Count + Num));
 		if(Data)
@@ -46,7 +50,7 @@ public: // Manipulation
 			SMemory::Deallocate(Data);
 		}
 
-		void* elementPtr = (uint8*)newData + (ElementSize * Num);
+		void* elementPtr = (uint8*)newData + Count;
 
 		Data = newData;
 		Count += Num;
@@ -69,5 +73,5 @@ public: // Manipulation
 private: // Fields
 
 	void* Data;
-	uint32 Count;
+	SizeType Count;
 };
