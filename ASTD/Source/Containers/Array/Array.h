@@ -6,6 +6,7 @@
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Internals/ArrayInternalUtils.h"
+#include "Containers/Array/ArrayIterator.h"
 
 // TODO(jan.kristian.fisera): Implement
 // * Type traits
@@ -20,6 +21,8 @@ private: // Setup
 
 	typedef InElementType ElementType;
 	typedef InAllocator AllocatorType;
+	typedef TArrayIterator<ElementType> ArrayIteratorType;
+	typedef TArrayIterator<const ElementType> ConstArrayIteratorType;
 
 	static constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
 
@@ -100,16 +103,35 @@ public: // Remove
 
 public: // Get
 
-	const ElementType* GetAt(uint32 Index) const
+	FORCEINLINE const ElementType* GetAt(uint32 Index) const
 	{
 		if(!IsValidIndex(Index)) return nullptr;
-		return GetElementAtImpl(Index);
+		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
 	}
 
-	ElementType* GetAt(uint32 Index)
+	FORCEINLINE ElementType* GetAt(uint32 Index)
 	{
-		if(!IsValidIndex(Index)) return nullptr;
-		return GetElementAtImpl(Index);
+		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
+	}
+
+	FORCEINLINE const ElementType* GetFirst() const
+	{
+		return Count > 0 ? GetElementAtImpl(0) : nullptr;
+	}
+
+	FORCEINLINE ElementType* GetFirst()
+	{
+		return Count > 0 ? GetElementAtImpl(0) : nullptr;
+	}
+
+	FORCEINLINE const ElementType* GetLast() const
+	{
+		return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr;
+	}
+
+	FORCEINLINE ElementType* GetLast()
+	{
+		return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr;
 	}
 
 public: // Find Index
@@ -233,10 +255,18 @@ public: // Other
 	FORCEINLINE void Reset() { RemoveAll(); }
 	FORCEINLINE void Empty() { RemoveAll(); }
 
+public: // Iterators
+
+	FORCEINLINE ArrayIteratorType begin() { return ArrayIteratorType(GetFirst()); }
+	FORCEINLINE ConstArrayIteratorType begin() const { return ConstArrayIteratorType(GetFirst()); }
+
+	FORCEINLINE ArrayIteratorType end() { return ArrayIteratorType(GetLast() + 1); }
+	FORCEINLINE ConstArrayIteratorType end() const { return ConstArrayIteratorType(GetLast() + 1); }
+
 private: // Helpers -> Getters
 
 	FORCEINLINE ElementType* GetDataImpl() const { return (ElementType*)Allocator.GetData(); }
-	FORCEINLINE ElementType* GetElementAtImpl(uint32 Idx) const { return (ElementType*)Allocator.GetData() + Idx; }
+	FORCEINLINE ElementType* GetElementAtImpl(uint32 Idx) const { return GetDataImpl() + Idx; }
 
 private: // Helpers -> Manipulation
 
@@ -310,7 +340,7 @@ private: // Helpers -> Others
 		}
 
 		++Count;
-		return ((ElementType*)Allocator.GetData()) + (Count - 1);
+		return GetDataImpl() + (Count - 1);
 	}
 
 private: // Fields
