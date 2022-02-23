@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "TypeTraits/TypeTraitsCore.h"
+#include "TypeTraits/Internals/TypeTraitsCore.h"
 
 // [Move]
 // * Indicates that an specific object may be "moved from"

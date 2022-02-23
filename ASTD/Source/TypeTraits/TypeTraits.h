@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "TypeTraits/TypeTraitsCore.h"
-#include "TypeTraits/TypeTraitsInternals.h"
+#include "TypeTraits/Internals/TypeTraitsCore.h"
+#include "TypeTraits/Internals/TypeTraitsInternals.h"
 
 // [Decay]
 // * Returns the decayed type, meaning it removes all references, qualifiers and

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Shared/SharedClassInternals.h"
 #include "Shared/SharedObject.h"
+#include "Shared/Internals/SharedClassInternals.h"
 
 template<typename T>
 class TSharedClass

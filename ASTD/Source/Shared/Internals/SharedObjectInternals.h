@@ -122,13 +122,13 @@ namespace NSharedInternals
 	template<typename ObjectType>
 	FORCEINLINE static CReferencerBase* NewCustomReferencer(ObjectType* Object)
 	{
-		return new TCustomReferencer(Object, [](ObjectType* ToDelete) { delete ToDelete; });
+		return new TCustomReferencer<ObjectType>(Object, [](ObjectType* ToDelete) { delete ToDelete; });
 	}
 	
 	template<typename ObjectType, typename DeleterType>
 	FORCEINLINE static CReferencerBase* NewCustomReferencerWithDeleter(ObjectType* Object, DeleterType* Deleter)
 	{
-		return new TCustomReferencer(Object, Deleter);
+		return new TCustomReferencer<ObjectType>(Object, Deleter);
 	}
 	
 	FORCEINLINE static void DeleteReferencer(CReferencerBase* Referencer)

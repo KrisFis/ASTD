@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Shared/SharedObjectInternals.h"
+#include "Shared/Internals/SharedObjectInternals.h"
 
 // Equivalent of std's shared_ptr
 template<typename T>
