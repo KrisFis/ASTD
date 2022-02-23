@@ -10,7 +10,7 @@ namespace NArrayInternalUtils
 {
 	// zero num is not supported!
 	template<typename ElementType, typename AllocatorType>
-	void AllocatorCopyData(AllocatorType Allocator, const void* Data, uint32 Num)
+	void AllocatorCopyData(AllocatorType Allocator, const void* Data, typename AllocatorType::SizeType Num)
 	{
 		static constexpr TSize elementSize = SizeOf<ElementType>();
 
@@ -29,17 +29,27 @@ namespace NArrayInternalUtils
 
 	// zero num is all elements
 	template<typename ElementType, typename AllocatorType>
-	FORCEINLINE void AllocatorCopyData(AllocatorType Destination, AllocatorType Source, uint32 Num = 0)
+	FORCEINLINE void AllocatorCopyData(AllocatorType Destination, AllocatorType Source)
 	{
 		AllocatorCopyData<ElementType>(
 			Destination,
 			Source.GetData(),
-			(Num == 0) ? Source.GetCount() : SMath::Min(Source.GetCount(), Num)
+			Source.GetCount()
+		);
+	}
+
+	template<typename ElementType, typename AllocatorType>
+	FORCEINLINE void AllocatorCopyData(AllocatorType Destination, AllocatorType Source, typename AllocatorType::SizeType Num)
+	{
+		AllocatorCopyData<ElementType>(
+			Destination,
+			Source.GetData(),
+			SMath::Min(Source.GetCount(), Num)
 		);
 	}
 
 	template<typename AllocatorType>
-	void AllocatorReplace(AllocatorType Allocator, void* Data, uint32 Num)
+	void AllocatorReplace(AllocatorType Allocator, void* Data, typename AllocatorType::SizeType Num)
 	{
 		Allocator.Release();
 		Allocator.SetData(Data);
