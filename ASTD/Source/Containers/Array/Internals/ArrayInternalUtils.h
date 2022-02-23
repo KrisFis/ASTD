@@ -6,7 +6,7 @@
 #include "TypeTraits/TypeMethods.h"
 #include "Memory/MemoryUtilities.h"
 
-namespace NArrayPrivateUtils
+namespace NArrayInternalUtils
 {
 	template<typename ElementType, typename DestAllocatorType, typename SrcAllocatorType>
 	void AllocatorCopyData(DestAllocatorType Destination, SrcAllocatorType Source, uint32 Num = 0)

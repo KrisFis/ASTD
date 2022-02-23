@@ -1,74 +1,39 @@
-# Setup
-# -----------------------------------------------------------
-
 cmake_minimum_required(VERSION 3.10)
 
 project(ASTD)
 
-# Compiler
-set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -fpermissive")
-
-# Paths
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Binaries")
-set(CMAKE_CURRENT_BINARY_DIR "${CMAKE_CURRENT_LIST_DIR}/${PROJECT_NAME}/Intermediate")
-
-# Configuration types
-set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)
-
-# Post fix
-set(DEBUG_POSTFIX "-Debug")
-set(RELEASE_POSTFIX "-Release")
-
-# fix for MSVC lib conflict
-if(MSVC)
-    add_link_options("/NODEFAULTLIB:MSVCRT")
-endif(MSVC)
-
-# Outputs
+# Init
 # -----------------------------------------------------------
 
-if(WIN32)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Win32)
-    set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Win32)
-elseif(UNIX)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Linux)
-    set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Linux)
-endif()
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug)
-	set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Debug)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Release")
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release)
-	set(CMAKE_CURRENT_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/Release)
-endif()
+set(ASTD_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/ASTD")
+set(TESTPROJ_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/TestProj")
 
 # Includes
 # -----------------------------------------------------------
 
-include(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake/Configuration.cmake)
-include(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake/ProjectFiles.cmake)
+include("${CMAKE_CURRENT_LIST_DIR}/Builder.cmake")
 
-# Definitions
+include("${ASTD_MODULE_PATH}/ASTDBuild.cmake")
+include("${TESTPROJ_MODULE_PATH}/TestProjBuild.cmake")
+
+# Setup
 # -----------------------------------------------------------
 
-ASTD_definitions(${CMAKE_BUILD_TYPE} ALL_DEFINITIONS)
+builder_setup_build()
 
-add_definitions(${ALL_DEFINITIONS})
-
-# Sources
+# Includes && Sources
 # -----------------------------------------------------------
 
-ASTD_file_public_directories(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_PUBLIC_INCLUDE_DIRS)
-ASTD_file_private_directories(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_PRIVATE_INCLUDE_DIRS)
+ASTD_public_include_directories(${ASTD_MODULE_PATH} ASTD_INCLUDE_DIRS)
+TestProj_public_include_directories(${TESTPROJ_MODULE_PATH} TESTPROJ_INCLUDE_DIRS)
 
-ASTD_file_private_files(${CMAKE_CURRENT_LIST_DIR}/Scripts/CMake ALL_SOURCE_FILES)
+ASTD_public_sources(${ASTD_MODULE_PATH} ASTD_SOURCES)
+TestProj_public_sources(${TESTPROJ_MODULE_PATH} TESTPROJ_SOURCES)
 
-include_directories("${ALL_PUBLIC_INCLUDE_DIRS}" "${ALL_PRIVATE_INCLUDE_DIRS}")
+set(ALL_INCLUDE_DIRS "${ASTD_INCLUDE_DIRS}" "${TESTPROJ_INCLUDE_DIRS}")
+set(ALL_SOURCES "${ASTD_SOURCES}" "${TESTPROJ_SOURCES}")
 
-# Executable and linking
+# Modules
 # -----------------------------------------------------------
 
-add_library(${PROJECT_NAME} "${ALL_SOURCE_FILES}")
-#add_executable(${PROJECT_NAME} "${ALL_SOURCE_FILES}")
+builder_add_module(EXECUTABLE "TestProj" "${TESTPROJ_MODULE_PATH}" "" "${ALL_INCLUDE_DIRS}" "${ALL_SOURCES}" "")

@@ -3,6 +3,11 @@
 
 #include "Platform/PlatformDefinitions.h"
 
+// As default ensures are used for debug build
+#if !defined(DO_ENSURES)
+	#define DO_ENSURES BUILD_DEBUG
+#endif
+
 #if DO_ENSURES
 
 	#include <iostream>
@@ -17,6 +22,5 @@
 #else
 
 	#define ENSURE_IMPL(...)
-	#define ENSURE_CALL_IMPL(...)
 
 #endif

@@ -5,7 +5,7 @@
 #include "TypeTraits/TypeTraits.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
-#include "Containers/Array/Misc/ArrayPrivateUtils.h"
+#include "Containers/Array/Internals/ArrayInternalUtils.h"
 
 // TODO(jan.kristian.fisera): Implement
 // * Type traits
@@ -215,11 +215,11 @@ public: // Other
 		}
 
 		AllocatorType tmp;
-		NArrayPrivateUtils::AllocatorCopyData<ElementType>(
+		NArrayInternalUtils::AllocatorCopyData<ElementType>(
 			tmp, Allocator, Num
 		);
 
-		NArrayPrivateUtils::AllocatorReplace(
+		NArrayInternalUtils::AllocatorReplace(
 			Allocator, tmp
 		);
 	}
@@ -283,7 +283,7 @@ private: // Helpers -> Cross manipulation (Array)
 
 	void CopyFrom(const TArray& Other)
 	{
-		NArrayPrivateUtils::AllocatorCopyData<ElementType>(
+		NArrayInternalUtils::AllocatorCopyData<ElementType>(
 			Allocator, Other.Allocator
 		);
 
@@ -292,7 +292,7 @@ private: // Helpers -> Cross manipulation (Array)
 
 	void MoveFrom(TArray&& Other)
 	{
-		NArrayPrivateUtils::AllocatorReplace(
+		NArrayInternalUtils::AllocatorReplace(
 			Allocator, Move(Other.Allocator)
 		);
 
