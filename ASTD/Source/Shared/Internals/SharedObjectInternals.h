@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Types/Types.h"
-#include "Utilities/Ensures.h"
+#include "Type/TypeUtilities.h"
+#include "Validation/Validation.h"
 
 namespace NSharedInternals
 {
@@ -34,13 +34,13 @@ namespace NSharedInternals
 	
 		FORCEINLINE_DEBUGGABLE void AddShared() 
 		{
-			ENSURE_RET(SharedCount < UINT16_MAX);
+			CHECK_RET(SharedCount < UINT16_MAX);
 			++SharedCount;
 		}
 		
 		FORCEINLINE_DEBUGGABLE void AddWeak() 
 		{
-			ENSURE_RET(WeakCount < UINT16_MAX); // overflow
+			CHECK_RET(WeakCount < UINT16_MAX); // overflow
 			++WeakCount;
 		}
 		
@@ -48,14 +48,14 @@ namespace NSharedInternals
 	
 		FORCEINLINE_DEBUGGABLE void RemoveShared()
 		{
-			ENSURE_RET(SharedCount > 0); // underflow
+			CHECK_RET(SharedCount > 0); // underflow
 			if(SharedCount == 1) DeconstructObjectImpl();
 			--SharedCount;
 		}
 		
 		FORCEINLINE_DEBUGGABLE void RemoveWeak()
 		{
-			ENSURE_RET(WeakCount > 0); // underflow
+			CHECK_RET(WeakCount > 0); // underflow
 			--WeakCount;
 		}
 		
@@ -90,7 +90,7 @@ namespace NSharedInternals
 		{
 			if (Object)
 			{
-				ENSURE_RET(Deleter);
+				CHECK_RET(Deleter);
 				Deleter(Object);
 			}
 		}
@@ -106,7 +106,7 @@ namespace NSharedInternals
 		{
 			if(Object)
 			{
-				ENSURE_RET(Deleter);
+				CHECK_RET(Deleter);
 			
 				Deleter(Object);
 				Object = nullptr;

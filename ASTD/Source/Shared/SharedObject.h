@@ -52,7 +52,7 @@ public: // Assignment operators [SharedPtr]
 public: // Pointer operators
 
 	FORCEINLINE ObjectType* operator->() const { return Get(); }
-	FORCEINLINE ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE ObjectType& operator*() const { CHECK_THIS(); return *Get(); }
 
 public: // Validation
 
@@ -179,7 +179,7 @@ public: // Pointer operators
 		// * Our weak pointer supports dereferencing without shared_ptr
 
 	FORCEINLINE ObjectType* operator->() const { return Get(); }
-	FORCEINLINE ObjectType& operator*() const { ENSURE_THIS(); return *Get(); }
+	FORCEINLINE ObjectType& operator*() const { CHECK_THIS(); return *Get(); }
 	
 public: // Validity
 
@@ -237,7 +237,7 @@ private: // Helper methods -> Replacing
 		// ** 3) Clear other referencer
 		
 		// * SharedPtr as argument:
-		// ** We MUST ensure that reference of other does not get destroyed (if valid before passing)
+		// ** We MUST CHECK that reference of other does not get destroyed (if valid before passing)
 		// ** -2) Add weak reference to other
 		// ** -1) Remove shared reference from other
 		// ** 1) Remove weak reference from current

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Types/Types.h"
+#include "Type/TypeUtilities.h"
 #include "TypeTraits/TypeTraits.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
@@ -209,7 +209,7 @@ public: // Other
 
 		for(uint32 i = Num; i < Count; ++i)
 		{
-			SMemoryUtilities::CallDestructor(
+			NMemoryUtilities::CallDestructor(
 				GetElementAtImpl(i)
 			);
 		}
@@ -243,14 +243,14 @@ private: // Helpers -> Manipulation
 	ElementType* AddImpl(const ElementType& Value)
 	{
 		ElementType* newElement = GetNextImpl();
-		SMemoryUtilities::CallConstructor(newElement, Value);
+		NMemoryUtilities::CallConstructor(newElement, Value);
 		return newElement;
 	}
 
 	ElementType* AddImpl(ElementType&& Value)
 	{
 		ElementType* newElement = GetNextImpl();
-		SMemoryUtilities::CallConstructor(newElement, Move(Value));
+		NMemoryUtilities::CallConstructor(newElement, Move(Value));
 		return newElement;
 	}
 
@@ -258,7 +258,7 @@ private: // Helpers -> Manipulation
 	{
 		// Pointer still can be used
 		// * NOTE(jan.kristian.fisera): Should we keep track of removed ?
-		SMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
+		NMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
 
 		// NOTE(jan.kristian.fisera): Automatic shrinkin ?
 	}
@@ -269,7 +269,7 @@ private: // Helpers -> Manipulation
 		{
 			for(uint32 i = 0; i < Count; ++i)
 			{
-				SMemoryUtilities::CallDestructor(
+				NMemoryUtilities::CallDestructor(
 					GetElementAtImpl(i)
 				);
 			}
