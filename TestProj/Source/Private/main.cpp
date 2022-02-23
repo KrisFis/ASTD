@@ -44,6 +44,7 @@ int main()
 	SLogger::Begin() << "Hello World" << SLogger::End();
 	
 	TArray<SCustomData> myArray((SCustomData*)nullptr, 4);
+
 	SCustomData& data = myArray.Add_GetRef({1, 3});
 	data.A = 2;
 

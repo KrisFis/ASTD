@@ -41,11 +41,11 @@ public: // Operators for loop
 
 	FORCEINLINE ElementType& operator*() { return *Value;}
 
-	TArrayIterator& operator++() { Value += 1; return *this;}
-	TArrayIterator operator++(int) { TArrayIterator retVal(*this); Value += 1; return retVal; }
+	TArrayIterator& operator++() { ++Value; return *this;}
+	TArrayIterator operator++(int) { TArrayIterator retVal(*this); ++Value; return retVal; }
 
-	TArrayIterator& operator--() { Value -= 1; return *this;}
-	TArrayIterator operator--(int) { TArrayIterator retVal(*this); Value -= 1; return retVal; }
+	TArrayIterator& operator--() { --Value; return *this;}
+	TArrayIterator operator--(int) { TArrayIterator retVal(*this); --Value; return retVal; }
 
 private:
 

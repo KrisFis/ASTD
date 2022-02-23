@@ -10,28 +10,31 @@
 
 // TODO(jan.kristian.fisera): Implement
 // * Type traits
-// * Iterators
+// * Size type dependant on allocator size
 template<typename InElementType, typename InAllocator = CArrayAllocator>
 class TArray
 {
-
-	static_assert(!TIsSame<InAllocator, void>::Value, "Invalid allocator type");
-
 private: // Setup
 
 	typedef InElementType ElementType;
 	typedef InAllocator AllocatorType;
 	typedef TArrayIterator<ElementType> ArrayIteratorType;
 	typedef TArrayIterator<const ElementType> ConstArrayIteratorType;
+	typedef typename AllocatorType::SizeType SizeType;
 
 	static constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
+
+public: // Asserts
+
+	static_assert(!TIsSame<InAllocator, void>::Value, "Invalid allocator type");
+	static_assert(TIsSignedType<SizeType>::Value, "Unsigned types are not supported");
 
 public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) { CopyFrom(Other); }
 	FORCEINLINE TArray(TArray&& Other) { MoveFrom(Move(Other)); }
-	FORCEINLINE TArray(ElementType* InData, uint32 InCount, bool Copy = true) 
+	FORCEINLINE TArray(ElementType* InData, SizeType InCount, bool Copy = true) 
 	{
 		if(Copy) CopyFrom(InData, InCount);
 		else MoveFrom(InData, InCount); 
@@ -46,30 +49,30 @@ public: // Operators
 	TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
 	TArray& operator=(TArray&& Other) { MoveFrom(Move(Other)); return *this; }
 
-	ElementType& operator[](uint32 Index) { return *GetElementAtImpl(Index); }
-	const ElementType& operator[](uint32 Index) const { return *GetElementAtImpl(Index); }
+	ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
+	const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
 
 public: // Property getters
 
 	FORCEINLINE const ElementType* GetData() const { return GetDataImpl(); }
 	FORCEINLINE ElementType* GetData() { return GetDataImpl(); }
 
-	FORCEINLINE uint32 GetCount() const { return Count; }
-	FORCEINLINE uint32 GetReserved() const { return Allocator.GetCount(); }
+	FORCEINLINE SizeType GetCount() const { return Count; }
+	FORCEINLINE SizeType GetReserved() const { return Allocator.GetCount(); }
 
 public: // Validations
 
-	FORCEINLINE bool IsValidIndex(uint32 Idx) const { return Idx < Count; }
+	FORCEINLINE bool IsValidIndex(SizeType Idx) const { return Idx < Count; }
 
 public: // Add
 
-	uint32 Add(const ElementType& Value)
+	SizeType Add(const ElementType& Value)
 	{
 		AddImpl(Value);
 		return Count - 1;
 	}
 
-	uint32 Add(ElementType&& Value)
+	SizeType Add(ElementType&& Value)
 	{
 		AddImpl(Move(Value));
 		return Count - 1;
@@ -87,14 +90,14 @@ public: // Add
 
 public: // Remove
 
-	FORCEINLINE void RemoveAt(uint32 Index)
+	FORCEINLINE void RemoveAt(SizeType Index)
 	{
 		// TODO(jan.kristian.fisera): Add better check
 		if(!IsValidIndex(Index)) return;
 		RemoveImpl(Index);
 	}
 
-	FORCEINLINE ElementType RemoveAt_GetCopy(uint32 Index)
+	FORCEINLINE ElementType RemoveAt_GetCopy(SizeType Index)
 	{
 		// TODO(jan.kristian.fisera): Add better check
 		if(!IsValidIndex(Index)) return;
@@ -108,13 +111,13 @@ public: // Remove
 
 public: // Get
 
-	FORCEINLINE const ElementType* GetAt(uint32 Index) const
+	FORCEINLINE const ElementType* GetAt(SizeType Index) const
 	{
 		if(!IsValidIndex(Index)) return nullptr;
 		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
 	}
 
-	FORCEINLINE ElementType* GetAt(uint32 Index)
+	FORCEINLINE ElementType* GetAt(SizeType Index)
 	{
 		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
 	}
@@ -141,9 +144,9 @@ public: // Get
 
 public: // Find Index
 
-	int64 FindIndex(const ElementType& Value) const 
+	SizeType FindIndex(const ElementType& Value) const 
 	{ 
-		for(uint32 i = 0; i < Count; ++i)
+		for(SizeType i = 0; i < Count; ++i)
 		{
 			// Compare bytes instead of using == operator (that might not be provided)
 			if(SMemory::Compare(GetElementAtImpl(i), (void*)&Value, ELEMENT_SIZE) == 0)
@@ -152,13 +155,13 @@ public: // Find Index
 			}
 		}
 
-		return -1;
+		return INDEX_NONE;
 	}
 
 	template<typename Functor>
-	int64 FindIndexByFunc(Functor&& Func) const
+	SizeType FindIndexByFunc(Functor&& Func) const
 	{
-		for(uint32 i = 0; i < Count; ++i)
+		for(SizeType i = 0; i < Count; ++i)
 		{
 			if(Func((const ElementType&)*GetElementAtImpl(i)))
 			{
@@ -166,13 +169,13 @@ public: // Find Index
 			}
 		}
 
-		return -1;
+		return INDEX_NONE;
 	}
 
 	template<typename KeyType>
-	int64 FindIndexByKey(KeyType Key) const
+	SizeType FindIndexByKey(KeyType Key) const
 	{
-		for(uint32 i = 0; i < Count; ++i)
+		for(SizeType i = 0; i < Count; ++i)
 		{
 			if(*GetElementAtImpl(i) == Key)
 			{
@@ -180,7 +183,7 @@ public: // Find Index
 			}
 		}
 
-		return -1;
+		return INDEX_NONE;
 	}
 
 public: // Find Element
@@ -188,44 +191,44 @@ public: // Find Element
 	template<typename Functor>
 	const ElementType* FindByFunc(Functor&& Func) const
 	{
-		const int64 foundIdx = FindIndexByFunc(Move(Func));
-		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+		const SizeType foundIdx = FindIndexByFunc(Move(Func));
+		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 	template<typename Functor>
 	ElementType* FindByFunc(Functor&& Func)
 	{
-		const int64 foundIdx = FindIndexByFunc(Move(Func));
-		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+		const SizeType foundIdx = FindIndexByFunc(Move(Func));
+		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 	template<typename KeyType>
 	const ElementType* FindByKey(KeyType Key) const
 	{
-		const int64 foundIdx = FindByKey(Key);
-		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+		const SizeType foundIdx = FindByKey(Key);
+		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 	template<typename KeyType>
 	ElementType* FindByKey(KeyType Key)
 	{
-		const int64 foundIdx = FindByKey(Key);
-		return foundIdx != -1 ? GetElementAtImpl(foundIdx) : nullptr;
+		const SizeType foundIdx = FindByKey(Key);
+		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 public: // Contains
 
-	FORCEINLINE bool Contains(const ElementType& Value) const { return FindIndex(Value) != -1; }
+	FORCEINLINE bool Contains(const ElementType& Value) const { return FindIndex(Value) != INDEX_NONE; }
 
 	template<typename Functor>
-	FORCEINLINE bool ContainsByFunc(Functor&& Func) const { return FindByFunc(Move(Func)) != -1; }
+	FORCEINLINE bool ContainsByFunc(Functor&& Func) const { return FindByFunc(Move(Func)) != INDEX_NONE; }
 
 	template<typename KeyType>
-	FORCEINLINE bool ContainsByKey(KeyType Key) const { return FindByKey(Key) != -1; }
+	FORCEINLINE bool ContainsByKey(KeyType Key) const { return FindByKey(Key) != INDEX_NONE; }
 
 public: // Other
 
-	void Shrink(uint32 Num)
+	void Shrink(SizeType Num)
 	{
 		if(Num >= Allocator.GetCount()) return;
 		else if(Num == 0)
@@ -234,7 +237,7 @@ public: // Other
 			return;
 		}
 
-		for(uint32 i = Num; i < Count; ++i)
+		for(SizeType i = Num; i < Count; ++i)
 		{
 			NMemoryUtilities::CallDestructor(
 				GetElementAtImpl(i)
@@ -251,7 +254,7 @@ public: // Other
 		);
 	}
 
-	void Reserve(uint32 Num)
+	void Reserve(SizeType Num)
 	{
 		if(Num <= Allocator.GetCount()) return;
 		Allocator.Allocate(ELEMENT_SIZE, Allocator.GetCount() - Num);
@@ -271,7 +274,7 @@ public: // Iterators
 private: // Helpers -> Getters
 
 	FORCEINLINE ElementType* GetDataImpl() const { return (ElementType*)Allocator.GetData(); }
-	FORCEINLINE ElementType* GetElementAtImpl(uint32 Idx) const { return GetDataImpl() + Idx; }
+	FORCEINLINE ElementType* GetElementAtImpl(SizeType Idx) const { return GetDataImpl() + Idx; }
 
 private: // Helpers -> Manipulation
 
@@ -289,7 +292,7 @@ private: // Helpers -> Manipulation
 		return newElement;
 	}
 
-	void RemoveImpl(uint32 Index)
+	void RemoveImpl(SizeType Index)
 	{
 		// Pointer still can be used
 		// * NOTE(jan.kristian.fisera): Should we keep track of removed ?
@@ -302,7 +305,7 @@ private: // Helpers -> Manipulation
 	{
 		if(Count > 0)
 		{
-			for(uint32 i = 0; i < Count; ++i)
+			for(SizeType i = 0; i < Count; ++i)
 			{
 				NMemoryUtilities::CallDestructor(
 					GetElementAtImpl(i)
@@ -316,7 +319,7 @@ private: // Helpers -> Manipulation
 
 private: // Helpers -> Cross manipulation (Array)
 
-	void CopyFrom(ElementType* InData, uint32 InCount)
+	void CopyFrom(const ElementType* InData, SizeType InCount)
 	{
 		if(InData)
 		{
@@ -350,7 +353,7 @@ private: // Helpers -> Cross manipulation (Array)
 		}
 	}
 
-	void MoveFrom(ElementType* InData, uint32 InCount)
+	void MoveFrom(ElementType* InData, SizeType InCount)
 	{
 		if(InData)
 		{
@@ -402,5 +405,5 @@ private: // Helpers -> Others
 private: // Fields
 
 	AllocatorType Allocator;
-	uint32 Count;
+	SizeType Count;
 };

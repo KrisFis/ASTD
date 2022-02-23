@@ -10,7 +10,7 @@ namespace NArrayInternalUtils
 {
 	// zero num is not supported!
 	template<typename ElementType, typename AllocatorType>
-	void AllocatorCopyData(AllocatorType Allocator, void* Data, uint32 Num)
+	void AllocatorCopyData(AllocatorType Allocator, const void* Data, uint32 Num)
 	{
 		static constexpr TSize elementSize = SizeOf<ElementType>();
 

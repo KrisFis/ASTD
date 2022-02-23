@@ -9,6 +9,10 @@ template<uint32 InNumLimit>
 class TFixedArrayAllocator
 {
 
+public: // Typedef
+
+	typedef CArrayAllocator::SizeType SizeType;
+
 public: // Operators
 
 	template<uint32 OtherLimit>
@@ -21,12 +25,12 @@ public: // Getters
 
 	FORCEINLINE void* GetData() const { return Allocator.GetData(); }
 	FORCEINLINE void SetData(void* InData) { Allocator.SetData(InData); }
-	FORCEINLINE uint32 GetCount() const { return Allocator.GetCount(); }
-	FORCEINLINE void GetCount(uint32 InCount) { Allocator.SetCount(InCount); }
+	FORCEINLINE SizeType GetCount() const { return Allocator.GetCount(); }
+	FORCEINLINE void GetCount(SizeType InCount) { Allocator.SetCount(InCount); }
 
 public: // Manipulation
 
-	FORCEINLINE void* Allocate(uint32 ElementSize, uint32 Num)
+	FORCEINLINE void* Allocate(uint32 ElementSize, SizeType Num)
 	{
 		CHECK_RET(GetCount() + Num <= InNumLimit, nullptr);
 		return Allocator.Allocate(ElementSize, Num);
@@ -37,5 +41,4 @@ public: // Manipulation
 private: // Fields
 
 	CArrayAllocator Allocator;
-
 };
