@@ -33,7 +33,7 @@ TestProj_public_sources(${TESTPROJ_MODULE_PATH} TESTPROJ_SOURCES)
 set(ALL_INCLUDE_DIRS "${ASTD_INCLUDE_DIRS}" "${TESTPROJ_INCLUDE_DIRS}")
 set(ALL_SOURCES "${ASTD_SOURCES}" "${TESTPROJ_SOURCES}")
 
-# Module build
+# Modules
 # -----------------------------------------------------------
 
-builder_add_build_module(EXECUTABLE "TestProj" "${TESTPROJ_MODULE_PATH}" "" "${ALL_INCLUDE_DIRS}" "${ALL_SOURCES}" "")
+builder_add_module(EXECUTABLE "TestProj" "${TESTPROJ_MODULE_PATH}" "" "${ALL_INCLUDE_DIRS}" "${ALL_SOURCES}" "")

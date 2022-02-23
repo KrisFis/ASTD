@@ -42,7 +42,7 @@ endfunction()
 # @param - array of definitions
 # @param - array of include directories
 # @param - array of source files
-function(builder_add_build_module BUILD_OPTION MODULE_NAME MODULE_PATH DEFINITIONS INCLUDE_DIRS SOURCES LINK_LIBRARIES)
+function(builder_add_module BUILD_OPTION MODULE_NAME MODULE_PATH DEFINITIONS INCLUDE_DIRS SOURCES LINK_LIBRARIES)
 
 	# Output dirs
 	# -----------------------------------------------------------
