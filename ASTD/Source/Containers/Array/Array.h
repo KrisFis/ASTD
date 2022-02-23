@@ -31,6 +31,11 @@ public: // Constructors
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) { CopyFrom(Other); }
 	FORCEINLINE TArray(TArray&& Other) { MoveFrom(Move(Other)); }
+	FORCEINLINE TArray(ElementType* InData, uint32 InCount, bool Copy = true) 
+	{
+		if(Copy) CopyFrom(InData, InCount);
+		else MoveFrom(InData, InCount); 
+	}
 
 public: // Destructor
 
@@ -311,22 +316,73 @@ private: // Helpers -> Manipulation
 
 private: // Helpers -> Cross manipulation (Array)
 
+	void CopyFrom(ElementType* InData, uint32 InCount)
+	{
+		if(InData)
+		{
+			NArrayInternalUtils::AllocatorCopyData<ElementType>(
+				Allocator, InData, InCount
+			);
+
+			Count = InCount;
+		}
+		else
+		{
+			Allocator.Release();
+			Count = 0;
+		}
+	}
+
 	void CopyFrom(const TArray& Other)
 	{
-		NArrayInternalUtils::AllocatorCopyData<ElementType>(
-			Allocator, Other.Allocator
-		);
+		if(Other.Allocator.GetData())
+		{
+			NArrayInternalUtils::AllocatorCopyData<ElementType>(
+				Allocator, Other.Allocator
+			);
 
-		Count = Other.Count;
+			Count = Other.Count;
+		}
+		else
+		{
+			Allocator.Release();
+			Count = 0;
+		}
+	}
+
+	void MoveFrom(ElementType* InData, uint32 InCount)
+	{
+		if(InData)
+		{
+			NArrayInternalUtils::AllocatorReplace(
+				Allocator, InData, InCount
+			);
+
+			Count = InCount;
+		}
+		else
+		{
+			Allocator.Release();
+			Count = 0;
+		}
 	}
 
 	void MoveFrom(TArray&& Other)
 	{
-		NArrayInternalUtils::AllocatorReplace(
-			Allocator, Move(Other.Allocator)
-		);
+		if(Other.Allocator.GetData())
+		{
+			NArrayInternalUtils::AllocatorReplace(
+				Allocator, Move(Other.Allocator)
+			);
 
-		Count = Other.Count;
+			Count = Other.Count;
+		}
+		else
+		{
+			Allocator.Release();
+			Count = 0;
+		}
+
 		Other.Count = 0;
 	}
 
