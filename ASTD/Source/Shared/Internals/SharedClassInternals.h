@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Types/Types.h"
+#include "Type/TypeUtilities.h"
 #include "TypeTraits/TypeTraits.h"
 
 #include "Shared/SharedObject.h"

@@ -26,7 +26,7 @@ public: // External method
 	// Gets pointer as shared_ptr
 	FORCEINLINE TSharedPtr<ClassType> AsShared()
 	{
-		ENSURE_RET(WeakThis.IsValid(), nullptr);
+		CHECK_RET(WeakThis.IsValid(), nullptr);
 		return WeakThis.Pin();
 	}
 	
@@ -34,7 +34,7 @@ public: // External method
 	template<typename ChildType>
 	FORCEINLINE TSharedPtr<ChildType> AsShared()
 	{
-		ENSURE_RET(WeakThis.IsValid(), nullptr);
+		CHECK_RET(WeakThis.IsValid(), nullptr);
 		return (TSharedPtr<ChildType>)WeakThis.Pin();
 	}
 
@@ -43,7 +43,7 @@ public: // Private methods
 	// Do not call this method DIRECTLY!
 	FORCEINLINE void Init_Private(const TSharedPtr<ClassType>& InPtr)
 	{
-		ENSURE_RET(!bIsSharedInitialized);
+		CHECK_RET(!bIsSharedInitialized);
 		
 		WeakThis = InPtr;
 		bIsSharedInitialized = true;

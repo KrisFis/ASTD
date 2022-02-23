@@ -6,7 +6,7 @@
 #include "TypeTraits/TypeTraits.h"
 #include "Platform/PlatformMemory.h"
 
-struct SMemoryUtilities
+namespace NMemoryUtilities
 {
 	template<typename ElementType, typename... ArgTypes>
 	FORCEINLINE static void CallConstructor(ElementType* Object, ArgTypes... Args)
@@ -19,6 +19,6 @@ struct SMemoryUtilities
 	{
 		Object->~ElementType();
 	}
-};
+}
 
 typedef SPlatformMemory SMemory;
