@@ -40,7 +40,6 @@
 
 // Log
 #include "Log/Logger.h"
-#include "Log/LoggerUtilities.h"
 
 // Containers
 #include "Containers/Array/Array.h"

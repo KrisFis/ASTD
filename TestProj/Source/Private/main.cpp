@@ -7,33 +7,33 @@ struct SCustomData
 {
 	SCustomData()
 	{
-		std::cout << "Default constructor" << std::endl;
+		SLogger::Begin() << "Default constructor" << SLogger::End();
 	}
 
 	SCustomData(const SCustomData& Other)
 		: A(Other.A)
 		, B(Other.B)
 	{
-		std::cout << "Copy constructor" << std::endl;
+		SLogger::Begin() << "Copy constructor" << SLogger::End();
 	}
 
 	SCustomData(SCustomData&& Other)
 		: A(Other.A)
 		, B(Other.B)
 	{
-		std::cout << "Move constructor" << std::endl;
+		SLogger::Begin() << "Move constructor" << SLogger::End();
 	}
 
 	SCustomData(uint8 InA, uint8 InB)
 		: A(InA)
 		, B(InB)
 	{
-		std::cout << "Constructor with [A = " << (int)A << ", B = " << (int)B << "]" << std::endl;
+		SLogger::Begin() << "Constructor with [A = " << A << ", B = " << B << "]" << SLogger::End();
 	}
 
 	~SCustomData()
 	{
-		std::cout << "Destructor" << std::endl;
+		SLogger::Begin() << "Destructor" << SLogger::End();
 	}
 
 	uint8 A, B;
@@ -41,7 +41,7 @@ struct SCustomData
 
 int main()
 {
-	std::cout << "Hello World" << std::endl;
+	SLogger::Begin() << "Hello World" << SLogger::End();
 	
 	TArray<SCustomData> myArray;
 	SCustomData& data = myArray.Add_GetRef({1, 3});
