@@ -60,6 +60,7 @@ public: // Property getters
 
 public: // Validations
 
+	FORCEINLINE bool IsEmpty() const { return Count == 0; }
 	FORCEINLINE bool IsValidIndex(SizeType Idx) const { return Idx < Count; }
 
 public: // Add

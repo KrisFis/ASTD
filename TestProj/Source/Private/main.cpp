@@ -39,9 +39,9 @@ struct SCustomData
 	uint8 A, B;
 };
 
-int main()
+void TestArray()
 {
-	SLogger::Begin() << "Hello World" << SLogger::End();
+	SLogger::Begin() << "Hello Array" << SLogger::End();
 	
 	TArray<SCustomData> myArray((SCustomData*)nullptr, 4);
 
@@ -51,6 +51,9 @@ int main()
 	myArray.Add({2, 4});
 	myArray.Add({2, 4});
 	myArray.Add({2, 4});
+
+	myArray.Empty();
+
 	myArray.Add({2, 4});
 	myArray.Add({2, 4});
 	myArray.Add({2, 4});
@@ -72,6 +75,64 @@ int main()
 
 	int64 idx = myArray.FindIndex({2, 3});
 	myArray.RemoveAt(idx);
+}
+
+void TestQueue()
+{
+	SLogger::Begin() << "Hello Queue" << SLogger::End();
+
+	TQueue<SCustomData> myQueue;
+
+	myQueue.Enqueue({1, 1});
+	myQueue.Enqueue({2, 2});
+	myQueue.Enqueue({3, 3});
+	myQueue.Enqueue({4, 4});
+
+	myQueue.Empty();
+
+	myQueue.Enqueue({5, 5});
+	myQueue.Enqueue({6, 6});
+	myQueue.Enqueue({7, 7});
+
+	{
+		SCustomData data;
+		if(myQueue.Peek(data))
+		{
+			SLogger::Begin() << "Peek data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
+		}
+
+		SLogger::Begin() << "Invalid peek!" << SLogger::End();
+	}
+
+	{
+		myQueue.Dequeue();
+
+		SCustomData data;
+		if(myQueue.Dequeue(data))
+		{
+			SLogger::Begin() << "Dequeue data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
+		}
+	}
+
+	myQueue.Enqueue({4, 4});
+
+	{
+		SCustomData data;
+		while(myQueue.Dequeue(data))
+		{
+			SLogger::Begin() << "Dequeue data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
+		}
+	}
+
+	myQueue.Enqueue({11,11});
+	myQueue.Enqueue({12,12});
+	myQueue.Enqueue({13,13});
+}
+
+int main()
+{
+	TestArray();
+	TestQueue();
 
 	return 0;
 }

@@ -46,6 +46,10 @@
 #include "Containers/Array/ArrayIterator.h"
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Allocator/FixedArrayAllocator.h"
+
+#include "Containers/Queue/Queue.h"
+#include "Containers/Queue/Allocator/QueueAllocator.h"
+
 #include "Containers/STDTypes.h"
 
 // Validation
