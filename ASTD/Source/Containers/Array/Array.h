@@ -11,7 +11,7 @@
 // TODO(jan.kristian.fisera): Implement
 // * Type traits
 // * Size type dependant on allocator size
-template<typename InElementType, typename InAllocator = CArrayAllocator>
+template<typename InElementType, typename InAllocator = typename TArrayAllocator<InElementType>>
 class TArray
 {
 private: // Setup
@@ -21,8 +21,6 @@ private: // Setup
 	typedef TArrayIterator<ElementType> ArrayIteratorType;
 	typedef TArrayIterator<const ElementType> ConstArrayIteratorType;
 	typedef typename AllocatorType::SizeType SizeType;
-
-	static constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
 
 public: // Asserts
 
@@ -54,8 +52,8 @@ public: // Operators
 
 public: // Property getters
 
-	FORCEINLINE const ElementType* GetData() const { return GetDataImpl(); }
-	FORCEINLINE ElementType* GetData() { return GetDataImpl(); }
+	FORCEINLINE const ElementType* GetData() const { return Allocator.GetData(); }
+	FORCEINLINE ElementType* GetData() { return Allocator.GetData(); }
 
 	FORCEINLINE SizeType GetCount() const { return Count; }
 	FORCEINLINE SizeType GetReserved() const { return Allocator.GetCount(); }
@@ -145,7 +143,9 @@ public: // Get
 public: // Find Index
 
 	SizeType FindIndex(const ElementType& Value) const 
-	{ 
+	{
+		constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
+
 		for(SizeType i = 0; i < Count; ++i)
 		{
 			// Compare bytes instead of using == operator (that might not be provided)
@@ -245,7 +245,7 @@ public: // Other
 		}
 
 		AllocatorType tmp;
-		NArrayInternalUtils::AllocatorCopyData<ElementType>(
+		NArrayInternalUtils::AllocatorCopyData(
 			tmp, Allocator, Num
 		);
 
@@ -257,7 +257,7 @@ public: // Other
 	void Reserve(SizeType Num)
 	{
 		if(Num <= Allocator.GetCount()) return;
-		Allocator.Allocate(ELEMENT_SIZE, Allocator.GetCount() - Num);
+		Allocator.Allocate(Allocator.GetCount() - Num);
 	}
 
 	FORCEINLINE void Reset() { RemoveAll(); }
@@ -273,8 +273,7 @@ public: // Iterators
 
 private: // Helpers -> Getters
 
-	FORCEINLINE ElementType* GetDataImpl() const { return (ElementType*)Allocator.GetData(); }
-	FORCEINLINE ElementType* GetElementAtImpl(SizeType Idx) const { return GetDataImpl() + Idx; }
+	FORCEINLINE ElementType* GetElementAtImpl(SizeType Idx) const { return Allocator.GetData() + Idx; }
 
 private: // Helpers -> Manipulation
 
@@ -323,7 +322,7 @@ private: // Helpers -> Cross manipulation (Array)
 	{
 		if(InData)
 		{
-			NArrayInternalUtils::AllocatorCopyData<ElementType>(
+			NArrayInternalUtils::AllocatorCopyData(
 				Allocator, InData, InCount
 			);
 
@@ -340,7 +339,7 @@ private: // Helpers -> Cross manipulation (Array)
 	{
 		if(Other.Allocator.GetData())
 		{
-			NArrayInternalUtils::AllocatorCopyData<ElementType>(
+			NArrayInternalUtils::AllocatorCopyData(
 				Allocator, Other.Allocator
 			);
 
@@ -395,11 +394,11 @@ private: // Helpers -> Others
 	{
 		if(Allocator.GetCount() < Count + 1)
 		{
-			Allocator.Allocate(ELEMENT_SIZE, (Count + 1) * 2);
+			Allocator.Allocate((Count + 1) * 2);
 		}
 
 		++Count;
-		return GetDataImpl() + (Count - 1);
+		return Allocator.GetData() + (Count - 1);
 	}
 
 private: // Fields
