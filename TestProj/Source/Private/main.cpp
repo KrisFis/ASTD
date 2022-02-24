@@ -41,6 +41,16 @@ struct SCustomData
 
 void TestArray()
 {
+	auto readData = [](const TArray<SCustomData>& Datas, const char* message)
+	{
+		SLogger::Begin() << message << SLogger::End();
+
+		for(const SCustomData& data : Datas)
+		{
+			SLogger::Begin() << "Read data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
+		}
+	};
+
 	SLogger::Begin() << "Hello Array" << SLogger::End();
 	
 	TArray<SCustomData> myArray((SCustomData*)nullptr, 4);
@@ -49,20 +59,21 @@ void TestArray()
 	data.A = 2;
 
 	myArray.Add({2, 4});
-	myArray.Add({2, 4});
-	myArray.Add({2, 4});
+	myArray.Add({2, 5});
+	myArray.Add({2, 6});
+
+	readData(myArray, "Array 1");
 
 	myArray.Empty();
 
-	myArray.Add({2, 4});
-	myArray.Add({2, 4});
-	myArray.Add({2, 4});
-	myArray.Add({2, 4});
+	readData(myArray, "Array 2");
 
-	for(SCustomData& data : myArray)
-	{
-		SLogger::Begin() << "Read data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
-	}
+	myArray.Add({2, 7});
+	myArray.Add({2, 8});
+	myArray.Add({2, 9});
+	myArray.Add({2, 10});
+	
+	readData(myArray, "Array 3");
 
 	SCustomData data2 = myArray[2];
 
@@ -73,8 +84,10 @@ void TestArray()
 		}
 	);
 
-	int64 idx = myArray.FindIndex({2, 3});
+	int64 idx = myArray.FindIndex({2, 11});
 	myArray.RemoveAt(idx);
+
+	readData(myArray, "Array 4");
 }
 
 void TestQueue()

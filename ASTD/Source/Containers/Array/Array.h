@@ -266,11 +266,11 @@ public: // Other
 
 public: // Iterators
 
-	FORCEINLINE ArrayIteratorType begin() { return ArrayIteratorType(GetFirst()); }
-	FORCEINLINE ConstArrayIteratorType begin() const { return ConstArrayIteratorType(GetFirst()); }
+	FORCEINLINE ArrayIteratorType begin() { return ArrayIteratorType(Count > 0 ? GetElementAtImpl(0) : nullptr); }
+	FORCEINLINE ConstArrayIteratorType begin() const { return ConstArrayIteratorType(Count > 0 ? GetElementAtImpl(0) : nullptr); }
 
-	FORCEINLINE ArrayIteratorType end() { return ArrayIteratorType(GetLast() + 1); }
-	FORCEINLINE ConstArrayIteratorType end() const { return ConstArrayIteratorType(GetLast() + 1); }
+	FORCEINLINE ArrayIteratorType end() { return ArrayIteratorType(Count > 0 ? GetElementAtImpl(Count) : nullptr); }
+	FORCEINLINE ConstArrayIteratorType end() const { return ConstArrayIteratorType(Count > 0 ? GetElementAtImpl(Count) : nullptr); }
 
 private: // Helpers -> Getters
 
