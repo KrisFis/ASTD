@@ -29,4 +29,4 @@ typename TRemoveReference<T>::Type&& DeclVal();
 // * Is only wrapper around sizeof(T)
 
 template<typename T>
-FORCEINLINE constexpr uint32 SizeOf() { return sizeof(T); }
+FORCEINLINE constexpr TSize SizeOf() { return sizeof(T); }

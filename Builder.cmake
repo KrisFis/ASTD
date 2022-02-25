@@ -37,8 +37,8 @@ endfunction()
 
 # add_build_target
 # @param - build option (EXE/EXECUTABLE, LIB/LIBRARY)
-# @param - name of the project
 # @param - name of module
+# @param - path to module
 # @param - array of definitions
 # @param - array of include directories
 # @param - array of source files
