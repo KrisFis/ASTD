@@ -24,7 +24,7 @@ public: // Types
 
 	typedef SNode NodeType;
 
-	static constexpr TSize NODE_SIZE = SizeOf<NodeType>();
+	static constexpr TSize NODE_SIZE = sizeof(NodeType);
 
 public: // Constructor
 

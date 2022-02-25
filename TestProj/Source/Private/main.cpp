@@ -144,6 +144,8 @@ void TestQueue()
 
 int main()
 {
+	const tchar* text = TEXT("Hello World");
+
 	TestArray();
 	TestQueue();
 

@@ -23,10 +23,3 @@ FORCEINLINE typename TRemoveReference<T>::Type&& Forward(T&& Obj) { return Obj; 
 
 template<typename T>
 typename TRemoveReference<T>::Type&& DeclVal();
-
-// [Size Of]
-// * Returns size of specific type
-// * Is only wrapper around sizeof(T)
-
-template<typename T>
-FORCEINLINE constexpr TSize SizeOf() { return sizeof(T); }

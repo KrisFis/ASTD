@@ -3,6 +3,10 @@
 
 #include "Build/PreprocessorHelpers.h"
 
+#define PLATFORM_HEADER(name) STRINGIFY(Platform/Linux/Linux ## name.h)
+#define PLATFORM_STRUCT(name) SLinuxPlatform ## name
+#define PLATFORM_CLASS(name) CLinuxPlatform ## name
+
 #define ASSEMBLY(code) __asm__(code)
 
 #define FORCEINLINE __attribute__((always_inline))
@@ -14,9 +18,6 @@
 #else
 	#define DEBUG_BREAK() ASSEMBLY("int3")
 #endif
-
-#define PLATFORM_HEADER(name) STRINGIFY(Platform/Linux/Linux ## name.h)
-#define PLATFORM_STRUCT(name) SLinuxPlatform ## name
 
 #define DLL_EXPORT
 #define DLL_IMPORT

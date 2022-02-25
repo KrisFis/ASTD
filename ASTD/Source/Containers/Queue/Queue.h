@@ -16,7 +16,7 @@ public: // Types
 	typedef InAllocatorType AllocatorType;
 	typedef typename AllocatorType::NodeType AllocatorNodeType;
 
-	static constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
+	static constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
 
 public: // Constructors
 

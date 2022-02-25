@@ -18,7 +18,7 @@ namespace NArrayInternalUtils
 		SMemory::Copy(
 			Allocator.GetData(),
 			Data,
-			SizeOf<AllocatorType::ElementType>() * Num
+			sizeof(AllocatorType::ElementType) * Num
 		);
 	}
 

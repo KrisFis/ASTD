@@ -1,12 +1,8 @@
 
 #pragma once
 
+#include "Build/Configurations.h"
 #include "Platform/PlatformDefinitions.h"
-
-// As default CHECKs are used for debug build
-#if !defined(DO_VALIDATION)
-	#define DO_VALIDATION BUILD_DEBUG
-#endif
 
 #if DO_VALIDATION
 

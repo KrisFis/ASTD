@@ -145,7 +145,7 @@ public: // Find Index
 
 	SizeType FindIndex(const ElementType& Value) const 
 	{
-		constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
+		constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
 
 		for(SizeType i = 0; i < Count; ++i)
 		{

@@ -8,11 +8,11 @@
 // Build
 #include "Build/BuildDefinitions.h"
 #include "Build/PreprocessorHelpers.h"
+#include "Build/Configurations.h"
 
 // Platform
 #include "Platform/PlatformDefinitions.h"
 #include "Platform/PlatformTypes.h"
-#include "Platform/PlatformMath.h"
 #include "Platform/PlatformMemory.h"
 #include "Platform/PlatformTime.h"
 

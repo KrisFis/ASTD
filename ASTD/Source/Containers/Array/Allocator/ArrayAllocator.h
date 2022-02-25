@@ -14,7 +14,7 @@ public: // Types
 	typedef InElementType ElementType;
 	typedef int64 SizeType;
 
-	static constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
+	static constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
 
 public: // Constructor
 
