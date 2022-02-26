@@ -4,12 +4,32 @@
 #include "TypeTraits/Internals/TypeTraitsCore.h"
 #include "TypeTraits/Internals/TypeTraitsInternals.h"
 
+// [Is Primitive Type]
+// * Checks whether specific type is primitive type
+// * Primitive types are: array type, floating type, integer type, bool type
+
+template<typename T> struct TIsPrimitiveType
+{
+	enum { Value = 
+		TIsArrayType<T>::Value || 
+		TIsFloatingType<T>::Value || 
+		TIsIntegerType<T>::Value || 
+		TIsCharacterType<T>::Value || 
+		TIsBoolType<T>::Value 
+	}; 
+};
+
 // [Decay]
 // * Returns the decayed type, meaning it removes all references, qualifiers and
 // * applies array-to-pointer and function-to-pointer conversions.
 
 template<typename T>
-struct TDecay { typedef typename NTypeTraitsInternals::TDecayHelper<typename TRemoveReference<T>::Type>::Type Type; };
+struct TDecay 
+{ 
+	typedef typename NTypeTraitsInternals::TDecayHelper<
+		typename TRemoveConstVolatile<typename TRemoveReference<T>::Type>::Type
+	>::Type Type; 
+};
 
 // [Choose]
 // * Chooses between two different types based on a value
