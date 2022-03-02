@@ -5,10 +5,11 @@
 #include "TypeTraits/TypeTraits.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
-#include "Containers/Array/Internals/ArrayInternalUtils.h"
 #include "Containers/Array/ArrayIterator.h"
 
 // TODO(jan.kristian.fisera): Implement
+// * Auto shrink feature
+// * Shrink to current count
 // * Type traits
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
@@ -230,37 +231,8 @@ public: // Contains
 
 public: // Other
 
-	void Shrink(SizeType Num)
-	{
-		if(Num >= Allocator.GetCount()) return;
-		else if(Num == 0)
-		{
-			EmptyImpl();
-			return;
-		}
-
-		for(SizeType i = Num; i < Count; ++i)
-		{
-			NMemoryUtilities::CallDestructor(
-				GetElementAtImpl(i)
-			);
-		}
-
-		AllocatorType tmp;
-		NArrayInternalUtils::AllocatorCopyData(
-			tmp, Allocator, Num
-		);
-
-		NArrayInternalUtils::AllocatorMoveData(
-			Allocator, tmp
-		);
-	}
-
-	void Reserve(SizeType Num)
-	{
-		if(Num <= Allocator.GetCount()) return;
-		Allocator.Allocate(Allocator.GetCount() - Num);
-	}
+	FORCEINLINE void Shrink(SizeType Num) { ShrinkImpl(Num); }
+	FORCEINLINE void Reserve(SizeType Num) { ReserveImpl(Num); }
 
 	FORCEINLINE void Reset() { EmptyImpl(); }
 	FORCEINLINE void Empty() { EmptyImpl(); }
@@ -302,6 +274,41 @@ private: // Helpers -> Manipulation
 		// NOTE(jan.kristian.fisera): Automatic shrinkin ?
 	}
 
+	void ShrinkImpl(SizeType Num)
+	{
+		if(Num >= Allocator.GetCount()) return;
+		else if(Num == 0)
+		{
+			EmptyImpl();
+			return;
+		}
+
+		AllocatorType tmp;
+		SMemory::Copy(
+			tmp.GetData(),
+			Allocator.GetData(),
+			sizeof(ElementType) * Num
+		);
+
+		EmptyImpl();
+		Allocator.Allocate(Num);
+
+		SMemory::Move(
+			Allocator.GetData(),
+			tmp.GetData(),
+			sizeof(ElementType) * Num
+		);
+
+		tmp.SetData(nullptr);
+		tmp.SetCount(0);
+	}
+
+	void ReserveImpl(SizeType Num)
+	{
+		if(Num <= Allocator.GetCount()) return;
+		Allocator.Allocate(Allocator.GetCount() - Num);
+	}
+
 	void EmptyImpl() 
 	{
 		if(Count > 0)
@@ -326,56 +333,41 @@ private: // Helpers -> Cross manipulation (Array)
 
 		if(InData)
 		{
-			NArrayInternalUtils::AllocatorCopyData(
-				Allocator, InData, InCount
+			Allocator.Allocate(InCount);
+
+			SMemory::Copy(
+				Allocator.GetData(),
+				InData,
+				sizeof(ElementType) * InCount
 			);
 
 			Count = InCount;
 		}
 	}
-
-	void CopyFrom(const TArray& Other)
-	{
-		EmptyImpl();
-
-		if(Other.Allocator.GetData())
-		{
-			NArrayInternalUtils::AllocatorCopyData(
-				Allocator, Other.Allocator
-			);
-
-			Count = Other.Count;
-		}
-	}
-
+	
+	void CopyFrom(const TArray& Other) { CopyFrom(Other.GetData(), Other.Count); }
+	
 	void MoveFrom(ElementType* InData, SizeType InCount)
 	{
 		EmptyImpl();
 
 		if(InData)
 		{
-			NArrayInternalUtils::AllocatorMoveData(
-				Allocator, InData, InCount
-			);
-
+			Allocator.SetData(InData);
+			Allocator.SetCount(InCount);
 			Count = InCount;
 		}
 	}
 
 	void MoveFrom(TArray&& Other)
 	{
-		EmptyImpl();
+		MoveFrom(Other.GetData(), Other.Count);
 
-		if(Other.Allocator.GetData())
 		{
-			NArrayInternalUtils::AllocatorMoveData(
-				Allocator, Move(Other.Allocator)
-			);
-
-			Count = Other.Count;
+			Other.Allocator.SetData(nullptr);
+			Other.Allocator.SetCount(0);
+			Other.Count = 0;
 		}
-
-		Other.Count = 0;
 	}
 
 private: // Helpers -> Others
