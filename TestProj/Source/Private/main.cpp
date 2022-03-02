@@ -77,6 +77,8 @@ void TestVector()
 	myArray.push_back({2, 9});
 	myArray.push_back({2, 10});
 	myArray.pop_back();
+	myArray.pop_back();
+	myArray.pop_back();
 	
 	readData(myArray, "Vector 3");
 
@@ -120,7 +122,9 @@ void TestArray()
 	myArray.Add({2, 8});
 	myArray.Add({2, 9});
 	myArray.Add({2, 10});
-	myArray.RemoveAt(0);
+	myArray.RemoveAt(myArray.GetLastIndex());
+	myArray.RemoveAt(myArray.GetLastIndex());
+	myArray.RemoveAt(myArray.GetLastIndex());
 	
 	readData(myArray, "Array 3");
 

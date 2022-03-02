@@ -64,15 +64,18 @@ public: // Validations
 	FORCEINLINE bool IsEmpty() const { return Count == 0; }
 	FORCEINLINE bool IsValidIndex(SizeType Idx) const { return Idx < Count; }
 
+	FORCEINLINE SizeType GetFirstIndex() const { return 0; }
+	FORCEINLINE SizeType GetLastIndex() const { return Count > 0 ? Count - 1 : 0; }
+
 public: // Add
 
-	SizeType Add(const ElementType& Value)
+	FORCEINLINE SizeType Add(const ElementType& Value)
 	{
 		AddImpl(Value);
 		return Count - 1;
 	}
 
-	SizeType Add(ElementType&& Value)
+	FORCEINLINE SizeType Add(ElementType&& Value)
 	{
 		AddImpl(Move(Value));
 		return Count - 1;
@@ -88,14 +91,41 @@ public: // Add
 		return *AddImpl(Move(Value));
 	}
 
+	FORCEINLINE void Push(const ElementType& Value) { AddImpl(Value); }
+	FORCEINLINE void Push(ElementType&& Value) { AddImpl(Move(Value)); }
+
 public: // Remove
 		// * Swap is faster version of Remove
 		// * but does not preserve order
+
+	FORCEINLINE void Remove(const ElementType& Value)
+	{
+		SizeType foundIndex = FindIndex(Value);
+		if(foundIndex != INDEX_NONE)
+		{
+			RemoveImpl(foundIndex);
+		}
+	}
+
+	FORCEINLINE void RemoveSwap(const ElementType& Value)
+	{
+		SizeType foundIndex = FindIndex(Value);
+		if(foundIndex != INDEX_NONE)
+		{
+			RemoveSwapImpl(foundIndex);
+		}
+	}
 
 	FORCEINLINE void RemoveAt(SizeType Index)
 	{
 		if(!IsValidIndex(Index)) return;
 		RemoveImpl(Index);
+	}
+
+	FORCEINLINE void RemoveAtSwap(SizeType Index)
+	{
+		if(!IsValidIndex(Index)) return;
+		RemoveSwapImpl(Index);
 	}
 
 	FORCEINLINE ElementType RemoveAt_GetCopy(SizeType Index)
@@ -109,12 +139,6 @@ public: // Remove
 		return copy;
 	}
 
-	FORCEINLINE void RemoveAtSwap(SizeType Index)
-	{
-		if(!IsValidIndex(Index)) return;
-		RemoveSwapImpl(Index);
-	}
-
 	FORCEINLINE ElementType RemoveAtSwap_GetCopy(SizeType Index)
 	{
 		if(!IsValidIndex(Index)) return;
@@ -126,38 +150,18 @@ public: // Remove
 		return copy;
 	}
 
+	FORCEINLINE void Pop() { RemoveAt(GetLastIndex()); }
+
 public: // Get
 
-	FORCEINLINE const ElementType* GetAt(SizeType Index) const
-	{
-		if(!IsValidIndex(Index)) return nullptr;
-		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
-	}
+	FORCEINLINE const ElementType* GetAt(SizeType Index) const { return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr; }
+	FORCEINLINE ElementType* GetAt(SizeType Index) { return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr; }
 
-	FORCEINLINE ElementType* GetAt(SizeType Index)
-	{
-		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
-	}
-
-	FORCEINLINE const ElementType* GetFirst() const
-	{
-		return Count > 0 ? GetElementAtImpl(0) : nullptr;
-	}
-
-	FORCEINLINE ElementType* GetFirst()
-	{
-		return Count > 0 ? GetElementAtImpl(0) : nullptr;
-	}
-
-	FORCEINLINE const ElementType* GetLast() const
-	{
-		return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr;
-	}
-
-	FORCEINLINE ElementType* GetLast()
-	{
-		return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr;
-	}
+	FORCEINLINE const ElementType* GetFirst() const { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ElementType* GetFirst() { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
+	
+	FORCEINLINE const ElementType* GetLast() const { return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr; }
+	FORCEINLINE ElementType* GetLast() { return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr; }
 
 public: // Find Index
 
@@ -282,7 +286,7 @@ private: // Helpers -> Manipulation
 		RelocateIfNeededImpl();
 
 		ElementType* newElement = GetElementAtImpl(Count - 1);
-		NMemoryUtilities::CallCopyConstructor(newElement, Move(Value));
+		NMemoryUtilities::CallMoveConstructor(newElement, Move(Value));
 		
 		return newElement;
 	}
@@ -345,6 +349,7 @@ private: // Helpers -> Manipulation
 
 		// Copy to temporary allocator
 		AllocatorType tmp;
+		tmp.Allocate(Num);
 		SMemory::Copy(
 			tmp.GetData(),
 			Allocator.GetData(),
@@ -352,6 +357,7 @@ private: // Helpers -> Manipulation
 		);
 
 		// Move data back to main allocator
+		Allocator.Release();
 		Allocator.Allocate(Num);
 		SMemory::Copy(
 			Allocator.GetData(),
@@ -366,7 +372,7 @@ private: // Helpers -> Manipulation
 	void ReserveImpl(SizeType Num)
 	{
 		if(Num <= Allocator.GetCount()) return;
-		Allocator.Allocate(Allocator.GetCount() - Num);
+		Allocator.Allocate(Num - Allocator.GetCount());
 	}
 
 	void EmptyImpl() 
