@@ -11,7 +11,7 @@
 // TODO(jan.kristian.fisera): Implement
 // * Type traits
 // * Size type dependant on allocator size
-template<typename InElementType, typename InAllocator = typename TArrayAllocator<InElementType>>
+template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
 private: // Setup

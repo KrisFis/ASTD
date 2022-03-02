@@ -6,7 +6,7 @@
 
 #include "Containers/Queue/Allocator/QueueAllocator.h"
 
-template<typename InElementType, typename InAllocatorType = typename TQueueAllocator<InElementType>>
+template<typename InElementType, typename InAllocatorType = TQueueAllocator<InElementType>>
 class TQueue
 {
 
