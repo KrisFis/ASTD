@@ -15,7 +15,10 @@ struct SGenericPlatformMemory
 
 	FORCEINLINE static void Deallocate(void* Ptr) { return free(Ptr); }
 
+	// Copies block of memory from destionation to source (does not handle overlapping)
 	FORCEINLINE static void* Copy(void* Destination, const void* Source, SizeType Size) { return memcpy(Destination, Source, Size); }
+
+	// Copies block of memory from destionation to source (handles overlapping)
 	FORCEINLINE static void* Move(void* Destination, const void* Source, SizeType Size) { return memmove(Destination, Source, Size); }
 
 	FORCEINLINE static SizeType Compare(const void* Lhs, const void* Rhs, SizeType Num) { return memcmp(Lhs, Rhs, Num); }

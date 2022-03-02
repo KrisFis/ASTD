@@ -99,7 +99,7 @@ private: // Helpers -> Manipulation
 			return false;
 		}
 
-		NMemoryUtilities::CallDestructor(node);
+		NMemoryUtilities::CallDestructor(&node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -113,13 +113,15 @@ private: // Helpers -> Manipulation
 			return false;
 		}
 
-		SMemory::Move(
+		SMemory::Copy(
 			&OutValue,
 			&node->Value,
 			sizeof(ElementType)
 		);
 
+		NMemoryUtilities::CallDestructor(&node->Value);
 		Allocator.Deallocate(node);
+
 		return true;
 	}
 

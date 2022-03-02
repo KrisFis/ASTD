@@ -9,8 +9,6 @@
 
 // TODO(jan.kristian.fisera): Implement
 // * Auto shrink feature
-// * Shrink to current count
-// * Type traits
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
@@ -93,22 +91,39 @@ public: // Add
 	}
 
 public: // Remove
+		// * Swap is faster version of Remove
+		// * but does not preserve order
 
 	FORCEINLINE void RemoveAt(SizeType Index)
 	{
-		// TODO(jan.kristian.fisera): Add better check
 		if(!IsValidIndex(Index)) return;
 		RemoveImpl(Index);
 	}
 
 	FORCEINLINE ElementType RemoveAt_GetCopy(SizeType Index)
 	{
-		// TODO(jan.kristian.fisera): Add better check
 		if(!IsValidIndex(Index)) return;
 
 		// Tries to use move constructor
 		ElementType copy(Move(*GetElementAtImpl(Index)));
 		RemoveImpl(Index);
+
+		return copy;
+	}
+
+	FORCEINLINE void RemoveAtSwap(SizeType Index)
+	{
+		if(!IsValidIndex(Index)) return;
+		RemoveSwapImpl(Index);
+	}
+
+	FORCEINLINE ElementType RemoveAtSwap_GetCopy(SizeType Index)
+	{
+		if(!IsValidIndex(Index)) return;
+
+		// Tries to use move constructor
+		ElementType copy(Move(*GetElementAtImpl(Index)));
+		RemoveSwapImpl(Index);
 
 		return copy;
 	}
@@ -231,6 +246,7 @@ public: // Contains
 
 public: // Other
 
+	FORCEINLINE void ShrinkToFit() { ShrinkImpl(Count); }
 	FORCEINLINE void Shrink(SizeType Num) { ShrinkImpl(Num); }
 	FORCEINLINE void Reserve(SizeType Num) { ReserveImpl(Num); }
 
@@ -265,13 +281,40 @@ private: // Helpers -> Manipulation
 		return newElement;
 	}
 
+	void RemoveSwapImpl(SizeType Index)
+	{
+		// Pointer still can be used
+		NMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
+
+		if(Index != Count - 1)
+		{
+			// Swaps last element with this
+			SMemory::Copy(
+				GetElementAtImpl(Index),
+				GetLast(),
+				sizeof(ElementType)
+			);
+		}
+
+		--Count;
+	}
+
 	void RemoveImpl(SizeType Index)
 	{
 		// Pointer still can be used
-		// * NOTE(jan.kristian.fisera): Should we keep track of removed ?
 		NMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
 
-		// NOTE(jan.kristian.fisera): Automatic shrinkin ?
+		if(Index != Count - 1)
+		{
+			// Moves entire allocation by one index down
+			SMemory::Move(
+				GetElementAtImpl(Index),
+				GetElementAtImpl(Index + 1),
+				sizeof(ElementType) * (Count - Index - 1)
+			);
+		}
+
+		--Count;
 	}
 
 	void ShrinkImpl(SizeType Num)
@@ -283,6 +326,14 @@ private: // Helpers -> Manipulation
 			return;
 		}
 
+		for(SizeType i = Num; i < Count; ++i)
+		{
+			NMemoryUtilities::CallDestructor(
+				GetElementAtImpl(i)
+			);
+		}
+
+		// Copy to temporary allocator
 		AllocatorType tmp;
 		SMemory::Copy(
 			tmp.GetData(),
@@ -290,10 +341,9 @@ private: // Helpers -> Manipulation
 			sizeof(ElementType) * Num
 		);
 
-		EmptyImpl();
+		// Move data back to main allocator
 		Allocator.Allocate(Num);
-
-		SMemory::Move(
+		SMemory::Copy(
 			Allocator.GetData(),
 			tmp.GetData(),
 			sizeof(ElementType) * Num
