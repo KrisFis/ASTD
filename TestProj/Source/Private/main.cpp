@@ -55,7 +55,7 @@ void TestVector()
 	SLogger::Begin() << "Hello Vector" << SLogger::End();
 	
 	std::vector<SCustomData> myArray;
-
+	
 	myArray.push_back({1, 3});
 	myArray[0].A = 2;
 

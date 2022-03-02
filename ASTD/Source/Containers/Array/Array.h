@@ -20,7 +20,10 @@ private: // Setup
 
 public: // Asserts
 
-	static_assert(!TIsSame<InAllocator, void>::Value, "Invalid allocator type");
+	static_assert(!TIsSame<AllocatorType, void>::Value, "Allocator type cannot be void");
+	static_assert(!TIsSame<ElementType, void>::Value, "Element type cannot be void");
+
+	static_assert(!TIsReference<ElementType>::Value, "References are not supported as element type");
 	static_assert(TIsSignedType<SizeType>::Value, "Unsigned types are not supported");
 
 public: // Constructors
@@ -159,7 +162,7 @@ public: // Get
 
 	FORCEINLINE const ElementType* GetFirst() const { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
 	FORCEINLINE ElementType* GetFirst() { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
-	
+
 	FORCEINLINE const ElementType* GetLast() const { return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr; }
 	FORCEINLINE ElementType* GetLast() { return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr; }
 
