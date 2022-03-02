@@ -268,7 +268,7 @@ private: // Helpers -> Manipulation
 	ElementType* AddImpl(const ElementType& Value)
 	{
 		++Count;
-		IncreaseAllocationIfNeeded();
+		RelocateIfNeededImpl();
 
 		ElementType* newElement = GetElementAtImpl(Count - 1);
 		NMemoryUtilities::CallCopyConstructor(newElement, Value);
@@ -279,7 +279,7 @@ private: // Helpers -> Manipulation
 	ElementType* AddImpl(ElementType&& Value)
 	{
 		++Count;
-		IncreaseAllocationIfNeeded();
+		RelocateIfNeededImpl();
 
 		ElementType* newElement = GetElementAtImpl(Count - 1);
 		NMemoryUtilities::CallCopyConstructor(newElement, Move(Value));
@@ -304,7 +304,7 @@ private: // Helpers -> Manipulation
 
 		--Count;
 
-		DecreaseAllocationIfNeeded();
+		RelocateIfNeededImpl();
 	}
 
 	void RemoveImpl(SizeType Index)
@@ -324,7 +324,7 @@ private: // Helpers -> Manipulation
 
 		--Count;
 
-		DecreaseAllocationIfNeeded();
+		RelocateIfNeededImpl();
 	}
 
 	void ShrinkImpl(SizeType Num)
@@ -432,23 +432,17 @@ private: // Helpers -> Cross manipulation (Array)
 
 private: // Helpers -> Others
 
-	void IncreaseAllocationIfNeeded()
+	void RelocateIfNeededImpl()
 	{
 		const SizeType reserved = Allocator.GetCount();
 		const SizeType nextReserved = reserved == 0 ? 2 : 2 * reserved;
+		const SizeType prevReserved = reserved == 0 ? 0 : reserved / 2;
 
 		if(Count > reserved)
 		{
 			ReserveImpl(nextReserved);
 		}
-	}
-
-	void DecreaseAllocationIfNeeded()
-	{
-		const SizeType reserved = Allocator.GetCount();
-		const SizeType prevReserved = reserved == 0 ? 0 : reserved / 2;
-
-		if(Count <= prevReserved)
+		else if(Count <= prevReserved)
 		{
 			ShrinkImpl(prevReserved);
 		}
