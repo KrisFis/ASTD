@@ -4,33 +4,44 @@
 #include "Type/TypeUtilities.h"
 #include "TypeTraits/TypeTraits.h"
 
+#include "Containers/Array/Internals/ArrayTypeTraits.h"
+
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/ArrayIterator.h"
 
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
-private: // Setup
+private: // Public types
 
 	typedef InElementType ElementType;
+	typedef NArrayTypeTraits::TElementInfo<ElementType> ElementInfo;
+
 	typedef InAllocator AllocatorType;
+	typedef NArrayTypeTraits::TAllocatorInfo<AllocatorType> AllocatorInfo;
+
 	typedef TArrayIterator<ElementType> ArrayIteratorType;
 	typedef TArrayIterator<const ElementType> ConstArrayIteratorType;
+
 	typedef typename AllocatorType::SizeType SizeType;
 
 public: // Asserts
 
-	static_assert(!TIsSame<AllocatorType, void>::Value, "Allocator type cannot be void");
-	static_assert(!TIsSame<ElementType, void>::Value, "Element type cannot be void");
-
-	static_assert(!TIsReference<ElementType>::Value, "References are not supported as element type");
-	static_assert(TIsSignedType<SizeType>::Value, "Unsigned types are not supported");
+	static_assert(!ElementInfo::IsValid, "Element type is not valid");
+	static_assert(!AllocatorInfo::IsValid, "Allocator type is not valid");
 
 public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { CopyFrom(Other); }
 	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { MoveFrom(Move(Other)); }
+	FORCEINLINE TArray(const TInitializerList<ElementType>& InList)
+		: Allocator()
+		, Count(0)
+	{ 
+		CopyFrom(InList.begin(), InList.size()); 
+	}
+
 	FORCEINLINE TArray(ElementType* InData, SizeType InCount, bool Copy = true) 
 		: Allocator()
 		, Count(0)
@@ -404,11 +415,21 @@ private: // Helpers -> Cross manipulation (Array)
 		{
 			Allocator.Allocate(InCount);
 
-			SMemory::Copy(
-				Allocator.GetData(),
-				InData,
-				sizeof(ElementType) * InCount
-			);
+			if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
+			{
+				for(SizeType i = 0; i < InCount; ++i)
+				{
+					NMemoryUtilities::CallCopyConstructor(Allocator.GetData() + i, *(InData + i));
+				}
+			}
+			else
+			{
+				SMemory::Copy(
+					Allocator.GetData(),
+					InData,
+					sizeof(ElementType) * InCount
+				);
+			}
 
 			Count = InCount;
 		}
@@ -422,8 +443,19 @@ private: // Helpers -> Cross manipulation (Array)
 
 		if(InData)
 		{
-			Allocator.SetData(InData);
-			Allocator.SetCount(InCount);
+			if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+			{
+				for(SizeType i = 0; i < InCount; ++i)
+				{
+					NMemoryUtilities::CallMoveConstructor(Allocator.GetData() + i, Move(*(InData + i)));
+				}
+			}
+			else
+			{
+				Allocator.SetData(InData);
+				Allocator.SetCount(InCount);
+			}
+
 			Count = InCount;
 		}
 	}

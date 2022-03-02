@@ -54,7 +54,8 @@ void TestVector()
 
 	SLogger::Begin() << "Hello Vector" << SLogger::End();
 	
-	std::vector<SCustomData> myArray;
+	std::vector<SCustomData> myArray = {{1,1}, {2,2}, {3,3}};
+	myArray.clear();
 	
 	myArray.push_back({1, 3});
 	myArray[0].A = 2;
@@ -100,7 +101,8 @@ void TestArray()
 
 	SLogger::Begin() << "Hello Array" << SLogger::End();
 	
-	TArray<SCustomData> myArray;
+	TArray<SCustomData> myArray = {{1,1}, {2,2}, {3,3}};
+	myArray.Empty();
 
 	SCustomData& data = myArray.Add_GetRef({1, 3});
 	data.A = 2;
@@ -189,6 +191,8 @@ int main()
 	TestArray();
 	TestVector();
 	//TestQueue();
+
+	TArray<SCustomData> myArray;
 
 	return 0;
 }
