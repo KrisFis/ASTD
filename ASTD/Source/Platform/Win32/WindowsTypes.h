@@ -18,8 +18,7 @@ typedef unsigned __int32 uint32;
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
 
-
 // Characters
 ////////////////////////////////////////////////
 
-typedef __wchar_t pchar; // platform char
+typedef __wchar_t wchar;

@@ -24,11 +24,14 @@ public: // Types
 
 	typedef SNode NodeType;
 
-	static constexpr TSize NODE_SIZE = SizeOf<NodeType>();
-
 public: // Constructor
 
 	FORCEINLINE TQueueAllocator() : Head(nullptr), Tail(nullptr) {}
+
+public: // Operators
+
+	FORCEINLINE bool operator==(const TQueueAllocator& Other) const { return Head == Other.Head && Tail == Other.Tail; }
+	FORCEINLINE bool operator!=(const TQueueAllocator& Other) const { return !operator==(Other); }
 
 public: // Getters
 
@@ -46,7 +49,7 @@ public: // Methods
 		NodeType* prevNode = Tail;
 		for(SizeType i = 0; i < Num; ++i)
 		{
-			NodeType* newNode = (NodeType*)SMemory::Allocate(NODE_SIZE);
+			NodeType* newNode = (NodeType*)SMemory::Allocate(sizeof(NodeType));
 			newNode->Previous = prevNode;
 			newNode->Next = nullptr;
 

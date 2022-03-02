@@ -108,6 +108,14 @@ template<> struct TIsIntegerType<uint16> { enum { Value = true }; };
 template<> struct TIsIntegerType<uint32> { enum { Value = true }; };
 template<> struct TIsIntegerType<uint64> { enum { Value = true }; };
 
+// [Is Character Type]
+// * Checks whether specific type is character type
+// * Character types are: char, wchar
+
+template<typename T> struct TIsCharacterType { enum { Value = false }; };
+template<> struct TIsCharacterType<char> { enum { Value = true }; };
+template<> struct TIsCharacterType<wchar> { enum { Value = true }; };
+
 // [Is signed type]
 // * Checks whether specific type is signed type
 // * Signed types are types that is missing "unsigned" qualifier
@@ -117,9 +125,3 @@ template<> struct TIsSignedType<uint8> { enum { Value = false }; };
 template<> struct TIsSignedType<uint16> { enum { Value = false }; };
 template<> struct TIsSignedType<uint32> { enum { Value = false }; };
 template<> struct TIsSignedType<uint64> { enum { Value = false }; };
-
-// [Is Primitive Type]
-// * Checks whether specific type is primitive type
-// * Primitive types are: array type, floating type, integer type, bool type
-
-template<typename T> struct TIsPrimitiveType { enum { Value = TIsArrayType<T>::Value || TIsFloatingType<T>::Value || TIsIntegerType<T>::Value || TIsBoolType<T>::Value }; };

@@ -8,7 +8,7 @@ namespace NTypeTraitsInternals
 	template<typename T>
 	struct TDecayHelper
 	{
-		typedef typename TRemoveConstVolatile<T>::Type Type;
+		typedef T Type;
 	};
 	
 	template <typename T>

@@ -5,13 +5,9 @@
 #include "TypeTraits/TypeTraits.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
-#include "Containers/Array/Internals/ArrayInternalUtils.h"
 #include "Containers/Array/ArrayIterator.h"
 
-// TODO(jan.kristian.fisera): Implement
-// * Type traits
-// * Size type dependant on allocator size
-template<typename InElementType, typename InAllocator = typename TArrayAllocator<InElementType>>
+template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
 private: // Setup
@@ -24,15 +20,20 @@ private: // Setup
 
 public: // Asserts
 
-	static_assert(!TIsSame<InAllocator, void>::Value, "Invalid allocator type");
+	static_assert(!TIsSame<AllocatorType, void>::Value, "Allocator type cannot be void");
+	static_assert(!TIsSame<ElementType, void>::Value, "Element type cannot be void");
+
+	static_assert(!TIsReference<ElementType>::Value, "References are not supported as element type");
 	static_assert(TIsSignedType<SizeType>::Value, "Unsigned types are not supported");
 
 public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
-	FORCEINLINE TArray(const TArray& Other) { CopyFrom(Other); }
-	FORCEINLINE TArray(TArray&& Other) { MoveFrom(Move(Other)); }
+	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { CopyFrom(Other); }
+	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { MoveFrom(Move(Other)); }
 	FORCEINLINE TArray(ElementType* InData, SizeType InCount, bool Copy = true) 
+		: Allocator()
+		, Count(0)
 	{
 		if(Copy) CopyFrom(InData, InCount);
 		else MoveFrom(InData, InCount); 
@@ -40,15 +41,18 @@ public: // Constructors
 
 public: // Destructor
 
-	~TArray() {}
+	FORCEINLINE ~TArray() { EmptyImpl(); }
 
 public: // Operators
 
-	TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
-	TArray& operator=(TArray&& Other) { MoveFrom(Move(Other)); return *this; }
+	FORCEINLINE bool operator==(const TArray& Other) const { return Allocator == Other.Allocator; }
+	FORCEINLINE bool operator!=(const TArray& Other) const { return Allocator != Other.Allocator; }
 
-	ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
-	const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
+	FORCEINLINE TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { MoveFrom(Move(Other)); return *this; }
+
+	FORCEINLINE ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
+	FORCEINLINE const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
 
 public: // Property getters
 
@@ -63,15 +67,18 @@ public: // Validations
 	FORCEINLINE bool IsEmpty() const { return Count == 0; }
 	FORCEINLINE bool IsValidIndex(SizeType Idx) const { return Idx < Count; }
 
+	FORCEINLINE SizeType GetFirstIndex() const { return 0; }
+	FORCEINLINE SizeType GetLastIndex() const { return Count > 0 ? Count - 1 : 0; }
+
 public: // Add
 
-	SizeType Add(const ElementType& Value)
+	FORCEINLINE SizeType Add(const ElementType& Value)
 	{
 		AddImpl(Value);
 		return Count - 1;
 	}
 
-	SizeType Add(ElementType&& Value)
+	FORCEINLINE SizeType Add(ElementType&& Value)
 	{
 		AddImpl(Move(Value));
 		return Count - 1;
@@ -87,18 +94,45 @@ public: // Add
 		return *AddImpl(Move(Value));
 	}
 
+	FORCEINLINE void Push(const ElementType& Value) { AddImpl(Value); }
+	FORCEINLINE void Push(ElementType&& Value) { AddImpl(Move(Value)); }
+
 public: // Remove
+		// * Swap is faster version of Remove
+		// * but does not preserve order
+
+	FORCEINLINE void Remove(const ElementType& Value)
+	{
+		SizeType foundIndex = FindIndex(Value);
+		if(foundIndex != INDEX_NONE)
+		{
+			RemoveImpl(foundIndex);
+		}
+	}
+
+	FORCEINLINE void RemoveSwap(const ElementType& Value)
+	{
+		SizeType foundIndex = FindIndex(Value);
+		if(foundIndex != INDEX_NONE)
+		{
+			RemoveSwapImpl(foundIndex);
+		}
+	}
 
 	FORCEINLINE void RemoveAt(SizeType Index)
 	{
-		// TODO(jan.kristian.fisera): Add better check
 		if(!IsValidIndex(Index)) return;
 		RemoveImpl(Index);
 	}
 
+	FORCEINLINE void RemoveAtSwap(SizeType Index)
+	{
+		if(!IsValidIndex(Index)) return;
+		RemoveSwapImpl(Index);
+	}
+
 	FORCEINLINE ElementType RemoveAt_GetCopy(SizeType Index)
 	{
-		// TODO(jan.kristian.fisera): Add better check
 		if(!IsValidIndex(Index)) return;
 
 		// Tries to use move constructor
@@ -108,49 +142,37 @@ public: // Remove
 		return copy;
 	}
 
+	FORCEINLINE ElementType RemoveAtSwap_GetCopy(SizeType Index)
+	{
+		if(!IsValidIndex(Index)) return;
+
+		// Tries to use move constructor
+		ElementType copy(Move(*GetElementAtImpl(Index)));
+		RemoveSwapImpl(Index);
+
+		return copy;
+	}
+
+	FORCEINLINE void Pop() { RemoveAt(GetLastIndex()); }
+
 public: // Get
 
-	FORCEINLINE const ElementType* GetAt(SizeType Index) const
-	{
-		if(!IsValidIndex(Index)) return nullptr;
-		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
-	}
+	FORCEINLINE const ElementType* GetAt(SizeType Index) const { return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr; }
+	FORCEINLINE ElementType* GetAt(SizeType Index) { return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr; }
 
-	FORCEINLINE ElementType* GetAt(SizeType Index)
-	{
-		return IsValidIndex(Index) ? GetElementAtImpl(Index) : nullptr;
-	}
+	FORCEINLINE const ElementType* GetFirst() const { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ElementType* GetFirst() { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
 
-	FORCEINLINE const ElementType* GetFirst() const
-	{
-		return Count > 0 ? GetElementAtImpl(0) : nullptr;
-	}
-
-	FORCEINLINE ElementType* GetFirst()
-	{
-		return Count > 0 ? GetElementAtImpl(0) : nullptr;
-	}
-
-	FORCEINLINE const ElementType* GetLast() const
-	{
-		return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr;
-	}
-
-	FORCEINLINE ElementType* GetLast()
-	{
-		return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr;
-	}
+	FORCEINLINE const ElementType* GetLast() const { return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr; }
+	FORCEINLINE ElementType* GetLast() { return Count > 0 ? GetElementAtImpl(Count - 1) : nullptr; }
 
 public: // Find Index
 
 	SizeType FindIndex(const ElementType& Value) const 
 	{
-		constexpr TSize ELEMENT_SIZE = SizeOf<ElementType>();
-
 		for(SizeType i = 0; i < Count; ++i)
 		{
-			// Compare bytes instead of using == operator (that might not be provided)
-			if(SMemory::Compare(GetElementAtImpl(i), (void*)&Value, ELEMENT_SIZE) == 0)
+			if(IsSameElementImpl(GetElementAtImpl(i), (void*)&Value))
 			{
 				return i;
 			}
@@ -229,40 +251,12 @@ public: // Contains
 
 public: // Other
 
-	void Shrink(SizeType Num)
-	{
-		if(Num >= Allocator.GetCount()) return;
-		else if(Num == 0)
-		{
-			RemoveAll();
-			return;
-		}
+	FORCEINLINE void ShrinkToFit() { ShrinkImpl(Count); }
+	FORCEINLINE void Shrink(SizeType Num) { ShrinkImpl(Num); }
+	FORCEINLINE void Reserve(SizeType Num) { ReserveImpl(Num); }
 
-		for(SizeType i = Num; i < Count; ++i)
-		{
-			NMemoryUtilities::CallDestructor(
-				GetElementAtImpl(i)
-			);
-		}
-
-		AllocatorType tmp;
-		NArrayInternalUtils::AllocatorCopyData(
-			tmp, Allocator, Num
-		);
-
-		NArrayInternalUtils::AllocatorReplace(
-			Allocator, tmp
-		);
-	}
-
-	void Reserve(SizeType Num)
-	{
-		if(Num <= Allocator.GetCount()) return;
-		Allocator.Allocate(Allocator.GetCount() - Num);
-	}
-
-	FORCEINLINE void Reset() { RemoveAll(); }
-	FORCEINLINE void Empty() { RemoveAll(); }
+	FORCEINLINE void Reset() { EmptyImpl(); }
+	FORCEINLINE void Empty() { EmptyImpl(); }
 
 public: // Iterators
 
@@ -280,28 +274,111 @@ private: // Helpers -> Manipulation
 
 	ElementType* AddImpl(const ElementType& Value)
 	{
-		ElementType* newElement = GetNextImpl();
-		NMemoryUtilities::CallConstructor(newElement, Value);
+		++Count;
+		RelocateIfNeededImpl();
+
+		ElementType* newElement = GetElementAtImpl(Count - 1);
+		NMemoryUtilities::CallCopyConstructor(newElement, Value);
+		
 		return newElement;
 	}
 
 	ElementType* AddImpl(ElementType&& Value)
 	{
-		ElementType* newElement = GetNextImpl();
-		NMemoryUtilities::CallConstructor(newElement, Move(Value));
+		++Count;
+		RelocateIfNeededImpl();
+
+		ElementType* newElement = GetElementAtImpl(Count - 1);
+		NMemoryUtilities::CallMoveConstructor(newElement, Move(Value));
+		
 		return newElement;
+	}
+
+	void RemoveSwapImpl(SizeType Index)
+	{
+		// Pointer still can be used
+		NMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
+
+		if(Index != Count - 1)
+		{
+			// Swaps last element with this
+			SMemory::Copy(
+				GetElementAtImpl(Index),
+				GetLast(),
+				sizeof(ElementType)
+			);
+		}
+
+		--Count;
+
+		RelocateIfNeededImpl();
 	}
 
 	void RemoveImpl(SizeType Index)
 	{
 		// Pointer still can be used
-		// * NOTE(jan.kristian.fisera): Should we keep track of removed ?
 		NMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
 
-		// NOTE(jan.kristian.fisera): Automatic shrinkin ?
+		if(Index != Count - 1)
+		{
+			// Moves entire allocation by one index down
+			SMemory::Move(
+				GetElementAtImpl(Index),
+				GetElementAtImpl(Index + 1),
+				sizeof(ElementType) * (Count - Index - 1)
+			);
+		}
+
+		--Count;
+
+		RelocateIfNeededImpl();
 	}
 
-	void RemoveAll() 
+	void ShrinkImpl(SizeType Num)
+	{
+		if(Num >= Allocator.GetCount()) return;
+		else if(Num == 0)
+		{
+			EmptyImpl();
+			return;
+		}
+
+		for(SizeType i = Num; i < Count; ++i)
+		{
+			NMemoryUtilities::CallDestructor(
+				GetElementAtImpl(i)
+			);
+		}
+
+		// Copy to temporary allocator
+		AllocatorType tmp;
+		tmp.Allocate(Num);
+		SMemory::Copy(
+			tmp.GetData(),
+			Allocator.GetData(),
+			sizeof(ElementType) * Num
+		);
+
+		// Move data back to main allocator
+		Allocator.Release();
+		Allocator.Allocate(Num);
+		SMemory::Copy(
+			Allocator.GetData(),
+			tmp.GetData(),
+			sizeof(ElementType) * Num
+		);
+
+		tmp.SetData(nullptr);
+		tmp.SetCount(0);
+	}
+
+	void ReserveImpl(SizeType Num)
+	{
+		if(Num <= Allocator.GetCount()) return;
+		Allocator.Allocate(Num - Allocator.GetCount());
+	}
+
+	void EmptyImpl() 
 	{
 		if(Count > 0)
 		{
@@ -321,85 +398,69 @@ private: // Helpers -> Cross manipulation (Array)
 
 	void CopyFrom(const ElementType* InData, SizeType InCount)
 	{
+		EmptyImpl();
+
 		if(InData)
 		{
-			NArrayInternalUtils::AllocatorCopyData(
-				Allocator, InData, InCount
+			Allocator.Allocate(InCount);
+
+			SMemory::Copy(
+				Allocator.GetData(),
+				InData,
+				sizeof(ElementType) * InCount
 			);
 
 			Count = InCount;
 		}
-		else
-		{
-			Allocator.Release();
-			Count = 0;
-		}
 	}
-
-	void CopyFrom(const TArray& Other)
-	{
-		if(Other.Allocator.GetData())
-		{
-			NArrayInternalUtils::AllocatorCopyData(
-				Allocator, Other.Allocator
-			);
-
-			Count = Other.Count;
-		}
-		else
-		{
-			Allocator.Release();
-			Count = 0;
-		}
-	}
-
+	
+	void CopyFrom(const TArray& Other) { CopyFrom(Other.GetData(), Other.Count); }
+	
 	void MoveFrom(ElementType* InData, SizeType InCount)
 	{
+		EmptyImpl();
+
 		if(InData)
 		{
-			NArrayInternalUtils::AllocatorReplace(
-				Allocator, InData, InCount
-			);
-
+			Allocator.SetData(InData);
+			Allocator.SetCount(InCount);
 			Count = InCount;
-		}
-		else
-		{
-			Allocator.Release();
-			Count = 0;
 		}
 	}
 
 	void MoveFrom(TArray&& Other)
 	{
-		if(Other.Allocator.GetData())
-		{
-			NArrayInternalUtils::AllocatorReplace(
-				Allocator, Move(Other.Allocator)
-			);
+		MoveFrom(Other.GetData(), Other.Count);
 
-			Count = Other.Count;
-		}
-		else
 		{
-			Allocator.Release();
-			Count = 0;
+			Other.Allocator.SetData(nullptr);
+			Other.Allocator.SetCount(0);
+			Other.Count = 0;
 		}
-
-		Other.Count = 0;
 	}
 
 private: // Helpers -> Others
 
-	ElementType* GetNextImpl()
+	void RelocateIfNeededImpl()
 	{
-		if(Allocator.GetCount() < Count + 1)
-		{
-			Allocator.Allocate((Count + 1) * 2);
-		}
+		const SizeType reserved = Allocator.GetCount();
+		const SizeType nextReserved = reserved == 0 ? 2 : 2 * reserved;
+		const SizeType prevReserved = reserved == 0 ? 0 : reserved / 2;
 
-		++Count;
-		return Allocator.GetData() + (Count - 1);
+		if(Count > reserved)
+		{
+			ReserveImpl(nextReserved);
+		}
+		else if(Count <= prevReserved)
+		{
+			ShrinkImpl(prevReserved);
+		}
+	}
+
+	FORCEINLINE bool IsSameElementImpl(const ElementType* Lhs, const ElementType* Rhs)
+	{
+		// Compare bytes instead of using == operator (that might not be provided)
+		return SMemory::Compare(Lhs, Rhs, sizeof(ElementType)) == 0;
 	}
 
 private: // Fields

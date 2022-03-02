@@ -21,4 +21,4 @@ typedef uint64_t uint64;
 // Characters
 ////////////////////////////////////////////////
 
-typedef char pchar; // platform char
+typedef wchar_t wchar;

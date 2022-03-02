@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <Windows.h>
+#include "Platform/Win32/WindowsDefinitions.h"
 #include "Platform/Generic/GenericTime.h"
 
 struct SWindowsPlatformTime : public SGenericPlatformTime
