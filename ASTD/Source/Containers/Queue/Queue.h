@@ -48,13 +48,13 @@ public: // Enqueue
 	void Enqueue(const ElementType& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		NMemoryUtilities::CallConstructor(&node->Value, Value);
+		NMemoryUtilities::CallCopyConstructor(&node->Value, Value);
 	}
 
 	void Enqueue(ElementType&& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		NMemoryUtilities::CallConstructor(&node->Value, Move(Value));
+		NMemoryUtilities::CallMoveConstructor(&node->Value, Move(Value));
 	}
 
 public: // Dequeue

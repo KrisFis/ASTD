@@ -1,5 +1,6 @@
 
 #include <iostream>
+#include <vector>
 
 #include "ASTD.h"
 
@@ -39,6 +40,48 @@ struct SCustomData
 	uint8 A, B;
 };
 
+void TestVector()
+{
+	auto readData = [](const std::vector<SCustomData>& Datas, const char* message)
+		{
+			SLogger::Begin() << message << SLogger::End();
+
+			for(const SCustomData& data : Datas)
+			{
+				SLogger::Begin() << "Read data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
+			}
+		};
+
+	SLogger::Begin() << "Hello Vector" << SLogger::End();
+	
+	std::vector<SCustomData> myArray;
+
+	myArray.push_back({1, 3});
+	myArray[0].A = 2;
+
+	SCustomData data2 = SCustomData(8, 8);
+	myArray.push_back(data2);
+
+	myArray.push_back({2, 4});
+	myArray.push_back({2, 5});
+	myArray.push_back({2, 6});
+
+	readData(myArray, "Vector 1");
+
+	myArray.clear();
+
+	readData(myArray, "Vector 2");
+
+	myArray.push_back({2, 7});
+	myArray.push_back({2, 8});
+	myArray.push_back({2, 9});
+	myArray.push_back({2, 10});
+	myArray.pop_back();
+	
+	readData(myArray, "Vector 3");
+
+}
+
 void TestArray()
 {
 	auto readData = [](const TArray<SCustomData>& Datas, const char* message)
@@ -53,10 +96,13 @@ void TestArray()
 
 	SLogger::Begin() << "Hello Array" << SLogger::End();
 	
-	TArray<SCustomData> myArray((SCustomData*)nullptr, 4);
+	TArray<SCustomData> myArray;
 
 	SCustomData& data = myArray.Add_GetRef({1, 3});
 	data.A = 2;
+
+	SCustomData data2 = SCustomData(8, 8);
+	myArray.Add(data2);
 
 	myArray.Add({2, 4});
 	myArray.Add({2, 5});
@@ -72,22 +118,9 @@ void TestArray()
 	myArray.Add({2, 8});
 	myArray.Add({2, 9});
 	myArray.Add({2, 10});
+	myArray.RemoveAt(0);
 	
 	readData(myArray, "Array 3");
-
-	SCustomData data2 = myArray[2];
-
-	SCustomData* a = myArray.FindByFunc(
-		[&](const SCustomData& Data)
-		{
-			return Data.A == 1;
-		}
-	);
-
-	int64 idx = myArray.FindIndex({2, 11});
-	myArray.RemoveAt(idx);
-
-	readData(myArray, "Array 4");
 }
 
 void TestQueue()
@@ -145,7 +178,8 @@ void TestQueue()
 int main()
 {
 	TestArray();
-	TestQueue();
+	TestVector();
+	//TestQueue();
 
 	return 0;
 }

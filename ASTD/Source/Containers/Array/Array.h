@@ -10,7 +10,6 @@
 
 // TODO(jan.kristian.fisera): Implement
 // * Type traits
-// * Size type dependant on allocator size
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
@@ -40,7 +39,7 @@ public: // Constructors
 
 public: // Destructor
 
-	~TArray() {}
+	FORCEINLINE ~TArray() { Reset(); }
 
 public: // Operators
 
@@ -281,14 +280,14 @@ private: // Helpers -> Manipulation
 	ElementType* AddImpl(const ElementType& Value)
 	{
 		ElementType* newElement = GetNextImpl();
-		NMemoryUtilities::CallConstructor(newElement, Value);
+		NMemoryUtilities::CallCopyConstructor(newElement, Value);
 		return newElement;
 	}
 
 	ElementType* AddImpl(ElementType&& Value)
 	{
 		ElementType* newElement = GetNextImpl();
-		NMemoryUtilities::CallConstructor(newElement, Move(Value));
+		NMemoryUtilities::CallMoveConstructor(newElement, Move(Value));
 		return newElement;
 	}
 
