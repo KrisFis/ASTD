@@ -7,8 +7,6 @@
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/ArrayIterator.h"
 
-// TODO(jan.kristian.fisera): Implement
-// * Auto shrink feature
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
@@ -269,15 +267,23 @@ private: // Helpers -> Manipulation
 
 	ElementType* AddImpl(const ElementType& Value)
 	{
-		ElementType* newElement = GetNextImpl();
+		++Count;
+		IncreaseAllocationIfNeeded();
+
+		ElementType* newElement = GetElementAtImpl(Count - 1);
 		NMemoryUtilities::CallCopyConstructor(newElement, Value);
+		
 		return newElement;
 	}
 
 	ElementType* AddImpl(ElementType&& Value)
 	{
-		ElementType* newElement = GetNextImpl();
-		NMemoryUtilities::CallMoveConstructor(newElement, Move(Value));
+		++Count;
+		IncreaseAllocationIfNeeded();
+
+		ElementType* newElement = GetElementAtImpl(Count - 1);
+		NMemoryUtilities::CallCopyConstructor(newElement, Move(Value));
+		
 		return newElement;
 	}
 
@@ -297,6 +303,8 @@ private: // Helpers -> Manipulation
 		}
 
 		--Count;
+
+		DecreaseAllocationIfNeeded();
 	}
 
 	void RemoveImpl(SizeType Index)
@@ -315,6 +323,8 @@ private: // Helpers -> Manipulation
 		}
 
 		--Count;
+
+		DecreaseAllocationIfNeeded();
 	}
 
 	void ShrinkImpl(SizeType Num)
@@ -422,15 +432,26 @@ private: // Helpers -> Cross manipulation (Array)
 
 private: // Helpers -> Others
 
-	ElementType* GetNextImpl()
+	void IncreaseAllocationIfNeeded()
 	{
-		if(Allocator.GetCount() < Count + 1)
-		{
-			Allocator.Allocate((Count + 1) * 2);
-		}
+		const SizeType reserved = Allocator.GetCount();
+		const SizeType nextReserved = reserved == 0 ? 2 : 2 * reserved;
 
-		++Count;
-		return Allocator.GetData() + (Count - 1);
+		if(Count > reserved)
+		{
+			ReserveImpl(nextReserved);
+		}
+	}
+
+	void DecreaseAllocationIfNeeded()
+	{
+		const SizeType reserved = Allocator.GetCount();
+		const SizeType prevReserved = reserved == 0 ? 0 : reserved / 2;
+
+		if(Count <= prevReserved)
+		{
+			ShrinkImpl(prevReserved);
+		}
 	}
 
 	FORCEINLINE bool IsSameElementImpl(const ElementType* Lhs, const ElementType* Rhs)

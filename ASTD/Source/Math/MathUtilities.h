@@ -39,6 +39,12 @@ struct SMath
 	template<typename T>
 	FORCEINLINE static T Ceil(T Value) { return ceil(Value); }
 
+	template<typename T>
+	FORCEINLINE static T Pow(T Value, T Exponent) { return pow(Value, Exponent); }
+
+	template<typename T>
+	FORCEINLINE static T Sqrt(T Value) { return sqrt(Value); }
+
 	template <typename T>
 	FORCEINLINE static bool IsPowerOfTwo(T Value) { return ((Value & (Value - 1)) == (T)0); }
 };
