@@ -10,9 +10,8 @@ namespace NArrayInternalUtils
 {
 	// zero num is not supported!
 	template<typename AllocatorType>
-	void AllocatorCopyData(AllocatorType Allocator, const typename AllocatorType::ElementType* Data, typename AllocatorType::SizeType Num)
+	void AllocatorCopyData(AllocatorType& Allocator, const typename AllocatorType::ElementType* Data, typename AllocatorType::SizeType Num)
 	{
-		Allocator.Release();
 		Allocator.Allocate(Num);
 
 		SMemory::Copy(
@@ -23,8 +22,8 @@ namespace NArrayInternalUtils
 	}
 
 	// zero num is all elements
-	template<typename ElementType, typename AllocatorType>
-	FORCEINLINE void AllocatorCopyData(AllocatorType Destination, AllocatorType Source)
+	template<typename AllocatorType>
+	FORCEINLINE void AllocatorCopyData(AllocatorType& Destination, const AllocatorType& Source)
 	{
 		AllocatorCopyData(
 			Destination,
@@ -34,7 +33,7 @@ namespace NArrayInternalUtils
 	}
 
 	template<typename AllocatorType>
-	FORCEINLINE void AllocatorCopyData(AllocatorType Destination, AllocatorType Source, typename AllocatorType::SizeType Num)
+	FORCEINLINE void AllocatorCopyData(AllocatorType& Destination, const AllocatorType& Source, typename AllocatorType::SizeType Num)
 	{
 		AllocatorCopyData(
 			Destination,
@@ -44,18 +43,17 @@ namespace NArrayInternalUtils
 	}
 
 	template<typename AllocatorType>
-	void AllocatorReplace(AllocatorType Allocator, typename AllocatorType::ElementType* Data, typename AllocatorType::SizeType Num)
+	void AllocatorMoveData(AllocatorType& Allocator, typename AllocatorType::ElementType* Data, typename AllocatorType::SizeType Num)
 	{
-		Allocator.Release();
 		Allocator.SetData(Data);
 		Allocator.SetCount(Num);
 	}
 
 	// Source can be either lvalue or xvalue
 	template<typename DestAllocatorType, typename SrcAllocatorType>
-	void AllocatorReplace(DestAllocatorType Destination, SrcAllocatorType Source)
+	void AllocatorMoveData(DestAllocatorType& Destination, SrcAllocatorType&& Source)
 	{
-		AllocatorReplace(Destination, Source.GetData(), Source.GetCount());
+		AllocatorMoveData(Destination, Source.GetData(), Source.GetCount());
 		
 		Source.SetData(nullptr);
 		Source.SetCount(0);

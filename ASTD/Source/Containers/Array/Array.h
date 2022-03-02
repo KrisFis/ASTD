@@ -29,9 +29,11 @@ public: // Asserts
 public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
-	FORCEINLINE TArray(const TArray& Other) { CopyFrom(Other); }
-	FORCEINLINE TArray(TArray&& Other) { MoveFrom(Move(Other)); }
+	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { CopyFrom(Other); }
+	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { MoveFrom(Move(Other)); }
 	FORCEINLINE TArray(ElementType* InData, SizeType InCount, bool Copy = true) 
+		: Allocator()
+		, Count(0)
 	{
 		if(Copy) CopyFrom(InData, InCount);
 		else MoveFrom(InData, InCount); 
@@ -39,15 +41,18 @@ public: // Constructors
 
 public: // Destructor
 
-	FORCEINLINE ~TArray() { Reset(); }
+	FORCEINLINE ~TArray() { EmptyImpl(); }
 
 public: // Operators
 
-	TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
-	TArray& operator=(TArray&& Other) { MoveFrom(Move(Other)); return *this; }
+	FORCEINLINE bool operator==(const TArray& Other) const { return Allocator == Other.Allocator; }
+	FORCEINLINE bool operator!=(const TArray& Other) const { return Allocator != Other.Allocator; }
 
-	ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
-	const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
+	FORCEINLINE TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { MoveFrom(Move(Other)); return *this; }
+
+	FORCEINLINE ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
+	FORCEINLINE const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
 
 public: // Property getters
 
@@ -144,12 +149,9 @@ public: // Find Index
 
 	SizeType FindIndex(const ElementType& Value) const 
 	{
-		constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
-
 		for(SizeType i = 0; i < Count; ++i)
 		{
-			// Compare bytes instead of using == operator (that might not be provided)
-			if(SMemory::Compare(GetElementAtImpl(i), (void*)&Value, ELEMENT_SIZE) == 0)
+			if(IsSameElementImpl(GetElementAtImpl(i), (void*)&Value))
 			{
 				return i;
 			}
@@ -233,7 +235,7 @@ public: // Other
 		if(Num >= Allocator.GetCount()) return;
 		else if(Num == 0)
 		{
-			RemoveAll();
+			EmptyImpl();
 			return;
 		}
 
@@ -249,7 +251,7 @@ public: // Other
 			tmp, Allocator, Num
 		);
 
-		NArrayInternalUtils::AllocatorReplace(
+		NArrayInternalUtils::AllocatorMoveData(
 			Allocator, tmp
 		);
 	}
@@ -260,8 +262,8 @@ public: // Other
 		Allocator.Allocate(Allocator.GetCount() - Num);
 	}
 
-	FORCEINLINE void Reset() { RemoveAll(); }
-	FORCEINLINE void Empty() { RemoveAll(); }
+	FORCEINLINE void Reset() { EmptyImpl(); }
+	FORCEINLINE void Empty() { EmptyImpl(); }
 
 public: // Iterators
 
@@ -300,7 +302,7 @@ private: // Helpers -> Manipulation
 		// NOTE(jan.kristian.fisera): Automatic shrinkin ?
 	}
 
-	void RemoveAll() 
+	void EmptyImpl() 
 	{
 		if(Count > 0)
 		{
@@ -320,6 +322,8 @@ private: // Helpers -> Cross manipulation (Array)
 
 	void CopyFrom(const ElementType* InData, SizeType InCount)
 	{
+		EmptyImpl();
+
 		if(InData)
 		{
 			NArrayInternalUtils::AllocatorCopyData(
@@ -328,15 +332,12 @@ private: // Helpers -> Cross manipulation (Array)
 
 			Count = InCount;
 		}
-		else
-		{
-			Allocator.Release();
-			Count = 0;
-		}
 	}
 
 	void CopyFrom(const TArray& Other)
 	{
+		EmptyImpl();
+
 		if(Other.Allocator.GetData())
 		{
 			NArrayInternalUtils::AllocatorCopyData(
@@ -345,44 +346,33 @@ private: // Helpers -> Cross manipulation (Array)
 
 			Count = Other.Count;
 		}
-		else
-		{
-			Allocator.Release();
-			Count = 0;
-		}
 	}
 
 	void MoveFrom(ElementType* InData, SizeType InCount)
 	{
+		EmptyImpl();
+
 		if(InData)
 		{
-			NArrayInternalUtils::AllocatorReplace(
+			NArrayInternalUtils::AllocatorMoveData(
 				Allocator, InData, InCount
 			);
 
 			Count = InCount;
 		}
-		else
-		{
-			Allocator.Release();
-			Count = 0;
-		}
 	}
 
 	void MoveFrom(TArray&& Other)
 	{
+		EmptyImpl();
+
 		if(Other.Allocator.GetData())
 		{
-			NArrayInternalUtils::AllocatorReplace(
+			NArrayInternalUtils::AllocatorMoveData(
 				Allocator, Move(Other.Allocator)
 			);
 
 			Count = Other.Count;
-		}
-		else
-		{
-			Allocator.Release();
-			Count = 0;
 		}
 
 		Other.Count = 0;
@@ -399,6 +389,12 @@ private: // Helpers -> Others
 
 		++Count;
 		return Allocator.GetData() + (Count - 1);
+	}
+
+	FORCEINLINE bool IsSameElementImpl(const ElementType* Lhs, const ElementType* Rhs)
+	{
+		// Compare bytes instead of using == operator (that might not be provided)
+		return SMemory::Compare(Lhs, Rhs, sizeof(ElementType)) == 0;
 	}
 
 private: // Fields

@@ -80,6 +80,8 @@ void TestVector()
 	
 	readData(myArray, "Vector 3");
 
+	std::vector<SCustomData> newData = myArray;
+	std::vector<SCustomData> newData2(myArray);
 }
 
 void TestArray()
@@ -121,6 +123,9 @@ void TestArray()
 	myArray.RemoveAt(0);
 	
 	readData(myArray, "Array 3");
+
+	TArray<SCustomData> newData = myArray;
+	TArray<SCustomData> newData2(myArray);
 }
 
 void TestQueue()

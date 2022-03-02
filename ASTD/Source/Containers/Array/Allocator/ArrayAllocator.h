@@ -14,8 +14,6 @@ public: // Types
 	typedef InElementType ElementType;
 	typedef int64 SizeType;
 
-	static constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
-
 public: // Constructor
 
 	FORCEINLINE TArrayAllocator() : Data(nullptr), Count(0) {}
@@ -47,6 +45,8 @@ public: // Manipulation
 	// @return - array of new elements
 	ElementType* Allocate(SizeType Num)
 	{
+		static constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
+
 		ElementType* newData = (ElementType*)SMemory::Allocate(ELEMENT_SIZE * (Count + Num));
 		if(Data)
 		{

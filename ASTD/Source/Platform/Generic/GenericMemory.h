@@ -18,5 +18,5 @@ struct SGenericPlatformMemory
 	FORCEINLINE static void* Copy(void* Destination, const void* Source, SizeType Size) { return memcpy(Destination, Source, Size); }
 	FORCEINLINE static void* Move(void* Destination, const void* Source, SizeType Size) { return memmove(Destination, Source, Size); }
 
-	FORCEINLINE static SizeType Compare(void* Lhs, void* Rhs, SizeType Num) { return memcmp(Lhs, Rhs, Num); }
+	FORCEINLINE static SizeType Compare(const void* Lhs, const void* Rhs, SizeType Num) { return memcmp(Lhs, Rhs, Num); }
 };

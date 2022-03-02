@@ -16,11 +16,23 @@ public: // Types
 	typedef InAllocatorType AllocatorType;
 	typedef typename AllocatorType::NodeType AllocatorNodeType;
 
-	static constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
-
 public: // Constructors
 
 	FORCEINLINE TQueue() : Allocator() {}
+	FORCEINLINE TQueue(const TQueue& Other) : Allocator() { CopyFrom(Other); }
+	FORCEINLINE TQueue(TQueue&& Other) : Allocator() { MoveFrom(Move(Other)); }
+
+public: // Destructor
+
+	FORCEINLINE ~TQueue() { EmptyImpl(); }
+
+public: // Operators
+
+	FORCEINLINE bool operator==(const TQueue& Other) const { return Allocator == Other.Allocator; }
+	FORCEINLINE bool operator!=(const TQueue& Other) const { return Allocator != Other.Allocator; }
+
+	FORCEINLINE TQueue& operator=(const TQueue& Other) { CopyFrom(Other); return *this; }
+	FORCEINLINE TQueue& operator=(TQueue&& Other) { MoveFrom(Move(Other)); return *this; }
 
 public: // Getters
 
@@ -28,38 +40,58 @@ public: // Getters
 
 public: // Peek
 
-	bool Peek(ElementType& OutValue) const
+	FORCEINLINE bool Peek(ElementType& OutValue) const { return PeakImpl(OutValue); }
+
+public: // Enqueue
+
+	FORCEINLINE void Enqueue(const ElementType& Value) { AddImpl(Value); }
+	FORCEINLINE void Enqueue(ElementType&& Value) { AddImpl(Move(Value)); }
+
+public: // Dequeue
+
+	FORCEINLINE bool Dequeue() { return RemoveFromHeadImpl(); }
+	FORCEINLINE bool Dequeue(ElementType& OutValue) { return RemoveFromHeadImpl(OutValue); }
+
+public: // Empty
+
+	FORCEINLINE void Empty() { EmptyImpl(); }
+	FORCEINLINE void Reset() { EmptyImpl(); }
+
+private: // Helpers -> Getters
+
+	bool PeakImpl(ElementType& OutValue) const
 	{
 		AllocatorNodeType* node = Allocator.GetHead();
-		if(node)
+		if(node) // Should we use copy constructor ?
 		{
 			SMemory::Copy(
 				&OutValue,
 				&node->Value,
-				ELEMENT_SIZE
+				sizeof(ElementType)
 			);
 		}
 
 		return node != nullptr;
 	}
 
-public: // Enqueue
+private: // Helpers -> Manipulation
 
-	void Enqueue(const ElementType& Value)
+
+	AllocatorNodeType* AddImpl(const ElementType& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
 		NMemoryUtilities::CallCopyConstructor(&node->Value, Value);
+		return node;
 	}
 
-	void Enqueue(ElementType&& Value)
+	AllocatorNodeType* AddImpl(ElementType&& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
 		NMemoryUtilities::CallMoveConstructor(&node->Value, Move(Value));
+		return node;
 	}
 
-public: // Dequeue
-
-	bool Dequeue()
+	bool RemoveFromHeadImpl()
 	{
 		AllocatorNodeType* node = Allocator.GetHead();
 		if(!node)
@@ -73,7 +105,7 @@ public: // Dequeue
 		return true;
 	}
 
-	bool Dequeue(ElementType& OutValue)
+	bool RemoveFromHeadImpl(ElementType& OutValue)
 	{
 		AllocatorNodeType* node = Allocator.GetHead();
 		if(!node)
@@ -84,28 +116,57 @@ public: // Dequeue
 		SMemory::Move(
 			&OutValue,
 			&node->Value,
-			ELEMENT_SIZE
+			sizeof(ElementType)
 		);
 
 		Allocator.Deallocate(node);
 		return true;
 	}
 
-public: // Empty
-
-	FORCEINLINE void Empty() 
-	{ 
+	void EmptyImpl()
+	{
 		AllocatorNodeType* currentNode = Allocator.GetHead();
-		while(currentNode != nullptr)
+		if(currentNode)
 		{
-			NMemoryUtilities::CallDestructor(&currentNode->Value);
-			currentNode = currentNode->Next;
-		}
+			while(currentNode != nullptr)
+			{
+				NMemoryUtilities::CallDestructor(&currentNode->Value);
+				currentNode = currentNode->Next;
+			}
 
-		Allocator.Release();
+			Allocator.Release();
+		}
 	}
 
-	FORCEINLINE void Reset() { Allocator.Release(); }
+private: // Helpers -> Cross manipulation (TQueue)
+
+	void CopyFrom(const TQueue& Other)
+	{
+		EmptyImpl();
+
+		AllocatorNodeType* currentNode = Other.Allocator.GetHead();
+		while(currentNode != nullptr)
+		{
+			AllocatorNodeType* newNode = Allocator.Allocate(1);
+
+			SMemory::Copy(
+				&newNode->Value,
+				&currentNode->Value,
+				sizeof(ElementType)
+			);
+		}
+	}
+
+	void MoveFrom(TQueue&& Other)
+	{
+		EmptyImpl();
+
+		Allocator.SetHead(Other.Allocator.GetHead());
+		Allocator.SetTail(Other.Allocator.GetTail());
+
+		Other.Allocator.SetHead(nullptr);
+		Other.Allocator.SetTail(nullptr);
+	}
 
 private: // Fields
 
