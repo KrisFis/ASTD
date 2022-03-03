@@ -34,7 +34,7 @@ public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { CopyFrom(Other); }
-	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { TakeFrom(Move(Other)); }
+	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { CopyFrom(Move(Other)); }
 	FORCEINLINE TArray(const TInitializerList<ElementType>& InList)
 		: Allocator()
 		, Count(0)
@@ -59,7 +59,7 @@ public: // Operators
 	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
 
 	FORCEINLINE TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
-	FORCEINLINE TArray& operator=(TArray&& Other) { TakeFrom(Move(Other)); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { CopyFrom(Move(Other)); return *this; }
 
 	FORCEINLINE TArray& operator=(const TInitializerList<ElementType>& InList) { CopyFrom(InList.begin(), InList.size()); return *this; }
 
@@ -408,7 +408,7 @@ private: // Helpers -> Manipulation
 
 private: // Helpers -> Cross manipulation (Array)
 
-	void CopyFrom(const ElementType* InData, SizeType InCount)
+	void CopyFrom(const ElementType* InData, SizeType InCount, bool preferMove = false)
 	{
 		EmptyImpl();
 
@@ -420,7 +420,10 @@ private: // Helpers -> Cross manipulation (Array)
 			{
 				for(SizeType i = 0; i < InCount; ++i)
 				{
-					NMemoryUtilities::CallCopyConstructor(Allocator.GetData() + i, *(InData + i));
+					if(preferMove)
+						NMemoryUtilities::CallMoveConstructor(Allocator.GetData() + i, Move(*(InData + i)));
+					else
+						NMemoryUtilities::CallCopyConstructor(Allocator.GetData() + i, *(InData + i));
 				}
 			}
 			else
@@ -436,58 +439,14 @@ private: // Helpers -> Cross manipulation (Array)
 		}
 	}
 	
-	void CopyFrom(const TArray& Other) { CopyFrom(Other.GetData(), Other.Count); }
-	
-	void MoveFrom(const ElementType* InData, SizeType InCount)
-	{
-		EmptyImpl();
-
-		if(InData)
-		{
-			if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
-			{
-				for(SizeType i = 0; i < InCount; ++i)
-				{
-					NMemoryUtilities::CallMoveConstructor(Allocator.GetData() + i, Move(*(InData + i)));
-				}
-			}
-			else
-			{
-				SMemory::Copy(
-					Allocator.GetData(),
-					InData,
-					sizeof(ElementType) * InCount
-				);
-			}
-		}
+	void CopyFrom(const TArray& Other) 
+	{ 
+		CopyFrom(Other.GetData(), Other.Count); 
 	}
 
-	void TakeFrom(const ElementType* InData, SizeType InCount)
+	void CopyFrom(TArray&& Other)
 	{
-		EmptyImpl();
-
-		if(InData)
-		{
-			if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
-			{
-				for(SizeType i = 0; i < InCount; ++i)
-				{
-					NMemoryUtilities::CallMoveConstructor(Allocator.GetData() + i, Move(*(InData + i)));
-				}
-			}
-			else
-			{
-				Allocator.SetData(const_cast<ElementType*>(InData));
-				Allocator.SetCount(InCount);
-			}
-
-			Count = InCount;
-		}
-	}
-
-	void TakeFrom(TArray&& Other)
-	{
-		TakeFrom(Other.GetData(), Other.Count);
+		CopyFrom(Other.GetData(), Other.GetCount(), true);
 
 		{
 			Other.Allocator.SetData(nullptr);
