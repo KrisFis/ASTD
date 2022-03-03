@@ -24,6 +24,7 @@ private: // Public types
 	typedef TArrayIterator<const ElementType> ConstArrayIteratorType;
 
 	typedef typename AllocatorType::SizeType SizeType;
+	typedef TInitializerList<ElementType> ElementListType;
 
 public: // Asserts
 
@@ -35,7 +36,7 @@ public: // Constructors
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { FillToEmptyImpl(Other); }
 	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { FillToEmptyImpl(Move(Other)); }
-	FORCEINLINE TArray(const TInitializerList<ElementType>& InList)
+	FORCEINLINE TArray(const ElementListType& InList)
 		: Allocator()
 		, Count(0)
 	{ 
@@ -61,7 +62,7 @@ public: // Operators
 	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Other); return *this; }
 	FORCEINLINE TArray& operator=(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); return *this; }
 
-	FORCEINLINE TArray& operator=(const TInitializerList<ElementType>& InList) { EmptyImpl(); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
+	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
 
 	FORCEINLINE ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
 	FORCEINLINE const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
@@ -87,28 +88,46 @@ public: // Append
 	FORCEINLINE void Append(const TArray& Other) { AppendImpl(Other); }
 	FORCEINLINE void Append(TArray&& Other) { AppendImpl(Move(Other)); }
 
+	FORCEINLINE void Append(const ElementType& Value, SizeType NumToAdd) { AddImpl(Value, NumToAdd); }
+	FORCEINLINE void Append(const ElementListType& InList) { AppendImpl(InList.begin(), InList.size()); }
+	FORCEINLINE void AppendUnitialized(SizeType NumToAdd) { AddUnitializedImpl(NumToAdd); }
+
 public: // Add
 
 	FORCEINLINE SizeType Add(const ElementType& Value)
 	{
-		AddSingleImpl(Value);
+		AddImpl(Value);
 		return Count - 1;
 	}
 
 	FORCEINLINE SizeType Add(ElementType&& Value)
 	{
-		AddSingleImpl(Move(Value));
+		AddImpl(Move(Value));
+		return Count - 1;
+	}
+
+	FORCEINLINE SizeType AddUnitialized()
+	{
+		AddUnitializedImpl();
 		return Count - 1;
 	}
 
 	FORCEINLINE ElementType& Add_GetRef(const ElementType& Value)
 	{
-		return *AddSingleImpl(Value);
+		AddImpl(Value);
+		return *GetElementAtImpl(Count - 1);
 	}
 
 	FORCEINLINE ElementType& Add_GetRef(ElementType&& Value)
 	{
-		return *AddSingleImpl(Move(Value));
+		AddImpl(Move(Value));
+		return *GetElementAtImpl(Count - 1);
+	}
+
+	FORCEINLINE ElementType& AddUnitialized_GetRef()
+	{
+		AddUnitializedImpl();
+		return *GetElementAtImpl(Count - 1);
 	}
 
 	FORCEINLINE void Push(const ElementType& Value) { AddSingleImpl(Value); }
@@ -289,57 +308,34 @@ private: // Helpers -> Getters
 
 private: // Helpers -> Manipulation
 
-	void AppendImpl(const TArray& Other)
+	void AddUnitializedImpl(SizeType InCount = 1)
 	{
-		if(Other.Count > 0)
+		if(InCount > 0)
 		{
-			const SizeType oldCount = Count;
-
-			Count += Other.Count;
+			Count += InCount;
 			RelocateIfNeededImpl();
-
-			CopyConstructImpl(Allocator.GetData() + oldCount, Other.Allocator.GetData(), Other.Count);
 		}
 	}
 
-	void AppendImpl(TArray&& Other)
+	void AddImpl(const ElementType& Value, SizeType InCount = 1)
 	{
-		if(Other.Count > 0)
+		if(InCount > 0)
 		{
 			const SizeType oldCount = Count;
 
-			Count += Other.Count;
+			Count += InCount;
 			RelocateIfNeededImpl();
 
-			MoveConstructImpl(Allocator.GetData() + oldCount, Other.Allocator.GetData(), Other.Count);
-
-			{
-				Other.Allocator.Release();
-				Other.Count = 0;
-			}
+			CopyElementImpl(Allocator.GetData() + oldCount, Value, InCount);
 		}
 	}
 
-	ElementType* AddSingleImpl(const ElementType& Value)
+	void AddImpl(ElementType&& Value)
 	{
 		++Count;
 		RelocateIfNeededImpl();
 
-		ElementType* newElement = GetElementAtImpl(Count - 1);
-		CopyConstructImpl(newElement, &Value);
-		
-		return newElement;
-	}
-
-	ElementType* AddSingleImpl(ElementType&& Value)
-	{
-		++Count;
-		RelocateIfNeededImpl();
-
-		ElementType* newElement = GetElementAtImpl(Count - 1);
-		MoveConstructImpl(newElement, &Value, 1);
-		
-		return newElement;
+		MoveElementImpl(Allocator.GetData(), &Value, 1);
 	}
 
 	void RemoveSwapImpl(SizeType Index)
@@ -434,6 +430,34 @@ private: // Helpers -> Manipulation
 
 private: // Helpers -> Cross manipulation (Array)
 
+	void AppendImpl(const ElementType* InData, SizeType InCount, bool preferMove = false)
+	{
+		if(InCount > 0)
+		{
+			const SizeType oldCount = Count;
+
+			Count += InCount;
+			RelocateIfNeededImpl();
+
+			if(preferMove)
+				MoveElementsImpl(Allocator.GetData() + oldCount, InData, InCount);
+			else
+				CopyElementsImpl(Allocator.GetData() + oldCount, InData, InCount);
+		}
+	}
+
+	void AppendImpl(TArray&& Other)
+	{
+		AppendImpl(Other.GetData(), Other.Count, true);
+
+		{
+			Other.Allocator.Release();
+			Other.Count = 0;
+		}
+	}
+
+	FORCEINLINE void AppendImpl(const TArray& Other) { AppendImpl(Other.GetData(), Other.Count); }
+
 	void FillToEmptyImpl(const ElementType* InData, SizeType InCount, bool preferMove = false)
 	{
 		if(InData)
@@ -441,18 +465,15 @@ private: // Helpers -> Cross manipulation (Array)
 			Allocator.Allocate(InCount);
 
 			if(preferMove)
-				MoveConstructImpl(Allocator.GetData(), InData, InCount);
+				MoveElementsImpl(Allocator.GetData(), InData, InCount);
 			else
-				CopyConstructImpl(Allocator.GetData(), InData, InCount);
+				CopyElementsImpl(Allocator.GetData(), InData, InCount);
 
 			Count = InCount;
 		}
 	}
 	
-	void FillToEmptyImpl(const TArray& Other) 
-	{ 
-		FillToEmptyImpl(Other.GetData(), Other.Count); 
-	}
+	FORCEINLINE void FillToEmptyImpl(const TArray& Other) { FillToEmptyImpl(Other.GetData(), Other.Count); }
 
 	void FillToEmptyImpl(TArray&& Other)
 	{
@@ -468,7 +489,7 @@ private: // Helpers -> Cross manipulation (Array)
 private: // Helpers -> Others
 
 	// Make sure elements array and values array does NOT OVERLAP
-	void CopyConstructImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType Count)
+	void CopyElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType Count)
 	{
 		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
 		{
@@ -487,7 +508,30 @@ private: // Helpers -> Others
 		}
 	}
 
-	void MoveConstructImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType Count)
+	// Construction from one value, that is reused
+	void CopyElementImpl(ElementType* ElementArray, const ElementType& Value, SizeType Count)
+	{
+		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
+		{
+			for(SizeType i = 0; i < Count; ++i)
+			{
+				NMemoryUtilities::CallCopyConstructor(ElementArray + i, Value);
+			}
+		}
+		else
+		{
+			for(SizeType i = 0; i < Count; ++i)
+			{
+				SMemory::Copy(
+					ElementArray + i,
+					&Value,
+					sizeof(ElementType)
+				);
+			}
+		}
+	}
+
+	void MoveElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType Count)
 	{
 		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
 		{
@@ -503,6 +547,30 @@ private: // Helpers -> Others
 				ValuesArray,
 				sizeof(ElementType) * Count
 			);
+		}
+	}
+
+	// Construction from one value, that is reused
+	void MoveElementImpl(ElementType* ElementArray, ElementType&& Value, SizeType Count)
+	{
+		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+		{
+			// Having count greater than 1 can be unpredictable in specific case where object modifies value in move constructor
+			for(SizeType i = 0; i < Count; ++i)
+			{
+				NMemoryUtilities::CallMoveConstructor(ElementArray + i, Move(Value));
+			}
+		}
+		else
+		{
+			for(SizeType i = 0; i < Count; ++i)
+			{
+				SMemory::Copy(
+					ElementArray + i,
+					&Value,
+					sizeof(ElementType)
+				);
+			}
 		}
 	}
 
