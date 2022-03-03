@@ -5,7 +5,6 @@ function(builder_setup_build)
 	# Configuration
 	# -----------------------------------------------------------
 
-	set(CMAKE_CXX_STANDARD 17)
 	#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pthread -fpermissive")
 	set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE STRING "" FORCE)
 
@@ -75,5 +74,6 @@ function(builder_add_module BUILD_OPTION MODULE_NAME MODULE_PATH DEFINITIONS INC
 	target_compile_definitions(${MODULE_NAME} PRIVATE "${DEFINITIONS}")
 	target_include_directories(${MODULE_NAME} PRIVATE "${INCLUDE_DIRS}")
 	target_link_libraries(${MODULE_NAME} PRIVATE "${LINK_LIBRARIES}")
+	target_compile_features(${MODULE_NAME} PRIVATE cxx_std_17)
 
 endfunction()

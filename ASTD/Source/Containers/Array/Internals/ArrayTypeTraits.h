@@ -22,7 +22,7 @@ namespace NArrayTypeTraits
 	template<typename AllocatorType>
 	struct TAllocatorInfo
 	{
-		typedef typename AllocatorType SizeType;
+		typedef typename AllocatorType::SizeType SizeType;
 
 		enum
 		{

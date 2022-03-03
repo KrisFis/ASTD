@@ -27,8 +27,8 @@ private: // Public types
 
 public: // Asserts
 
-	static_assert(!ElementInfo::IsValid, "Element type is not valid");
-	static_assert(!AllocatorInfo::IsValid, "Allocator type is not valid");
+	static_assert(ElementInfo::IsValid, "Element type is not valid");
+	static_assert(AllocatorInfo::IsValid, "Allocator type is not valid");
 
 public: // Constructors
 
