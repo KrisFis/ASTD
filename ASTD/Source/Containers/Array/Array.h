@@ -9,6 +9,7 @@
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/ArrayIterator.h"
 
+// TODO(jan.kristian.fisera): Call constructor or move bytes! (its not consistent for now)
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
@@ -81,6 +82,11 @@ public: // Validations
 
 	FORCEINLINE SizeType GetFirstIndex() const { return 0; }
 	FORCEINLINE SizeType GetLastIndex() const { return Count > 0 ? Count - 1 : 0; }
+
+public: // Append
+
+	FORCEINLINE void Append(const TArray& Other) { AppendImpl(Other); }
+	FORCEINLINE void Append(TArray&& Other) { AppendImpl(Move(Other)); }
 
 public: // Add
 
@@ -283,6 +289,37 @@ private: // Helpers -> Getters
 	FORCEINLINE ElementType* GetElementAtImpl(SizeType Idx) const { return Allocator.GetData() + Idx; }
 
 private: // Helpers -> Manipulation
+
+	void AppendImpl(const TArray& Other)
+	{
+		const SizeType oldCount = Count;
+
+		Count += Other.Count;
+		RelocateIfNeededImpl();
+
+		for(SizeType i = 0; i < Other.Count; ++i)
+		{
+			ElementType* newElement = GetElementAtImpl(oldCount + i);
+			NMemoryUtilities::CallCopyConstructor(newElement, Other[i]);
+		}
+	}
+
+	void AppendImpl(TArray&& Other)
+	{
+		const SizeType oldCount = Count;
+
+		Count += Other.Count;
+		RelocateIfNeededImpl();
+
+		for(SizeType i = 0; i < Other.Count; ++i)
+		{
+			ElementType* newElement = GetElementAtImpl(oldCount + i);
+			NMemoryUtilities::CallCopyConstructor(newElement, Move(Other[i]));
+		}
+
+		Other.Allocator.Release();
+		Other.Count = 0;
+	}
 
 	ElementType* AddImpl(const ElementType& Value)
 	{

@@ -40,12 +40,23 @@ struct SCustomData
 	uint8 A, B;
 };
 
+template<typename ElementType>
+void ReadArray(const TArray<ElementType>& Array)
+{
+	for(uint32 i = 0; i < Array.GetCount(); ++i)
+	{
+		SLogger::Begin() << "Value [" << i << "]: " << Array[i] << SLogger::End();
+	}
+}
+
 int main()
 {
-	TArray<uint8> myArray = {1,2,3,4,5,6};
-	TInitializerList<uint8> list = {7,8,9,10,11,12};
-	TArray<uint8> myArray2 = list;
-	myArray.Empty();
+	TArray<uint8> bitArray = {1,2,3,4,5,6};
+	TArray<uint8> bitArray2 = {7,8,9,10,11,12};
+
+	bitArray.Append(bitArray2);
+
+	ReadArray(bitArray);
 
 	return 0;
 }
