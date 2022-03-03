@@ -189,7 +189,13 @@ public: // Remove
 		return copy;
 	}
 
-	FORCEINLINE void Pop() { RemoveAt(GetLastIndex()); }
+	FORCEINLINE void Pop() 
+	{ 
+		if(Count > 0)
+		{
+			RemoveImpl(Count - 1); 
+		}
+	}
 
 public: // Get
 
@@ -345,7 +351,6 @@ private: // Helpers -> Manipulation
 		if(Index != Count - 1)
 		{
 			// Swaps last element with this
-			// NOTE(jan.kristian.fisera): Is this safe for specific constructible types ?
 			SMemory::Copy(
 				GetElementAtImpl(Index),
 				GetLast(),
@@ -365,7 +370,9 @@ private: // Helpers -> Manipulation
 		if(Index != Count - 1)
 		{
 			// Moves entire allocation by one index down
-			// NOTE(jan.kristian.fisera): Is this safe for specific constructible types ?
+
+			// NOTE(jan.kristian.fisera): 
+			// * Is it worth to cache start index and try to move from start in case that would be less iterations ?
 			SMemory::Move(
 				GetElementAtImpl(Index),
 				GetElementAtImpl(Index + 1),
