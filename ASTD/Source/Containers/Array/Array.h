@@ -9,7 +9,6 @@
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/ArrayIterator.h"
 
-// TODO(jan.kristian.fisera): Call constructor or move bytes! (its not consistent for now)
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
@@ -190,7 +189,7 @@ public: // Find Index
 	{
 		for(SizeType i = 0; i < Count; ++i)
 		{
-			if(CompareElementsImpl(GetElementAtImpl(i), (void*)&Value))
+			if(CompareElementsImpl(GetElementAtImpl(i), &Value))
 			{
 				return i;
 			}
@@ -350,6 +349,7 @@ private: // Helpers -> Manipulation
 		if(Index != Count - 1)
 		{
 			// Swaps last element with this
+			// NOTE(jan.kristian.fisera): Is this safe for specific constructible types ?
 			SMemory::Copy(
 				GetElementAtImpl(Index),
 				GetLast(),
@@ -369,6 +369,7 @@ private: // Helpers -> Manipulation
 		if(Index != Count - 1)
 		{
 			// Moves entire allocation by one index down
+			// NOTE(jan.kristian.fisera): Is this safe for specific constructible types ?
 			SMemory::Move(
 				GetElementAtImpl(Index),
 				GetElementAtImpl(Index + 1),
