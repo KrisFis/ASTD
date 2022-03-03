@@ -34,7 +34,7 @@ public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { CopyFrom(Other); }
-	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { MoveFrom(Move(Other)); }
+	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { TakeFrom(Move(Other)); }
 	FORCEINLINE TArray(const TInitializerList<ElementType>& InList)
 		: Allocator()
 		, Count(0)
@@ -42,12 +42,11 @@ public: // Constructors
 		CopyFrom(InList.begin(), InList.size()); 
 	}
 
-	FORCEINLINE TArray(ElementType* InData, SizeType InCount, bool Copy = true) 
+	FORCEINLINE TArray(ElementType* InData, SizeType InCount) 
 		: Allocator()
 		, Count(0)
 	{
-		if(Copy) CopyFrom(InData, InCount);
-		else MoveFrom(InData, InCount); 
+		CopyFrom(InData, InCount);
 	}
 
 public: // Destructor
@@ -56,11 +55,13 @@ public: // Destructor
 
 public: // Operators
 
-	FORCEINLINE bool operator==(const TArray& Other) const { return Allocator == Other.Allocator; }
-	FORCEINLINE bool operator!=(const TArray& Other) const { return Allocator != Other.Allocator; }
+	FORCEINLINE bool operator==(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
+	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
 
 	FORCEINLINE TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
-	FORCEINLINE TArray& operator=(TArray&& Other) { MoveFrom(Move(Other)); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { TakeFrom(Move(Other)); return *this; }
+
+	FORCEINLINE TArray& operator=(const TInitializerList<ElementType>& InList) { CopyFrom(InList.begin(), InList.size()); return *this; }
 
 	FORCEINLINE ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
 	FORCEINLINE const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
@@ -183,7 +184,7 @@ public: // Find Index
 	{
 		for(SizeType i = 0; i < Count; ++i)
 		{
-			if(IsSameElementImpl(GetElementAtImpl(i), (void*)&Value))
+			if(CompareElementsImpl(GetElementAtImpl(i), (void*)&Value))
 			{
 				return i;
 			}
@@ -437,7 +438,7 @@ private: // Helpers -> Cross manipulation (Array)
 	
 	void CopyFrom(const TArray& Other) { CopyFrom(Other.GetData(), Other.Count); }
 	
-	void MoveFrom(ElementType* InData, SizeType InCount)
+	void MoveFrom(const ElementType* InData, SizeType InCount)
 	{
 		EmptyImpl();
 
@@ -452,7 +453,31 @@ private: // Helpers -> Cross manipulation (Array)
 			}
 			else
 			{
-				Allocator.SetData(InData);
+				SMemory::Copy(
+					Allocator.GetData(),
+					InData,
+					sizeof(ElementType) * InCount
+				);
+			}
+		}
+	}
+
+	void TakeFrom(const ElementType* InData, SizeType InCount)
+	{
+		EmptyImpl();
+
+		if(InData)
+		{
+			if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+			{
+				for(SizeType i = 0; i < InCount; ++i)
+				{
+					NMemoryUtilities::CallMoveConstructor(Allocator.GetData() + i, Move(*(InData + i)));
+				}
+			}
+			else
+			{
+				Allocator.SetData(const_cast<ElementType*>(InData));
 				Allocator.SetCount(InCount);
 			}
 
@@ -460,9 +485,9 @@ private: // Helpers -> Cross manipulation (Array)
 		}
 	}
 
-	void MoveFrom(TArray&& Other)
+	void TakeFrom(TArray&& Other)
 	{
-		MoveFrom(Other.GetData(), Other.Count);
+		TakeFrom(Other.GetData(), Other.Count);
 
 		{
 			Other.Allocator.SetData(nullptr);
@@ -489,7 +514,13 @@ private: // Helpers -> Others
 		}
 	}
 
-	FORCEINLINE bool IsSameElementImpl(const ElementType* Lhs, const ElementType* Rhs)
+	FORCEINLINE bool CompareAllocatorsImpl(const AllocatorType* Lhs, const AllocatorType* Rhs, SizeType InCount) const
+	{
+		return (Lhs->GetCount() >= InCount && Rhs->GetCount() >= InCount) ? 
+			SMemory::Compare(Lhs->GetData(), Rhs->GetData(), sizeof(ElementType) * InCount) == 0 : false;
+	}
+
+	FORCEINLINE bool CompareElementsImpl(const ElementType* Lhs, const ElementType* Rhs) const
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
 		return SMemory::Compare(Lhs, Rhs, sizeof(ElementType)) == 0;

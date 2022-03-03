@@ -14,14 +14,6 @@ public: // Typedef
 	typedef InElementType ElementType;
 	typedef typename TArrayAllocator<ElementType>::SizeType SizeType;
 
-public: // Operators
-
-	template<uint32 OtherLimit>
-	FORCEINLINE bool operator==(const TFixedArrayAllocator<ElementType, OtherLimit>& Other) { return Allocator == Other.Allocator; }
-
-	template<uint32 OtherLimit>
-	FORCEINLINE bool operator!=(const TFixedArrayAllocator<ElementType, OtherLimit>& Other) { return !operator==(Other); }
-
 public: // Getters
 
 	FORCEINLINE ElementType* GetData() const { return Allocator.GetData(); }
