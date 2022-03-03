@@ -34,20 +34,20 @@ public: // Asserts
 public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
-	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { CopyFrom(Other); }
-	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { CopyFrom(Move(Other)); }
+	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { FillToEmptyImpl(Other); }
+	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { FillToEmptyImpl(Move(Other)); }
 	FORCEINLINE TArray(const TInitializerList<ElementType>& InList)
 		: Allocator()
 		, Count(0)
 	{ 
-		CopyFrom(InList.begin(), InList.size()); 
+		FillToEmptyImpl(InList.begin(), InList.size()); 
 	}
 
 	FORCEINLINE TArray(ElementType* InData, SizeType InCount) 
 		: Allocator()
 		, Count(0)
 	{
-		CopyFrom(InData, InCount);
+		FillToEmptyImpl(InData, InCount);
 	}
 
 public: // Destructor
@@ -59,10 +59,10 @@ public: // Operators
 	FORCEINLINE bool operator==(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
 	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
 
-	FORCEINLINE TArray& operator=(const TArray& Other) { CopyFrom(Other); return *this; }
-	FORCEINLINE TArray& operator=(TArray&& Other) { CopyFrom(Move(Other)); return *this; }
+	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Other); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); return *this; }
 
-	FORCEINLINE TArray& operator=(const TInitializerList<ElementType>& InList) { CopyFrom(InList.begin(), InList.size()); return *this; }
+	FORCEINLINE TArray& operator=(const TInitializerList<ElementType>& InList) { EmptyImpl(); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
 
 	FORCEINLINE ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
 	FORCEINLINE const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
@@ -92,28 +92,28 @@ public: // Add
 
 	FORCEINLINE SizeType Add(const ElementType& Value)
 	{
-		AddImpl(Value);
+		AddSingleImpl(Value);
 		return Count - 1;
 	}
 
 	FORCEINLINE SizeType Add(ElementType&& Value)
 	{
-		AddImpl(Move(Value));
+		AddSingleImpl(Move(Value));
 		return Count - 1;
 	}
 
 	FORCEINLINE ElementType& Add_GetRef(const ElementType& Value)
 	{
-		return *AddImpl(Value);
+		return *AddSingleImpl(Value);
 	}
 
 	FORCEINLINE ElementType& Add_GetRef(ElementType&& Value)
 	{
-		return *AddImpl(Move(Value));
+		return *AddSingleImpl(Move(Value));
 	}
 
-	FORCEINLINE void Push(const ElementType& Value) { AddImpl(Value); }
-	FORCEINLINE void Push(ElementType&& Value) { AddImpl(Move(Value)); }
+	FORCEINLINE void Push(const ElementType& Value) { AddSingleImpl(Value); }
+	FORCEINLINE void Push(ElementType&& Value) { AddSingleImpl(Move(Value)); }
 
 public: // Remove
 		// * Swap is faster version of Remove
@@ -292,61 +292,60 @@ private: // Helpers -> Manipulation
 
 	void AppendImpl(const TArray& Other)
 	{
-		const SizeType oldCount = Count;
-
-		Count += Other.Count;
-		RelocateIfNeededImpl();
-
-		for(SizeType i = 0; i < Other.Count; ++i)
+		if(Other.Count > 0)
 		{
-			ElementType* newElement = GetElementAtImpl(oldCount + i);
-			NMemoryUtilities::CallCopyConstructor(newElement, Other[i]);
+			const SizeType oldCount = Count;
+
+			Count += Other.Count;
+			RelocateIfNeededImpl();
+
+			CopyConstructImpl(Allocator.GetData() + oldCount, Other.Allocator.GetData(), Other.Count);
 		}
 	}
 
 	void AppendImpl(TArray&& Other)
 	{
-		const SizeType oldCount = Count;
-
-		Count += Other.Count;
-		RelocateIfNeededImpl();
-
-		for(SizeType i = 0; i < Other.Count; ++i)
+		if(Other.Count > 0)
 		{
-			ElementType* newElement = GetElementAtImpl(oldCount + i);
-			NMemoryUtilities::CallCopyConstructor(newElement, Move(Other[i]));
-		}
+			const SizeType oldCount = Count;
 
-		Other.Allocator.Release();
-		Other.Count = 0;
+			Count += Other.Count;
+			RelocateIfNeededImpl();
+
+			MoveConstructImpl(Allocator.GetData() + oldCount, Other.Allocator.GetData(), Other.Count);
+
+			{
+				Other.Allocator.Release();
+				Other.Count = 0;
+			}
+		}
 	}
 
-	ElementType* AddImpl(const ElementType& Value)
+	ElementType* AddSingleImpl(const ElementType& Value)
 	{
 		++Count;
 		RelocateIfNeededImpl();
 
 		ElementType* newElement = GetElementAtImpl(Count - 1);
-		NMemoryUtilities::CallCopyConstructor(newElement, Value);
+		CopyConstructImpl(newElement, &Value);
 		
 		return newElement;
 	}
 
-	ElementType* AddImpl(ElementType&& Value)
+	ElementType* AddSingleImpl(ElementType&& Value)
 	{
 		++Count;
 		RelocateIfNeededImpl();
 
 		ElementType* newElement = GetElementAtImpl(Count - 1);
-		NMemoryUtilities::CallMoveConstructor(newElement, Move(Value));
+		MoveConstructImpl(newElement, &Value, 1);
 		
 		return newElement;
 	}
 
 	void RemoveSwapImpl(SizeType Index)
 	{
-		// Pointer still can be used
-		NMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
+		DestructImpl(GetElementAtImpl(Index), 1);
 
 		if(Index != Count - 1)
 		{
@@ -365,8 +364,7 @@ private: // Helpers -> Manipulation
 
 	void RemoveImpl(SizeType Index)
 	{
-		// Pointer still can be used
-		NMemoryUtilities::CallDestructor(GetElementAtImpl(Index));
+		DestructImpl(GetElementAtImpl(Index), 1);
 
 		if(Index != Count - 1)
 		{
@@ -392,12 +390,7 @@ private: // Helpers -> Manipulation
 			return;
 		}
 
-		for(SizeType i = Num; i < Count; ++i)
-		{
-			NMemoryUtilities::CallDestructor(
-				GetElementAtImpl(i)
-			);
-		}
+		DestructImpl(GetElementAtImpl(Num), Count - Num);
 
 		// Copy to temporary allocator
 		AllocatorType tmp;
@@ -431,12 +424,7 @@ private: // Helpers -> Manipulation
 	{
 		if(Count > 0)
 		{
-			for(SizeType i = 0; i < Count; ++i)
-			{
-				NMemoryUtilities::CallDestructor(
-					GetElementAtImpl(i)
-				);
-			}
+			DestructImpl(Allocator.GetData(), Count);
 
 			Allocator.Release();
 			Count = 0; 
@@ -445,45 +433,29 @@ private: // Helpers -> Manipulation
 
 private: // Helpers -> Cross manipulation (Array)
 
-	void CopyFrom(const ElementType* InData, SizeType InCount, bool preferMove = false)
+	void FillToEmptyImpl(const ElementType* InData, SizeType InCount, bool preferMove = false)
 	{
-		EmptyImpl();
-
 		if(InData)
 		{
 			Allocator.Allocate(InCount);
 
-			if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
-			{
-				for(SizeType i = 0; i < InCount; ++i)
-				{
-					if(preferMove)
-						NMemoryUtilities::CallMoveConstructor(Allocator.GetData() + i, Move(*(InData + i)));
-					else
-						NMemoryUtilities::CallCopyConstructor(Allocator.GetData() + i, *(InData + i));
-				}
-			}
+			if(preferMove)
+				MoveConstructImpl(Allocator.GetData(), InData, InCount);
 			else
-			{
-				SMemory::Copy(
-					Allocator.GetData(),
-					InData,
-					sizeof(ElementType) * InCount
-				);
-			}
+				CopyConstructImpl(Allocator.GetData(), InData, InCount);
 
 			Count = InCount;
 		}
 	}
 	
-	void CopyFrom(const TArray& Other) 
+	void FillToEmptyImpl(const TArray& Other) 
 	{ 
-		CopyFrom(Other.GetData(), Other.Count); 
+		FillToEmptyImpl(Other.GetData(), Other.Count); 
 	}
 
-	void CopyFrom(TArray&& Other)
+	void FillToEmptyImpl(TArray&& Other)
 	{
-		CopyFrom(Other.GetData(), Other.GetCount(), true);
+		FillToEmptyImpl(Other.GetData(), Other.GetCount(), true);
 
 		{
 			Other.Allocator.SetData(nullptr);
@@ -493,6 +465,56 @@ private: // Helpers -> Cross manipulation (Array)
 	}
 
 private: // Helpers -> Others
+
+	// Make sure elements array and values array does NOT OVERLAP
+	void CopyConstructImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType Count)
+	{
+		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
+		{
+			for(SizeType i = 0; i < Count; ++i)
+			{
+				NMemoryUtilities::CallCopyConstructor(ElementArray + i, *(ValuesArray + i));
+			}
+		}
+		else
+		{
+			SMemory::Copy(
+				ElementArray,
+				ValuesArray,
+				sizeof(ElementType) * Count
+			);
+		}
+	}
+
+	void MoveConstructImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType Count)
+	{
+		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+		{
+			for(SizeType i = 0; i < Count; ++i)
+			{
+				NMemoryUtilities::CallMoveConstructor(ElementArray + i, Move(*(const_cast<ElementType*>(ValuesArray + i))));
+			}
+		}
+		else
+		{
+			SMemory::Copy(
+				ElementArray,
+				ValuesArray,
+				sizeof(ElementType) * Count
+			);
+		}
+	}
+
+	void DestructImpl(ElementType* ElementArray, SizeType Count)
+	{
+		if constexpr (!ElementInfo::IsTrivial)
+		{
+			for(SizeType i = 0; i < Count; ++i)
+			{
+				NMemoryUtilities::CallDestructor(ElementArray + i);
+			}
+		}
+	}
 
 	void RelocateIfNeededImpl()
 	{
