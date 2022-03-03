@@ -17,6 +17,9 @@
 
 #define ASSEMBLY(code) __asm(code)
 
+#define DEPRECATED [[deprecated]]
+#define NODISCARD [[nodiscard]]
+
 #define FORCEINLINE __forceinline
 #define FORCENOINLINE __declspec(noinline)
 #define FORCEINLINE_DEBUGGABLE __inline

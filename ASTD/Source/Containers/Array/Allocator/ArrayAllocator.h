@@ -22,11 +22,6 @@ public: // Destructor
 
 	FORCEINLINE ~TArrayAllocator() { Release(); }
 
-public: // Operators
-
-	FORCEINLINE bool operator==(const TArrayAllocator& Other) { return Data == Other.Data; }
-	FORCEINLINE bool operator!=(const TArrayAllocator& Other) { return !operator==(Other); }
-
 public: // Getters
 
 	// Gets/Sets allocated data

@@ -40,155 +40,23 @@ struct SCustomData
 	uint8 A, B;
 };
 
-void TestVector()
+template<typename ElementType>
+void ReadArray(const TArray<ElementType>& Array)
 {
-	auto readData = [](const std::vector<SCustomData>& Datas, const char* message)
-		{
-			SLogger::Begin() << message << SLogger::End();
-
-			for(const SCustomData& data : Datas)
-			{
-				SLogger::Begin() << "Read data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
-			}
-		};
-
-	SLogger::Begin() << "Hello Vector" << SLogger::End();
-	
-	std::vector<SCustomData> myArray;
-	
-	myArray.push_back({1, 3});
-	myArray[0].A = 2;
-
-	SCustomData data2 = SCustomData(8, 8);
-	myArray.push_back(data2);
-
-	myArray.push_back({2, 4});
-	myArray.push_back({2, 5});
-	myArray.push_back({2, 6});
-
-	readData(myArray, "Vector 1");
-
-	myArray.clear();
-
-	readData(myArray, "Vector 2");
-
-	myArray.push_back({2, 7});
-	myArray.push_back({2, 8});
-	myArray.push_back({2, 9});
-	myArray.push_back({2, 10});
-	myArray.pop_back();
-	myArray.pop_back();
-	myArray.pop_back();
-	
-	readData(myArray, "Vector 3");
-
-	std::vector<SCustomData> newData = myArray;
-	std::vector<SCustomData> newData2(myArray);
-}
-
-void TestArray()
-{
-	auto readData = [](const TArray<SCustomData>& Datas, const char* message)
+	for(uint32 i = 0; i < Array.GetCount(); ++i)
 	{
-		SLogger::Begin() << message << SLogger::End();
-
-		for(const SCustomData& data : Datas)
-		{
-			SLogger::Begin() << "Read data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
-		}
-	};
-
-	SLogger::Begin() << "Hello Array" << SLogger::End();
-	
-	TArray<SCustomData> myArray;
-
-	SCustomData& data = myArray.Add_GetRef({1, 3});
-	data.A = 2;
-
-	SCustomData data2 = SCustomData(8, 8);
-	myArray.Add(data2);
-
-	myArray.Add({2, 4});
-	myArray.Add({2, 5});
-	myArray.Add({2, 6});
-
-	readData(myArray, "Array 1");
-
-	myArray.Empty();
-
-	readData(myArray, "Array 2");
-
-	myArray.Add({2, 7});
-	myArray.Add({2, 8});
-	myArray.Add({2, 9});
-	myArray.Add({2, 10});
-	myArray.RemoveAt(myArray.GetLastIndex());
-	myArray.RemoveAt(myArray.GetLastIndex());
-	myArray.RemoveAt(myArray.GetLastIndex());
-	
-	readData(myArray, "Array 3");
-
-	TArray<SCustomData> newData = myArray;
-	TArray<SCustomData> newData2(myArray);
-}
-
-void TestQueue()
-{
-	SLogger::Begin() << "Hello Queue" << SLogger::End();
-
-	TQueue<SCustomData> myQueue;
-
-	myQueue.Enqueue({1, 1});
-	myQueue.Enqueue({2, 2});
-	myQueue.Enqueue({3, 3});
-	myQueue.Enqueue({4, 4});
-
-	myQueue.Empty();
-
-	myQueue.Enqueue({5, 5});
-	myQueue.Enqueue({6, 6});
-	myQueue.Enqueue({7, 7});
-
-	{
-		SCustomData data;
-		if(myQueue.Peek(data))
-		{
-			SLogger::Begin() << "Peek data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
-		}
-
-		SLogger::Begin() << "Invalid peek!" << SLogger::End();
+		SLogger::Begin() << "Value [" << i << "]: " << Array[i] << SLogger::End();
 	}
-
-	{
-		myQueue.Dequeue();
-
-		SCustomData data;
-		if(myQueue.Dequeue(data))
-		{
-			SLogger::Begin() << "Dequeue data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
-		}
-	}
-
-	myQueue.Enqueue({4, 4});
-
-	{
-		SCustomData data;
-		while(myQueue.Dequeue(data))
-		{
-			SLogger::Begin() << "Dequeue data [A = " << data.A << ", B = " << data.B << "]" << SLogger::End();
-		}
-	}
-
-	myQueue.Enqueue({11,11});
-	myQueue.Enqueue({12,12});
-	myQueue.Enqueue({13,13});
 }
 
 int main()
 {
-	TestArray();
-	TestVector();
-	//TestQueue();
+	TArray<uint8> bitArray = {1,2,3,4,5,6};
+	TArray<uint8> bitArray2 = {7,8,9,10,11,12};
+
+	bitArray.Append(bitArray2);
+
+	ReadArray(bitArray);
 
 	return 0;
 }

@@ -9,6 +9,9 @@
 
 #define ASSEMBLY(code) __asm__(code)
 
+#define DEPRECATED __attribute__ ((__deprecated__))
+#define NODISCARD [[__nodiscard__]]
+
 #define FORCEINLINE __attribute__((always_inline))
 #define FORCENOINLINE __attribute__((noinline))
 #define FORCEINLINE_DEBUGGABLE inline
