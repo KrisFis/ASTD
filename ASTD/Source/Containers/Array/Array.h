@@ -130,8 +130,8 @@ public: // Add
 		return *GetElementAtImpl(Count - 1);
 	}
 
-	FORCEINLINE void Push(const ElementType& Value) { AddSingleImpl(Value); }
-	FORCEINLINE void Push(ElementType&& Value) { AddSingleImpl(Move(Value)); }
+	FORCEINLINE void Push(const ElementType& Value) { AddImpl(Value); }
+	FORCEINLINE void Push(ElementType&& Value) { AddImpl(Move(Value)); }
 
 public: // Remove
 		// * Swap is faster version of Remove
