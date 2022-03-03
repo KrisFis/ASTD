@@ -353,7 +353,7 @@ private: // Helpers -> Manipulation
 			// Swaps last element with this
 			SMemory::Copy(
 				GetElementAtImpl(Index),
-				GetLast(),
+				GetElementAtImpl(Count - 1),
 				sizeof(ElementType)
 			);
 		}
