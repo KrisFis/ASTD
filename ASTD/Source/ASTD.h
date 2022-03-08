@@ -49,6 +49,10 @@
 #include "Containers/Queue/Queue.h"
 #include "Containers/Queue/Allocator/QueueAllocator.h"
 
+#include "Containers/InitializerList/InitializerList.h"
+
+#include "Containers/String/String.h"
+
 #include "Containers/STDTypes.h"
 
 // Validation

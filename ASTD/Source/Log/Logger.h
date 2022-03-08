@@ -21,6 +21,12 @@ struct SLogger
 		return *this;
 	}
 
+	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::String>::Type* = nullptr>
+	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
+	{
+		return operator<<(Value.GetChars());
+	}
+
 	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::StringW>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
 	{

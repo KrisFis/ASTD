@@ -3,6 +3,7 @@
 
 #include "Type/TypeUtilities.h"
 #include "TypeTraits/TypeTraits.h"
+#include "Containers/String/String.h"
 
 namespace NLoggerTypeTraits
 {
@@ -12,8 +13,9 @@ namespace NLoggerTypeTraits
 		enum 
 		{
 			Int = TIsIntegerType<typename TDecay<T>::Type>::Value,
+			String = TIsSame<T, SString>::Value,
 			StringW = TIsSame<typename TRemovePointer<T>::Type, wchar>::Value,
-			Other = !Int && !StringW
+			Other = !Int && !String && !StringW
 		};
 	};
 }

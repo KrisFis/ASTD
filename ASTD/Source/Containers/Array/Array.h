@@ -7,10 +7,12 @@
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Internals/ArrayTypeTraits.h"
 
+#include "Containers/InitializerList/InitializerList.h"
+
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
-private: // Public types
+public: // Types
 
 	typedef InElementType ElementType;
 	typedef NArrayTypeTraits::TElementInfo<ElementType> ElementInfo;
@@ -41,7 +43,7 @@ public: // Constructors
 		FillToEmptyImpl(InList.begin(), InList.size()); 
 	}
 
-	FORCEINLINE TArray(ElementType* InData, SizeType InCount) 
+	FORCEINLINE TArray(const ElementType* InData, SizeType InCount) 
 		: Allocator()
 		, Count(0)
 	{
@@ -52,15 +54,19 @@ public: // Destructor
 
 	FORCEINLINE ~TArray() { EmptyImpl(); }
 
-public: // Operators
+public: // Compare operators
 
 	FORCEINLINE bool operator==(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
 	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
+
+public: // Assign operators
 
 	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Other); return *this; }
 	FORCEINLINE TArray& operator=(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); return *this; }
 
 	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
+
+public: // Get operators
 
 	FORCEINLINE ElementType& operator[](SizeType Index) { return *GetElementAtImpl(Index); }
 	FORCEINLINE const ElementType& operator[](SizeType Index) const { return *GetElementAtImpl(Index); }
