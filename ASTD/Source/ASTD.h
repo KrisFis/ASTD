@@ -20,8 +20,8 @@
 #include "Type/TypeUtilities.h"
 
 // TypeTraits
-#include "TypeTraits/TypeMethods.h"
 #include "TypeTraits/TypeTraits.h"
+#include "TypeTraits/TypeMethods.h"
 #include "TypeTraits/TypeTraitsMacros.h"
 
 // Shared
