@@ -13,9 +13,9 @@ namespace NArrayTypeTraits
 		{
 			IsValid = !TIsSame<ElementType, void>::Value && !TIsReference<ElementType>::Value,
 
-			IsTrivial = TIsPointer<ElementType>::Value || TIsPrimitiveType<ElementType>::Value,
-			SupportCopy = std::is_copy_constructible<ElementType>::value,
-			SupportMove = std::is_move_constructible<ElementType>::value
+			IsTrivial = TIsTrivialType<ElementType>::Value,
+			SupportCopy = TIsCopyConstructible<ElementType>::Value,
+			SupportMove = TIsMoveConstructible<ElementType>::Value
 		};
 	};
 

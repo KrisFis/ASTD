@@ -4,10 +4,8 @@
 #include "Type/TypeUtilities.h"
 #include "TypeTraits/TypeTraits.h"
 
-#include "Containers/Array/Internals/ArrayTypeTraits.h"
-
 #include "Containers/Array/Allocator/ArrayAllocator.h"
-#include "Containers/Array/ArrayIterator.h"
+#include "Containers/Array/Internals/ArrayTypeTraits.h"
 
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
@@ -20,8 +18,8 @@ private: // Public types
 	typedef InAllocator AllocatorType;
 	typedef NArrayTypeTraits::TAllocatorInfo<AllocatorType> AllocatorInfo;
 
-	typedef TArrayIterator<ElementType> ArrayIteratorType;
-	typedef TArrayIterator<const ElementType> ConstArrayIteratorType;
+	typedef ElementType* ArrayIteratorType;
+	typedef const ElementType* ConstArrayIteratorType;
 
 	typedef typename AllocatorType::SizeType SizeType;
 	typedef TInitializerList<ElementType> ElementListType;
@@ -302,11 +300,11 @@ public: // Other
 
 public: // Iterators
 
-	FORCEINLINE ArrayIteratorType begin() { return ArrayIteratorType(Count > 0 ? GetElementAtImpl(0) : nullptr); }
-	FORCEINLINE ConstArrayIteratorType begin() const { return ConstArrayIteratorType(Count > 0 ? GetElementAtImpl(0) : nullptr); }
+	FORCEINLINE ArrayIteratorType begin() { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ConstArrayIteratorType begin() const { return Count > 0 ? GetElementAtImpl(0) : nullptr; }
 
-	FORCEINLINE ArrayIteratorType end() { return ArrayIteratorType(Count > 0 ? GetElementAtImpl(Count) : nullptr); }
-	FORCEINLINE ConstArrayIteratorType end() const { return ConstArrayIteratorType(Count > 0 ? GetElementAtImpl(Count) : nullptr); }
+	FORCEINLINE ArrayIteratorType end() { return Count > 0 ? GetElementAtImpl(Count) : nullptr; }
+	FORCEINLINE ConstArrayIteratorType end() const { return Count > 0 ? GetElementAtImpl(Count) : nullptr; }
 
 private: // Helpers -> Getters
 

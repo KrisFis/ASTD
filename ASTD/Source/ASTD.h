@@ -20,8 +20,8 @@
 #include "Type/TypeUtilities.h"
 
 // TypeTraits
-#include "TypeTraits/TypeMethods.h"
 #include "TypeTraits/TypeTraits.h"
+#include "TypeTraits/TypeMethods.h"
 #include "TypeTraits/TypeTraitsMacros.h"
 
 // Shared
@@ -43,7 +43,6 @@
 
 // Containers
 #include "Containers/Array/Array.h"
-#include "Containers/Array/ArrayIterator.h"
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Allocator/FixedArrayAllocator.h"
 
