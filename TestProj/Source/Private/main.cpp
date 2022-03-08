@@ -54,6 +54,11 @@ int main()
 	TArray<uint8> bitArray = {1,2,3,4,5,6};
 	TArray<uint8> bitArray2 = {7,8,9,10,11,12};
 
+	for(uint8 bit : bitArray2)
+	{
+		SLogger::Begin() << bit << SLogger::End();
+	}
+
 	bitArray.Append(bitArray2);
 
 	ReadArray(bitArray);
