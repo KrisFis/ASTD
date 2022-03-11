@@ -10,11 +10,14 @@
 	#undef TEXT
 #endif
 
+#define ANSITEXT(text) text
+#define WIDETEXT(text) L ## text
+
 #if USE_UNICODE
-	#define TEXT(text) L ## text
+	#define TEXT(text) WIDETEXT(text)
 	typedef wchar tchar;
 #else
-	#define TEXT(text) text
+	#define TEXT(text) ANSITEXT(text)
 	typedef char tchar;
 #endif
 

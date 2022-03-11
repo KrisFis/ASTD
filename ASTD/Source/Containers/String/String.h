@@ -47,7 +47,7 @@ public: // Get operators
 public: // Property getters
 
 	FORCEINLINE const DataType& GetData() const { return Data; }
-	FORCEINLINE const CharType* GetChars() const { return Data.GetData(); }
+	FORCEINLINE const CharType* GetChars() const { return GetCharsFromData(Data); }
 
 	// Omits EOF
 	FORCEINLINE SizeType GetLength() const { return SMath::Max<SizeType>(Data.GetCount() - 1, 0); }
@@ -83,7 +83,7 @@ private: // Helpers -> Other
 
 private: // Helpers -> Utils
 
-	DataType GetDataFromChars(const CharType* Chars)
+	static DataType GetDataFromChars(const CharType* Chars)
 	{
 		if(Chars)
 		{
@@ -102,6 +102,11 @@ private: // Helpers -> Utils
 		{
 			return DataType();
 		}
+	}
+
+	static const CharType* GetCharsFromData(const DataType& InData) 
+	{ 
+		return InData.GetData();
 	}
 
 private: // Fields

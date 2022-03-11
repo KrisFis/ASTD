@@ -39,7 +39,11 @@
 #include "Time/TimeUtilities.h"
 
 // Log
-#include "Log/Logger.h"
+#include "Log/LogUtilities.h"
+
+// String
+#include "String/CharUtilities.h"
+#include "String/CStringUtilities.h"
 
 // Containers
 #include "Containers/Array/Array.h"
