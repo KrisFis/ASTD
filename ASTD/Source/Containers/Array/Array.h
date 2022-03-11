@@ -506,7 +506,7 @@ private: // Helpers -> Others
 		{
 			for(SizeType i = 0; i < Count; ++i)
 			{
-				NMemoryUtilities::CallCopyConstructor(ElementArray + i, *(ValuesArray + i));
+				SMemory::CallCopyConstructor(ElementArray + i, *(ValuesArray + i));
 			}
 		}
 		else
@@ -526,7 +526,7 @@ private: // Helpers -> Others
 		{
 			for(SizeType i = 0; i < Count; ++i)
 			{
-				NMemoryUtilities::CallCopyConstructor(ElementArray + i, Value);
+				SMemory::CallCopyConstructor(ElementArray + i, Value);
 			}
 		}
 		else
@@ -548,7 +548,7 @@ private: // Helpers -> Others
 		{
 			for(SizeType i = 0; i < Count; ++i)
 			{
-				NMemoryUtilities::CallMoveConstructor(ElementArray + i, Move(*(const_cast<ElementType*>(ValuesArray + i))));
+				SMemory::CallMoveConstructor(ElementArray + i, Move(*(const_cast<ElementType*>(ValuesArray + i))));
 			}
 		}
 		else
@@ -569,7 +569,7 @@ private: // Helpers -> Others
 			// Having count greater than 1 can be unpredictable in specific case where object modifies value in move constructor
 			for(SizeType i = 0; i < Count; ++i)
 			{
-				NMemoryUtilities::CallMoveConstructor(ElementArray + i, Move(Value));
+				SMemory::CallMoveConstructor(ElementArray + i, Move(Value));
 			}
 		}
 		else
@@ -591,7 +591,7 @@ private: // Helpers -> Others
 		{
 			for(SizeType i = 0; i < Count; ++i)
 			{
-				NMemoryUtilities::CallDestructor(ElementArray + i);
+				SMemory::CallDestructor(ElementArray + i);
 			}
 		}
 	}

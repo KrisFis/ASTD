@@ -59,16 +59,28 @@ void TestArray()
 	ReadArray(bitArray);
 }
 
-void TestString()
+template<typename CharType>
+void CompareStrings(const CharType* Lhs, const CharType* Rhs)
 {
-	SString myStr = TEXT("Hello World");
-
-	SLogger::Begin() << myStr << SLogger::End();
+	SLogger::Begin() << Lhs << " compare to " << Rhs << " is : " << SCString::Compare(Lhs, Rhs) << SLogger::End();
 }
 
 int main()
 {
-	TestString();
+	double test = SCString::ToDouble("4.5");
+	double test2 = SCString::ToDouble(TEXT("4.5"));
+
+	//TestString();
+	CompareStrings("abc", "abc");
+	CompareStrings(TEXT("abc"), TEXT("abc"));
+	CompareStrings("ab", "abc");
+	CompareStrings(TEXT("ab"), TEXT("abc"));
+	CompareStrings("abc", "ab");
+	CompareStrings(TEXT("abc"), TEXT("ab"));
+	CompareStrings("abd", "abc");
+	CompareStrings(TEXT("abd"), TEXT("abc"));
+	CompareStrings("abc", "abd");
+	CompareStrings(TEXT("abc"), TEXT("abd"));
 
 	return 0;
 }

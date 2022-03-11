@@ -15,6 +15,7 @@
 #include "Platform/PlatformTypes.h"
 #include "Platform/PlatformMemory.h"
 #include "Platform/PlatformTime.h"
+#include "Platform/PlatformCString.h"
 
 // Types
 #include "Type/TypeUtilities.h"
@@ -42,7 +43,6 @@
 #include "Log/LogUtilities.h"
 
 // String
-#include "String/CharUtilities.h"
 #include "String/CStringUtilities.h"
 
 // Containers

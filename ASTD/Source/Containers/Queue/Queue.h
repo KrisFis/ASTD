@@ -80,14 +80,14 @@ private: // Helpers -> Manipulation
 	AllocatorNodeType* AddImpl(const ElementType& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		NMemoryUtilities::CallCopyConstructor(&node->Value, Value);
+		SMemory::CallCopyConstructor(&node->Value, Value);
 		return node;
 	}
 
 	AllocatorNodeType* AddImpl(ElementType&& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		NMemoryUtilities::CallMoveConstructor(&node->Value, Move(Value));
+		SMemory::CallMoveConstructor(&node->Value, Move(Value));
 		return node;
 	}
 
@@ -99,7 +99,7 @@ private: // Helpers -> Manipulation
 			return false;
 		}
 
-		NMemoryUtilities::CallDestructor(&node->Value);
+		SMemory::CallDestructor(&node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -119,7 +119,7 @@ private: // Helpers -> Manipulation
 			sizeof(ElementType)
 		);
 
-		NMemoryUtilities::CallDestructor(&node->Value);
+		SMemory::CallDestructor(&node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -132,7 +132,7 @@ private: // Helpers -> Manipulation
 		{
 			while(currentNode != nullptr)
 			{
-				NMemoryUtilities::CallDestructor(&currentNode->Value);
+				SMemory::CallDestructor(&currentNode->Value);
 				currentNode = currentNode->Next;
 			}
 

@@ -1,12 +1,10 @@
 
 #pragma once
 
-#include "Build/BuildDefinitions.h"
 #include "TypeTraits/TypeMethods.h"
-#include "TypeTraits/TypeTraits.h"
 #include "Platform/PlatformMemory.h"
 
-namespace NMemoryUtilities
+struct SMemory : public SPlatformMemory
 {
 	template<typename ElementType, typename... ArgTypes>
 	FORCEINLINE static void CallConstructor(ElementType* Object, ArgTypes&&... Args)
@@ -31,6 +29,4 @@ namespace NMemoryUtilities
 	{
 		Object->~ElementType();
 	}
-}
-
-typedef SPlatformMemory SMemory;
+};

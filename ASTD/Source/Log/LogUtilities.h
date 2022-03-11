@@ -17,7 +17,7 @@ struct SLogger
 	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::Int>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
 	{
-		std::cout << (TSize)Value;
+		std::cout << (int64)Value;
 		return *this;
 	}
 
