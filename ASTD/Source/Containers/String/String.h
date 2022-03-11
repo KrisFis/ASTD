@@ -6,6 +6,8 @@
 
 #include "Containers/Array/Array.h"
 
+// NOTE(jan.kristian.fisera):
+// * Methods to add: Split, StartsWith, EndsWith, Find, ShrinkToFit, Contains, ToUpper, ToLower, Compare
 struct SString
 {
 
@@ -58,8 +60,8 @@ public: // Append
 	FORCEINLINE void Append(const SString& Other) { AppendImpl(Other); }
 	FORCEINLINE void Append(SString&& Other) { AppendImpl(Move(Other)); }
 
-	SString& Append_GetRef(const SString& Other) { AppendImpl(Other); return *this; }
-	SString& Append_GetRef(SString&& Other) { AppendImpl(Move(Other)); return *this; }
+	FORCEINLINE SString& Append_GetRef(const SString& Other) { AppendImpl(Other); return *this; }
+	FORCEINLINE SString& Append_GetRef(SString&& Other) { AppendImpl(Move(Other)); return *this; }
 
 public: // Other
 
