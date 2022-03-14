@@ -95,6 +95,8 @@ public: // Append
 
 	FORCEINLINE void Append(const ElementType& Value, SizeType NumToAdd) { AddImpl(Value, NumToAdd); }
 	FORCEINLINE void Append(const ElementListType& InList) { AppendImpl(InList.begin(), InList.size()); }
+	FORCEINLINE void Append(const ElementType* InData, SizeType InCount) { AppendImpl(InData, InCount); } 
+
 	void AppendUnitialized(SizeType NumToAdd) 
 	{
 		if(NumToAdd > 0)
@@ -206,6 +208,24 @@ public: // Remove
 		{
 			RemoveImpl(Count - 1); 
 		}
+	}
+
+public: // Swap
+
+	FORCEINLINE void Swap(SizeType FirstIdx, SizeType SecondIdx) 
+	{
+		if(!IsValidIndex(FirstIdx) || !IsValidIndex(SecondIdx)) return;
+
+		SwapImpl(FirstIdx, SecondIdx, 1);
+	}
+
+	FORCEINLINE void SwapRange(SizeType FirstIdx, SizeType SecondIdx, SizeType Num = 1) 
+	{
+		if(!IsValidIndex(FirstIdx) || !IsValidIndex(SecondIdx)) return;
+		else if(FirstIdx + Num > Count || SecondIdx + Num > Count) return;
+		
+		// TODO(jan.kristian.fisera): Overlaping indices can overwrite each other!
+		SwapImpl(FirstIdx, SecondIdx, Num);
 	}
 
 public: // Get
@@ -381,7 +401,7 @@ private: // Helper methods
 		++Count;
 		RelocateIfNeededImpl();
 
-		MoveElementImpl(Allocator.GetData(), &Value, 1);
+		MoveElementImpl(Allocator.GetData(), Move(Value), 1);
 	}
 
 	void RemoveSwapImpl(SizeType Index)
@@ -391,7 +411,7 @@ private: // Helper methods
 		if(Index != Count - 1)
 		{
 			// Swaps last element with this
-			SMemory::Copy(
+			SMemory::Move(
 				GetElementAtImpl(Index),
 				GetElementAtImpl(Count - 1),
 				sizeof(ElementType)
@@ -423,6 +443,34 @@ private: // Helper methods
 		--Count;
 
 		RelocateIfNeededImpl();
+	}
+
+	void SwapImpl(SizeType FirstIdx, SizeType SecondIdx, SizeType Num)
+	{
+		// Copy to temporary storage at heep
+		AllocatorType tmp;
+		tmp.Allocate(Num);
+		SMemory::Copy(
+			tmp.GetData(),
+			GetElementAtImpl(FirstIdx),
+			sizeof(ElementType) * Num
+		);
+
+		// Do swap to first index
+		// * elements from second idx to first
+		SMemory::Copy(
+			GetElementAtImpl(FirstIdx),
+			GetElementAtImpl(SecondIdx),
+			sizeof(ElementType) * Num
+		);
+
+		// Do swap to second index
+		// * copied elements from first idx to second
+		SMemory::Copy(
+			GetElementAtImpl(SecondIdx),
+			tmp.GetData(),
+			sizeof(ElementType) * Num
+		);
 	}
 
 	void ShrinkImpl(SizeType Num)

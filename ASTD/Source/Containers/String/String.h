@@ -175,6 +175,7 @@ public: // Append
 
 	FORCEINLINE void Append(const SString& Other) { AppendImpl(Other); }
 	FORCEINLINE void Append(SString&& Other) { AppendImpl(Move(Other)); }
+	FORCEINLINE void Append(CharType Other) { AppendImpl(Other); }
 
 	FORCEINLINE SString& Append_GetRef(const SString& Other) { AppendImpl(Other); return *this; }
 	FORCEINLINE SString& Append_GetRef(SString&& Other) { AppendImpl(Move(Other)); return *this; }
@@ -263,8 +264,25 @@ public: // Other
 
 private: // Helper methods
 
-	FORCEINLINE void AppendImpl(const SString& Other) { Data.Append(Other.Data); }
-	FORCEINLINE void AppendImpl(SString&& Other) { Data.Append(Other.Data); Other.Empty(); }
+	FORCEINLINE void AppendImpl(const SString& Other) { AppendImpl(Other.Data, true); }
+	FORCEINLINE void AppendImpl(SString&& Other) { AppendImpl(Other.Data, true); Other.Empty(); }
+
+	void AppendImpl(const DataType& InData, bool IncludesTerminationCharacter)
+	{
+		Data.RemoveAt(Data.GetCount() - 1); // Remove termination character
+		Data.Append(InData.GetData(), InData.GetCount());
+
+		if(!IncludesTerminationCharacter)
+		{
+			Data.Add((CharType)CHAR_TERM);
+		}
+	}
+	
+	void AppendImpl(CharType Other) 
+	{
+		Data.Add(Other);
+		Data.Swap(Data.GetCount() - 1, Data.GetCount() - 2); // Add termination character to end
+	}
 
 	FORCEINLINE void FillToEmptyImpl(const CharType* Text) { Data = GetDataFromChars(Text); }
 	FORCEINLINE void FillToEmptyImpl(const SString& Other) { Data = Other.Data; }

@@ -40,47 +40,18 @@ struct SCustomData
 	uint8 A, B;
 };
 
-template<typename ElementType>
-void ReadArray(const TArray<ElementType>& Array)
-{
-	for(uint32 i = 0; i < Array.GetCount(); ++i)
-	{
-		SLogger::Begin() << "Value [" << i << "]: " << Array[i] << SLogger::End();
-	}
-}
-
-void TestArray()
-{
-	TArray<uint8> bitArray = {1,2,3,4,5,6};
-	TArray<uint8> bitArray2 = {7,8,9,10,11,12};
-
-	bitArray.Append(bitArray2);
-
-	ReadArray(bitArray);
-}
-
-template<typename CharType>
-void CompareStrings(const CharType* Lhs, const CharType* Rhs)
-{
-	SLogger::Begin() << Lhs << " compare to " << Rhs << " is : " << SCString::Compare(Lhs, Rhs) << SLogger::End();
-}
-
 int main()
 {
-	double test = SCString::ToDouble("4.5");
-	double test2 = SCString::ToDouble(TEXT("4.5"));
+	SString test = TEXT("Hello World");
+	test.Append(TEXT('!'));
+	test.Append(TEXT("dlroW olleH"));
 
-	//TestString();
-	CompareStrings("abc", "abc");
-	CompareStrings(TEXT("abc"), TEXT("abc"));
-	CompareStrings("ab", "abc");
-	CompareStrings(TEXT("ab"), TEXT("abc"));
-	CompareStrings("abc", "ab");
-	CompareStrings(TEXT("abc"), TEXT("ab"));
-	CompareStrings("abd", "abc");
-	CompareStrings(TEXT("abd"), TEXT("abc"));
-	CompareStrings("abc", "abd");
-	CompareStrings(TEXT("abc"), TEXT("abd"));
+	SLogger::Begin() << test << SLogger::End();
+
+	SString left, right;
+	CHECK(test.Split(TEXT('!'), &left, &right));
+
+	SLogger::Begin() << test << TEXT(" [ LEFT: ") << left << TEXT(", RIGHT: ") << right << TEXT("]") << SLogger::End();
 
 	return 0;
 }
