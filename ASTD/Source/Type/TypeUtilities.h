@@ -22,4 +22,4 @@
 #endif
 
 #define INDEX_NONE -1
-#define NULL_CHAR '\0'
+#define CHAR_TERM '\0'

@@ -8,10 +8,10 @@ struct SCString : public SPlatformCString
 {
 	// Gets length of string
 	template<typename CharType>
-	static uint32 GetLenght(const CharType* Value)
+	static uint32 GetLength(const CharType* Value)
 	{
 		CharType* current = Value;
-		while(*current != NULL_CHAR)
+		while(*current != CHAR_TERM)
 			++current;
 
 		return (current - Value);
@@ -54,7 +54,7 @@ struct SCString : public SPlatformCString
 			const int32 result = Lhs[i] - Rhs[i];
 
 			if(result != 0) return result;
-			else if (Lhs[i] == NULL_CHAR) return 0;
+			else if (Lhs[i] == CHAR_TERM) return 0;
 		}
 	}
 };

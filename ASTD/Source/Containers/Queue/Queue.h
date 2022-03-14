@@ -57,7 +57,7 @@ public: // Empty
 	FORCEINLINE void Empty() { EmptyImpl(); }
 	FORCEINLINE void Reset() { EmptyImpl(); }
 
-private: // Helpers -> Getters
+private: // Helper methods
 
 	bool PeakImpl(ElementType& OutValue) const
 	{
@@ -73,9 +73,6 @@ private: // Helpers -> Getters
 
 		return node != nullptr;
 	}
-
-private: // Helpers -> Manipulation
-
 
 	AllocatorNodeType* AddImpl(const ElementType& Value)
 	{
@@ -139,8 +136,6 @@ private: // Helpers -> Manipulation
 			Allocator.Release();
 		}
 	}
-
-private: // Helpers -> Cross manipulation (TQueue)
 
 	void CopyFrom(const TQueue& Other)
 	{
