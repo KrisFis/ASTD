@@ -2,16 +2,9 @@
 #pragma once
 
 #include "Type/TypeUtilities.h"
-#include "Math/MathUtilities.h"
 #include "String/CStringUtilities.h"
 
 #include "Containers/Array/Array.h"
-
-enum class EStringSearchCase : uint8
-{
-	Sensitive,
-	Ignore
-};
 
 struct SString
 {
@@ -67,55 +60,78 @@ public: // Property getters
 	FORCEINLINE const DataType& GetData() const { return Data; }
 	FORCEINLINE const CharType* GetChars() const { return Data.GetData(); }
 
-	FORCEINLINE SizeType GetLength() const { return SMath::Max<SizeType>(Data.GetCount() - 1, 0); }
+	FORCEINLINE SizeType GetLength() const { return Data.GetCount() > 1 ? Data.GetCount() - 1 : 0; }
 
-	FORCEINLINE bool IsValidIndex(SizeType Index) const { return Index >= 0 && (Data.GetCount() - 1) > Index; }
+	FORCEINLINE bool IsValidIndex(SizeType Index) const { return Index >= 0 && Index < GetLastCharIndex(); }
 	FORCEINLINE bool IsEmpty() const { return Data.GetCount() > 1; }
 
 public: // Iterations
 
-	FORCEINLINE StringIteratorType begin() { return !IsEmpty() ? &Data[0] : nullptr; }
-	FORCEINLINE ConstStringIteratorType begin() const { return !IsEmpty() ? &Data[0] : nullptr; }
+	FORCEINLINE StringIteratorType begin() { return Data.GetCount() > 1 ? &Data[0] : nullptr; }
+	FORCEINLINE ConstStringIteratorType begin() const { return Data.GetCount() > 1 ? &Data[0] : nullptr; }
 
-	FORCEINLINE StringIteratorType end() { return !IsEmpty() ? &Data[Data.GetLastIndex()-1] : nullptr; }
-	FORCEINLINE ConstStringIteratorType end() const { return !IsEmpty() ? &Data[Data.GetLastIndex()-1] : nullptr; }
+	FORCEINLINE StringIteratorType end() { return Data.GetCount() > 1 ? &Data[GetLastCharIndex()] : nullptr; }
+	FORCEINLINE ConstStringIteratorType end() const { return Data.GetCount() > 1 ? &Data[GetLastCharIndex()] : nullptr; }
 
 public: // Compares
 
 	FORCEINLINE int32 Compare(const SString& Other) const { return CompareImpl(*this, Other); }
-	bool EqualsTo(const SString& Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const
+	bool EqualsTo(const SString& Other, bool CaseSensitive = true) const
 	{
-		if(Data.GetCount() != Other.Data.GetCount())
+		if(Data.GetCount() == Other.Data.GetCount())
 		{
-			return false;
+			if(CaseSensitive)
+				return CompareImpl(*this, Other);
+			else
+				return CompareImpl(RecaseString(*this, false), RecaseString(Other, false));
 		}
 
-		int32 result = 0;
-		if(SearchCase == EStringSearchCase::Sensitive)
-		{
-			result = CompareImpl(*this, Other);
-		}
-		else
-		{
-			result = CompareImpl(ToLower(), Other.ToLower());
-		}
-
-		return (result == 0);
+		return false;
 	}
 
-public: // Checks
+public: // Checks [string]
 
-	// bool Contains(const SString& Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
-	// bool Contains(CharType Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
+	FORCEINLINE bool StartsWith(const SString& Value, bool CaseSensitive = true) const
+	{
+		return IsAtIndexImpl(0, Value, CaseSensitive);
+	}
 
-	// bool StartsWith(const SString& Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
-	// bool StartsWith(CharType Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
+	FORCEINLINE bool EndsWith(const SString& Value, bool CaseSensitive = true) const
+	{
+		return IsAtIndexImpl(GetLastCharIndex() - Value.GetLastCharIndex(), Value, CaseSensitive);
+	}
 
-	// bool EndsWith(const SString& Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
-	// bool EndsWith(CharType Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
+	FORCEINLINE bool Contains(const SString& Value, bool CaseSensitive = true, bool FromStart = true) const
+	{
+		return Find(Value, CaseSensitive, FromStart) != INDEX_NONE;
+	}
 
-	// SizeType Find(const SString& Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
-	// SizeType Find(CharType Other, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
+	FORCEINLINE SizeType Find(const SString& Value, bool CaseSensitive = true, bool FromStart = true) const
+	{
+		return FromStart ? FindFromStartImpl(Value, CaseSensitive) : FindFromEndImpl(Value, CaseSensitive);
+	}
+
+public: // Checks [char]
+
+	FORCEINLINE bool StartsWith(CharType Value, bool CaseSensitive = true) const
+	{
+		return IsAtIndexImpl(0, Value, CaseSensitive);
+	}
+
+	bool EndsWith(CharType Value, bool CaseSensitive = true) const
+	{
+		return IsAtIndexImpl(GetLastCharIndex(), Value, CaseSensitive);
+	}
+
+	FORCEINLINE bool Contains(CharType Value, bool CaseSensitive = true, bool FromStart = true) const
+	{
+		return Find(Value, CaseSensitive, FromStart) != INDEX_NONE;
+	}
+
+	FORCEINLINE SizeType Find(CharType Value, bool CaseSensitive = true, bool FromStart = true) const
+	{
+		return FromStart ? FindFromStartImpl(Value, CaseSensitive) : FindFromEndImpl(Value, CaseSensitive);
+	}
 
 public: // Append
 
@@ -136,7 +152,7 @@ public: // Manipulation
 
 	void ToUpperInline()
 	{
-		for(SizeType i = 0; i < Data.GetCount() - 1; ++i)
+		for(SizeType i = 0; i < GetLastCharIndex(); ++i)
 		{
 			Data[i] = SCString::ToUpperChar(Data[i]);
 		}
@@ -151,7 +167,7 @@ public: // Manipulation
 
 	void ToLowerInline()
 	{
-		for(SizeType i = 0; i < Data.GetCount() - 1; ++i)
+		for(SizeType i = 0; i < GetLastCharIndex(); ++i)
 		{
 			Data[i] = SCString::ToLowerChar(Data[i]);
 		}
@@ -198,7 +214,7 @@ public: // Manipulation
 		Data = newData;
 	}
 
-	// bool Split(const SString& Other, SString* OutLeft, SString* OutRight, EStringSearchCase SearchCase = EStringSearchCase::Sensitive) const;
+	// bool Split(const SString& Other, SString* OutLeft, SString* OutRight, bool CaseSensitive = true) const;
 
 public: // Reset
 
@@ -220,7 +236,132 @@ private: // Helper methods
 
 	FORCEINLINE void EmptyImpl() { Data.Empty(); }
 
+	FORCEINLINE SizeType GetLastCharIndex() const { return Data.GetCount() - 2; }
+
+	bool IsAtIndexImpl(SizeType Index, const SString& Value, bool CaseSensitive) const
+	{
+		if(Index < 0 || GetLength() < Index + Value.GetLength())
+			return false;
+
+		for(SizeType i = Index; i < Index + Value.GetLastCharIndex(); ++i)
+		{
+			CharType lhs = RecaseChar(Data[i], CaseSensitive);
+			CharType rhs = RecaseChar(Value.Data[i], CaseSensitive);
+
+			if(lhs != rhs)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool IsAtIndexImpl(SizeType Index, CharType Value, bool CaseSensitive) const
+	{
+		return (Index >= 0) ? RecaseChar(Data[Index], CaseSensitive) == RecaseChar(Value, CaseSensitive) : false;
+	}
+
+	SizeType FindFromStartImpl(const SString& Value, bool CaseSensitive) const
+	{
+		if(Value.IsEmpty() || (GetLength() < Value.GetLength()))
+			return INDEX_NONE;
+
+		for(SizeType i = 0; i < GetLastCharIndex(); ++i)
+		{
+			bool wasFound = true;
+
+			CharType curChar = RecaseChar(Data[i], CaseSensitive);
+
+			for(SizeType y = 0; y < Value.GetLastCharIndex(); ++y)
+			{
+				CharType curOtherChar = RecaseChar(Value.Data[i], CaseSensitive);
+
+				if(curChar == curOtherChar)
+				{
+					wasFound = false;
+					break;
+				}
+			}
+
+			if(wasFound)
+			{
+				return i;
+			}
+		}
+
+		return INDEX_NONE;
+	}
+
+	SizeType FindFromStartImpl(CharType Value, bool CaseSensitive) const
+	{
+		CharType curOtherChar = RecaseChar(Value, CaseSensitive);
+
+		for(SizeType i = 0; i < GetLastCharIndex(); ++i)
+		{
+			CharType curChar = RecaseChar(Data[i], CaseSensitive);
+
+			if(curChar == curOtherChar)
+			{
+				return i;
+			}
+		}
+
+		return INDEX_NONE;
+	}
+
+	SizeType FindFromEndImpl(const SString& Value, bool CaseSensitive) const
+	{
+		if(Value.IsEmpty() || (GetLength() < Value.GetLength()))
+			return INDEX_NONE;
+
+		for(SizeType i = GetLastCharIndex(); i >= 0; --i)
+		{
+			bool wasFound = true;
+
+			CharType curChar = RecaseChar(Data[i], CaseSensitive);
+
+			for(SizeType y = Value.GetLastCharIndex(); y >= 0; --y)
+			{
+				CharType curOtherChar = RecaseChar(Value.Data[i], CaseSensitive);
+
+				if(curChar == curOtherChar)
+				{
+					wasFound = false;
+					break;
+				}
+			}
+
+			if(wasFound)
+			{
+				return i;
+			}
+		}
+
+		return INDEX_NONE;
+	}
+
+	SizeType FindFromEndImpl(CharType Value, bool CaseSensitive) const
+	{
+		CharType curOtherChar = RecaseChar(Value, CaseSensitive);
+
+		for(SizeType i = GetLastCharIndex(); i >= 0; --i)
+		{
+			CharType curChar = RecaseChar(Data[i], CaseSensitive);
+
+			if(curChar == curOtherChar)
+			{
+				return i;
+			}
+		}
+
+		return INDEX_NONE;
+	}
+
 	FORCEINLINE static int32 CompareImpl(const SString& Lhs, const SString& Rhs) { return SCString::Compare(Lhs.Data.GetData(), Rhs.Data.GetData()); }
+
+	static CharType RecaseChar(CharType Value, bool IsSensitive) { return !IsSensitive ? SCString::ToLowerChar(Value) : Value; }
+	static SString RecaseString(const SString& Value, bool IsSensitive) { return !IsSensitive ? Value.ToLower() : Value; }
 
 	static DataType GetDataFromChars(const CharType* Chars)
 	{
