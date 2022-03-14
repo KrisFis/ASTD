@@ -111,6 +111,25 @@ public: // Checks [string]
 		return FromStart ? FindFromStartImpl(Value, CaseSensitive) : FindFromEndImpl(Value, CaseSensitive);
 	}
 
+	bool Split(const SString& Value, SString* OutLeft, SString* OutRight, bool CaseSensitive = true, bool FromStart = true) const
+	{
+		SizeType foundIdx = Find(Value, CaseSensitive, FromStart);
+		if(foundIdx == INDEX_NONE)
+			return false;
+
+		if(OutLeft)
+		{
+			*OutLeft = ChopRight(foundIdx);
+		}
+
+		if(OutRight)
+		{
+			*OutRight = ChopLeft(foundIdx + Value.GetLastCharIndex());
+		}
+
+		return true;
+	}
+
 public: // Checks [char]
 
 	FORCEINLINE bool StartsWith(CharType Value, bool CaseSensitive = true) const
@@ -131,6 +150,25 @@ public: // Checks [char]
 	FORCEINLINE SizeType Find(CharType Value, bool CaseSensitive = true, bool FromStart = true) const
 	{
 		return FromStart ? FindFromStartImpl(Value, CaseSensitive) : FindFromEndImpl(Value, CaseSensitive);
+	}
+
+	bool Split(CharType Value, SString* OutLeft, SString* OutRight, bool CaseSensitive = true, bool FromStart = true) const
+	{
+		SizeType foundIdx = Find(Value, CaseSensitive, FromStart);
+		if(foundIdx == INDEX_NONE)
+			return false;
+
+		if(OutLeft)
+		{
+			*OutLeft = ChopRight(foundIdx);
+		}
+
+		if(OutRight)
+		{
+			*OutRight = ChopLeft(foundIdx + 1);
+		}
+
+		return true;
 	}
 
 public: // Append
@@ -214,8 +252,6 @@ public: // Manipulation
 		Data = newData;
 	}
 
-	// bool Split(const SString& Other, SString* OutLeft, SString* OutRight, bool CaseSensitive = true) const;
-
 public: // Reset
 
 	FORCEINLINE void Empty() { EmptyImpl(); }
@@ -223,7 +259,7 @@ public: // Reset
 
 public: // Other
 
-	void ShrinkToFit();
+	FORCEINLINE void ShrinkToFit() { Data.ShrinkToFit(); }
 
 private: // Helper methods
 
