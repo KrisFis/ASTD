@@ -40,7 +40,7 @@ struct SCustomData
 	uint8 A, B;
 };
 
-int main()
+void StringTest1()
 {
 	SString test = TEXT("Hello World");
 	test.Append(TEXT('!'));
@@ -52,6 +52,18 @@ int main()
 	CHECK(test.Split(TEXT('!'), &left, &right));
 
 	SLogger::Begin() << test << TEXT(" [ LEFT: ") << left << TEXT(", RIGHT: ") << right << TEXT("]") << SLogger::End();
+
+}
+
+int main()
+{
+	SString test = TEXT("ccc:cc: :cc::cc:ccc");
+	TArray<SString> result = test.SplitToArray(TEXT(':'));
+
+	for(const SString& str : result)
+	{
+		std::cout << str.GetChars() << std::endl;
+	}
 
 	return 0;
 }
