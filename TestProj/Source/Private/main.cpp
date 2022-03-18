@@ -55,15 +55,26 @@ void StringTest1()
 
 }
 
-int main()
+void StringTest2()
 {
 	SString test = TEXT("ccc:cc: :cc::cc:ccc");
-	TArray<SString> result = test.SplitToArray(TEXT("cc"));
+	TArray<SString> result = test.SplitToArray(TEXT(':'));
 
-	for(const SString& str : result)
+	SLogger::Begin() << "Writing result for split to array for \"" << test << "\"" << SLogger::End();
+
+	for(uint8 i = 0; i < result.GetCount(); ++i)
 	{
-		SLogger::Begin() << str << SLogger::End();
+		SLogger::Begin() << "Index " << i << ": " << result[i] << SLogger::End();
 	}
+}
+
+int main()
+{
+	SLogger::EmptyLine();
+	StringTest1();
+	SLogger::EmptyLine();
+	StringTest2();
+	SLogger::EmptyLine();
 
 	return 0;
 }

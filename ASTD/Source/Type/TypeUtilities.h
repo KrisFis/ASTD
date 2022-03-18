@@ -23,3 +23,4 @@
 
 #define INDEX_NONE -1
 #define CHAR_TERM '\0'
+#define CHAR_SLASH '/'
