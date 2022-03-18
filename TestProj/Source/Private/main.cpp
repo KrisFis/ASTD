@@ -58,11 +58,11 @@ void StringTest1()
 int main()
 {
 	SString test = TEXT("ccc:cc: :cc::cc:ccc");
-	TArray<SString> result = test.SplitToArray(TEXT(':'));
+	TArray<SString> result = test.SplitToArray(TEXT("cc"));
 
 	for(const SString& str : result)
 	{
-		std::cout << str.GetChars() << std::endl;
+		SLogger::Begin() << str << SLogger::End();
 	}
 
 	return 0;

@@ -45,7 +45,7 @@ public: // Manipulation
 		ElementType* newData = (ElementType*)SMemory::Allocate(ELEMENT_SIZE * (Count + Num));
 		if(Data)
 		{
-			SMemory::Copy(newData, Data, ELEMENT_SIZE * Num);
+			SMemory::Copy(newData, Data, ELEMENT_SIZE * Count);
 			SMemory::Deallocate(Data);
 		}
 

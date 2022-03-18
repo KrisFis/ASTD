@@ -121,7 +121,7 @@ public: // Add
 
 	FORCEINLINE SizeType AddUnitialized()
 	{
-		GrowImpl(Count + 1);
+		AddUnitializedImpl();
 		return Count - 1;
 	}
 
@@ -139,7 +139,7 @@ public: // Add
 
 	FORCEINLINE ElementType& AddUnitialized_GetRef()
 	{
-		GrowImpl(Count + 1);
+		AddUnitializedImpl();
 		return *GetElementAtImpl(Count - 1);
 	}
 
@@ -401,7 +401,16 @@ private: // Helper methods
 		++Count;
 		RelocateIfNeededImpl();
 
-		MoveElementImpl(Allocator.GetData(), Move(Value), 1);
+		MoveElementImpl(Allocator.GetData() + Count - 1, Move(Value), 1);
+	}
+
+	void AddUnitializedImpl(SizeType InCount = 1)
+	{
+		if(InCount > 0)
+		{
+			Count += InCount;
+			RelocateIfNeededImpl();
+		}
 	}
 
 	void RemoveSwapImpl(SizeType Index)
