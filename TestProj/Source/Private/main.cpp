@@ -68,12 +68,26 @@ void StringTest2()
 	}
 }
 
+void StringTest3()
+{
+	SString test = SString::FromInt32(25);
+	SLogger::Begin() << "Int test [25]: " << test << ", " << test.ToInt32() << SLogger::End();
+
+	SString test2 = SString::FromInt64(-120);
+	SLogger::Begin() << "Int test [-120]: " << test2 << ", " << test2.ToInt64() << SLogger::End();
+
+	SString test3 = SString::FromDouble(158.215, 3);
+	SLogger::Begin() << "Int test [158.215]: " << test3 << ", " << test3.ToDouble() << SLogger::End();
+}
+
 int main()
 {
 	SLogger::EmptyLine();
 	StringTest1();
 	SLogger::EmptyLine();
 	StringTest2();
+	SLogger::EmptyLine();
+	StringTest3();
 	SLogger::EmptyLine();
 
 	return 0;

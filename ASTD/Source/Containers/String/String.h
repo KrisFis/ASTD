@@ -8,7 +8,6 @@
 
 // TODO(jan.kristian.fisera): 
 // * Add support for case sensitivity for splits
-// * Converstion "from" int and double
 struct SString
 {
 
@@ -74,10 +73,27 @@ public: // Property getters
 
 public: // Conversions
 
-	int32 ToInt() const { return SCString::ToInt(Data.GetData()); }
-	int64 ToInt64() const { return SCString::ToLong(Data.GetData()); }
-	uint64 ToUInt64() const { return SCString::ToULong(Data.GetData()); }
-	double ToDouble() const { return SCString::ToDouble(Data.GetData()); }
+	FORCEINLINE int32 ToInt32() const { return SCString::ToInt32(Data.GetData()); }
+	FORCEINLINE int64 ToInt64() const { return SCString::ToInt64(Data.GetData()); }
+	FORCEINLINE double ToDouble() const { return SCString::ToDouble(Data.GetData()); }
+
+	static SString FromInt32(int32 Value) 
+	{ 
+		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT32];
+		return SString(SCString::FromInt32(Value, buffer)); 
+	}
+
+	static SString FromInt64(int64 Value)
+	{
+		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT64];
+		return SString(SCString::FromInt64(Value, buffer));
+	}
+
+	static SString FromDouble(double Value, uint8 Digits)
+	{
+		static CharType buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
+		return SString(SCString::FromDouble(Value, Digits, buffer));
+	}
 
 public: // Iterations
 

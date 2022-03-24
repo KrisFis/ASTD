@@ -4,13 +4,14 @@
 #include "Platform/PlatformTypes.h"
 
 #include <ctype.h>
-#include <cstdlib>
-
 #include <wctype.h>
-#include <wchar.h>
 
 struct SGenericPlatformCString
 {
+	static constexpr uint8 MAX_BUFFER_SIZE_INT32 = 33;
+	static constexpr uint8 MAX_BUFFER_SIZE_INT64 = 65;
+	static constexpr uint16 MAX_BUFFER_SIZE_DOUBLE = 309+40; // _CVTBUFSIZE
+
 	// Checks whether the passed character is wide character
 	FORCEINLINE static bool IsWideChar(char Value) { return false; }
 	FORCEINLINE static bool IsWideChar(wchar Value) { return true; }
@@ -50,32 +51,4 @@ struct SGenericPlatformCString
 	// Converts lowercase letters to uppercase
 	FORCEINLINE static char ToUpperChar(char Value) { return toupper(Value); }
 	FORCEINLINE static wchar ToUpperChar(wchar Value) { return towupper(Value); }
-
-	// Converts the string pointed to, by the argument str to a floating-point number
-	FORCEINLINE static double ToDouble(const char* Value) { return atof(Value); }
-	FORCEINLINE static double ToDouble(const char* Value, char** Next) { return strtod(Value, Next); }
-
-	FORCEINLINE static double ToDouble(const wchar* Value) { return wcstod(Value, nullptr); }
-	FORCEINLINE static double ToDouble(const wchar* Value, wchar** Next) { return wcstod(Value, Next); }
-
-	// Converts the string pointed to, by the argument str to an integer
-	FORCEINLINE static int32 ToInt(const char* Value) { return atoi(Value); }
-	FORCEINLINE static int32 ToInt(const char* Value, char** Next, int32 Base) { return (int32)strtol(Value, Next, Base); }
-
-	FORCEINLINE static int32 ToInt(const wchar* Value) { return wcstol(Value, nullptr, 10); }
-	FORCEINLINE static int32 ToInt(const wchar* Value, wchar** Next, int32 Base) { return (int32)wcstol(Value, Next, Base); }
-
-	// Converts the string pointed to, by the argument str to a long integer
-	FORCEINLINE static int64 ToLong(const char* Value) { return atol(Value); }
-	FORCEINLINE static int64 ToLong(const char* Value, char** Next, int32 Base) { return strtol(Value, Next, Base); }
-
-	FORCEINLINE static int64 ToLong(const wchar* Value) { return wcstol(Value, nullptr, 10); }
-	FORCEINLINE static int64 ToLong(const wchar* Value, wchar** Next, int32 Base) { return wcstol(Value, Next, Base); }
-
-	// Converts the string pointed to, by the argument str to an unsigned long integer
-	FORCEINLINE static uint64 ToULong(const char* Value) { return strtoul(Value, nullptr, 10); }
-	FORCEINLINE static uint64 ToULong(const char* Value, char** Next, int32 Base) { return strtoul(Value, Next, Base); }
-
-	FORCEINLINE static uint64 ToULong(const wchar* Value) { return wcstoul(Value, nullptr, 10); }
-	FORCEINLINE static uint64 ToULong(const wchar* Value, wchar** Next, int32 Base) { return wcstoul(Value, Next, Base); }
 };
