@@ -40,23 +40,70 @@ struct SCustomData
 	uint8 A, B;
 };
 
-template<typename ElementType>
-void ReadArray(const TArray<ElementType>& Array)
+void StringTest1()
 {
-	for(uint32 i = 0; i < Array.GetCount(); ++i)
+	SString test = TEXT("Hello World");
+	test.Append(TEXT('!'));
+	test.Append(TEXT("dlroW olleH"));
+
+	SLogger::Begin() << test << SLogger::End();
+
+	SString left, right;
+	CHECK(test.Split(TEXT('!'), &left, &right));
+
+	SLogger::Begin() << test << TEXT(" [ LEFT: ") << left << TEXT(", RIGHT: ") << right << TEXT("]") << SLogger::End();
+
+}
+
+void StringTest2()
+{
+	SString test = TEXT(":-:ccc:cc: :cc::cc:ccc");
+	TArray<SString> result = test.SplitToArray(TEXT(':'));
+
+	SLogger::Begin() << "Writing result for split to array for \"" << test << "\"" << SLogger::End();
+
+	for(uint8 i = 0; i < result.GetCount(); ++i)
 	{
-		SLogger::Begin() << "Value [" << i << "]: " << Array[i] << SLogger::End();
+		SLogger::Begin() << "Index " << i << ": " << result[i] << SLogger::End();
 	}
+}
+
+void StringTest3()
+{
+	SString test = SString::FromInt32(25);
+	SLogger::Begin() << "Int test [25]: " << test << ", " << test.ToInt32() << SLogger::End();
+
+	SString test2 = SString::FromInt64(-120);
+	SLogger::Begin() << "Int test [-120]: " << test2 << ", " << test2.ToInt64() << SLogger::End();
+
+	SString test3 = SString::FromDouble(158.215, 3);
+	SLogger::Begin() << "Int test [158.215]: " << test3 << ", " << test3.ToDouble() << SLogger::End();
+}
+
+void StringTest4()
+{
+	SString test = TEXT("ccc:cc: :cc::cc:ccc");
+	SString result = test.Replace(TEXT(':'), TEXT('|'));
+	SString result2 = test.Replace(TEXT("cC"), TEXT("abc"), 2, false);
+	SString result3 = test.Replace(TEXT("cC"), TEXT("abc"), 2, true);
+
+	SLogger::Begin() << "Writing result for replace of array \"" << test << "\"" << SLogger::End();
+	SLogger::Begin() << "Result 1 is " << result << SLogger::End();
+	SLogger::Begin() << "Result 2 is " << result2 << SLogger::End();
+	SLogger::Begin() << "Result 3 is " << result3 << SLogger::End();
 }
 
 int main()
 {
-	TArray<uint8> bitArray = {1,2,3,4,5,6};
-	TArray<uint8> bitArray2 = {7,8,9,10,11,12};
-
-	bitArray.Append(bitArray2);
-
-	ReadArray(bitArray);
+	SLogger::EmptyLine();
+	StringTest1();
+	SLogger::EmptyLine();
+	StringTest2();
+	SLogger::EmptyLine();
+	StringTest3();
+	SLogger::EmptyLine();
+	StringTest4();
+	SLogger::EmptyLine();
 
 	return 0;
 }

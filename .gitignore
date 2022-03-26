@@ -2,6 +2,7 @@
 # Solutions cache
 .vs
 .idea
+.vscode
 
 # Solutions
 *.code-workspace

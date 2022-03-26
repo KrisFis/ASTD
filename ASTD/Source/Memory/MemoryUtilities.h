@@ -1,17 +1,15 @@
 
 #pragma once
 
-#include "Build/BuildDefinitions.h"
 #include "TypeTraits/TypeMethods.h"
-#include "TypeTraits/TypeTraits.h"
 #include "Platform/PlatformMemory.h"
 
-namespace NMemoryUtilities
+struct SMemory : public SPlatformMemory
 {
 	template<typename ElementType, typename... ArgTypes>
 	FORCEINLINE static void CallConstructor(ElementType* Object, ArgTypes&&... Args)
 	{
-		::new((void*)Object) ElementType(Forward<ArgTypes>(Args)...);
+		::new((void*)Object) ElementType(::Forward<ArgTypes>(Args)...);
 	}
 
 	template<typename ElementType>
@@ -23,7 +21,7 @@ namespace NMemoryUtilities
 	template<typename ElementType>
 	FORCEINLINE static void CallMoveConstructor(ElementType* Object, ElementType&& Value)
 	{
-		::new((void*)Object) ElementType(Move(Value));
+		::new((void*)Object) ElementType(::Move(Value));
 	}
 
 	template<typename ElementType>
@@ -31,6 +29,4 @@ namespace NMemoryUtilities
 	{
 		Object->~ElementType();
 	}
-}
-
-typedef SPlatformMemory SMemory;
+};

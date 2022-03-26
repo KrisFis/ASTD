@@ -14,11 +14,19 @@ struct SLogger
 	FORCEINLINE static SLogger Begin() { return SLogger(); }
 	FORCEINLINE static const char* End() { return "\n"; }
 
+	FORCEINLINE static void EmptyLine() { std::cout << std::endl; }
+
 	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::Int>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
 	{
-		std::cout << (TSize)Value;
+		std::cout << (int64)Value;
 		return *this;
+	}
+
+	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::String>::Type* = nullptr>
+	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
+	{
+		return operator<<(Value.GetChars());
 	}
 
 	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::StringW>::Type* = nullptr>

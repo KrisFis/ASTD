@@ -15,6 +15,7 @@
 #include "Platform/PlatformTypes.h"
 #include "Platform/PlatformMemory.h"
 #include "Platform/PlatformTime.h"
+#include "Platform/PlatformCString.h"
 
 // Types
 #include "Type/TypeUtilities.h"
@@ -39,7 +40,10 @@
 #include "Time/TimeUtilities.h"
 
 // Log
-#include "Log/Logger.h"
+#include "Log/LogUtilities.h"
+
+// String
+#include "String/CStringUtilities.h"
 
 // Containers
 #include "Containers/Array/Array.h"
@@ -48,6 +52,10 @@
 
 #include "Containers/Queue/Queue.h"
 #include "Containers/Queue/Allocator/QueueAllocator.h"
+
+#include "Containers/InitializerList/InitializerList.h"
+
+#include "Containers/String/String.h"
 
 #include "Containers/STDTypes.h"
 
