@@ -203,22 +203,28 @@ public: // Manipulation
 		SplitBySubstringPrivate(*this, From, false, CaseSensitive,
 			[&newData, &To, &Num](const CharType* Ptr, SizeType Count) -> bool
 			{
-				newData.Append(Ptr, Count);
+				const bool isLast = (*(Ptr + Count + 1) == CHAR_TERM);
 
-				// Is not last character in string
-				if(*(Ptr + Count + 1) != CHAR_TERM)
+				if(!isLast)
 				{
+					if(Count > 0)
+					{
+						newData.Append(Ptr, Count);
+					}
+
 					if(To.Data.GetCount() > 1)
 					{
 						newData.Append(To.Data.GetData(), To.Data.GetCount() - 1);
 					}
 				}
-				else
+
+				if(--Num == 0 || isLast)
 				{
 					newData.Add(CHAR_TERM);
+					return true;
 				}
 
-				return (--Num == 0);
+				return false;
 			}
 		);
 

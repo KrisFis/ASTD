@@ -84,8 +84,8 @@ void StringTest4()
 {
 	SString test = TEXT("ccc:cc: :cc::cc:ccc");
 	SString result = test.Replace(TEXT(':'), TEXT('|'));
-	SString result2 = test.Replace(TEXT("cc"), TEXT("aa"), 2, false);
-	SString result3 = test.Replace(TEXT("cc"), TEXT("aa"), 2, true);
+	SString result2 = test.Replace(TEXT("cC"), TEXT("abc"), 2, false);
+	SString result3 = test.Replace(TEXT("cC"), TEXT("abc"), 2, true);
 
 	SLogger::Begin() << "Writing result for replace of array \"" << test << "\"" << SLogger::End();
 	SLogger::Begin() << "Result 1 is " << result << SLogger::End();
