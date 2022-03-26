@@ -412,7 +412,6 @@ private: // Helper methods
 		const SizeType mainLen = Main.GetLength();
 		const SizeType subLen = Sub.GetLength();
 
-		// TODO(jan.kristian.fisera): We are returning bad case 
 		if(mainLen > 0 && mainLen > subLen)
 		{
 			const TArray<CharType> mainStr = CaseSensitive ? Main.Data : Main.ToLower().Data;
@@ -425,7 +424,10 @@ private: // Helper methods
 			{
 				if (!IgnoreEmpty || current-init)
 				{
-					if(Functor(init, PTR_DIFF_TYPED(SizeType, current, init)))
+					const SizeType currIdx = PTR_DIFF_TYPED(SizeType, init, mainStr.GetData());
+					const SizeType count = PTR_DIFF_TYPED(SizeType, current, init);
+
+					if(Functor(mainStr.GetData() + currIdx, count))
 						return;
 				}
 
@@ -434,7 +436,10 @@ private: // Helper methods
 
 			if (!IgnoreEmpty || *init != CHAR_TERM)
 			{
-				Functor(init, mainStr.GetCount() - PTR_DIFF_TYPED(SizeType, init, mainStr.GetData()));
+				const SizeType currIdx = PTR_DIFF_TYPED(SizeType, init, mainStr.GetData());
+				const SizeType count = mainStr.GetCount() - currIdx;
+
+				Functor(mainStr.GetData() + currIdx, count);
 			}
 		}
 	}
