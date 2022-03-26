@@ -208,7 +208,10 @@ public: // Manipulation
 				// Is not last character in string
 				if(*(Ptr + Count + 1) != CHAR_TERM)
 				{
-					newData.Append(To.GetData());
+					if(To.Data.GetCount() > 1)
+					{
+						newData.Append(To.Data.GetData(), To.Data.GetCount() - 1);
+					}
 				}
 				else
 				{
@@ -237,7 +240,7 @@ public: // Manipulation
 	SString ToLower() const
 	{
 		SString newString(*this);
-		newString.ToUpperInline();
+		newString.ToLowerInline();
 		return newString;
 	}
 
@@ -403,6 +406,7 @@ private: // Helper methods
 		const SizeType mainLen = Main.GetLength();
 		const SizeType subLen = Sub.GetLength();
 
+		// TODO(jan.kristian.fisera): We are returning bad case 
 		if(mainLen > 0 && mainLen > subLen)
 		{
 			const TArray<CharType> mainStr = CaseSensitive ? Main.Data : Main.ToLower().Data;
