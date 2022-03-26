@@ -57,7 +57,7 @@ void StringTest1()
 
 void StringTest2()
 {
-	SString test = TEXT("ccc:cc: :cc::cc:ccc");
+	SString test = TEXT(":-:ccc:cc: :cc::cc:ccc");
 	TArray<SString> result = test.SplitToArray(TEXT(':'));
 
 	SLogger::Begin() << "Writing result for split to array for \"" << test << "\"" << SLogger::End();
@@ -80,6 +80,19 @@ void StringTest3()
 	SLogger::Begin() << "Int test [158.215]: " << test3 << ", " << test3.ToDouble() << SLogger::End();
 }
 
+void StringTest4()
+{
+	SString test = TEXT("ccc:cc: :cc::cc:ccc");
+	SString result = test.Replace(TEXT(':'), TEXT('|'));
+	SString result2 = test.Replace(TEXT("cc"), TEXT("aa"), 2, false);
+	SString result3 = test.Replace(TEXT("cc"), TEXT("aa"), 2, true);
+
+	SLogger::Begin() << "Writing result for replace of array \"" << test << "\"" << SLogger::End();
+	SLogger::Begin() << "Result 1 is " << result << SLogger::End();
+	SLogger::Begin() << "Result 2 is " << result2 << SLogger::End();
+	SLogger::Begin() << "Result 3 is " << result3 << SLogger::End();
+}
+
 int main()
 {
 	SLogger::EmptyLine();
@@ -88,6 +101,8 @@ int main()
 	StringTest2();
 	SLogger::EmptyLine();
 	StringTest3();
+	SLogger::EmptyLine();
+	StringTest4();
 	SLogger::EmptyLine();
 
 	return 0;

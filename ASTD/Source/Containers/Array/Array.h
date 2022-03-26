@@ -9,6 +9,8 @@
 
 #include "Containers/InitializerList/InitializerList.h"
 
+// TODO(jan.kristian.fisera):
+// * Round memory allocation and reservation to be power of 2
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
@@ -36,7 +38,7 @@ public: // Constructors
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
 	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { FillToEmptyImpl(Other); }
 	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { FillToEmptyImpl(Move(Other)); }
-	FORCEINLINE TArray(SizeType InCount) : Allocator(), Count(0) { FillToEmptyImpl(InCount); }
+	FORCEINLINE TArray(SizeType InCount, bool ReserveOnly = false) : Allocator(), Count(0) { FillToEmptyImpl(InCount, ReserveOnly); }
 	FORCEINLINE TArray(const ElementListType& InList)
 		: Allocator()
 		, Count(0)
@@ -100,10 +102,13 @@ public: // Append
 	void AppendUnitialized(SizeType NumToAdd) 
 	{
 		if(NumToAdd > 0)
-		{
 			GrowImpl(Count + NumToAdd);
-		} 
 	}
+
+public: // Emplace
+
+	void Emplace(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); }
+	void Emplace(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); }
 
 public: // Add
 
@@ -593,7 +598,13 @@ private: // Helper methods
 		}
 	}
 
-	FORCEINLINE void FillToEmptyImpl(SizeType InCount) { GrowImpl(InCount); }
+	void FillToEmptyImpl(SizeType InCount, bool ReserveOnly) 
+	{
+		if(ReserveOnly)
+			ReserveImpl(InCount);
+		else
+			GrowImpl(InCount); 
+	}
 
 	// Make sure elements array and values array does NOT OVERLAP
 	static void CopyElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
@@ -696,15 +707,10 @@ private: // Helper methods
 	{
 		const SizeType reserved = Allocator.GetCount();
 		const SizeType nextReserved = reserved == 0 ? 2 : 2 * reserved;
-		const SizeType prevReserved = reserved == 0 ? 0 : reserved / 2;
 
 		if(Count > reserved)
 		{
 			ReserveImpl(nextReserved);
-		}
-		else if(Count <= prevReserved)
-		{
-			ShrinkImpl(prevReserved);
 		}
 	}
 

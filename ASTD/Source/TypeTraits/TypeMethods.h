@@ -7,6 +7,9 @@
 // * Indicates that an specific object may be "moved from"
 
 template<typename T>
+FORCEINLINE typename TRemoveReference<T>::Type&& Move(T& Obj) { return static_cast<typename TRemoveReference<T>::Type&&>(Obj); }
+
+template<typename T>
 FORCEINLINE typename TRemoveReference<T>::Type&& Move(T&& Obj) { return static_cast<typename TRemoveReference<T>::Type&&>(Obj); }
 
 // [Forward]

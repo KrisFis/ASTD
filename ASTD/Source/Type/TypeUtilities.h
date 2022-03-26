@@ -6,6 +6,9 @@
 
 // Text definition
 
+#define PTR_DIFF(Ptr1, Ptr2) static_cast<int64>(Ptr1 - Ptr2)
+#define PTR_DIFF_TYPED(RetType, Ptr1, Ptr2) static_cast<RetType>(Ptr1 -Ptr2)
+
 #if defined(TEXT)
 	#undef TEXT
 #endif
