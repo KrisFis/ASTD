@@ -10,7 +10,7 @@
 #include "Containers/InitializerList/InitializerList.h"
 
 // TODO(jan.kristian.fisera):
-// * Round memory allocation and reservation to be power of 2
+// * Round memory allocation and reservation should be power of 2
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
