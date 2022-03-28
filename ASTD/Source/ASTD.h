@@ -60,4 +60,5 @@
 #include "Containers/STDTypes.h"
 
 // Validation
-#include "Validation/Validation.h"
+#include "Validation/Check.h"
+#include "Validation/IsValid.h"

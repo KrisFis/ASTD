@@ -6,18 +6,6 @@
 #include "TypeTraits/Internals/TypeTraitsIsType.h"
 #include "TypeTraits/Internals/TypeTraitsInternals.h"
 
-// [Decay]
-// * Returns the decayed type, meaning it removes all references, qualifiers and
-// * applies array-to-pointer and function-to-pointer conversions.
-
-template<typename T>
-struct TDecay 
-{ 
-	typedef typename NTypeTraitsInternals::TDecayHelper<
-		typename TRemoveConstVolatile<typename TRemoveReference<T>::Type>::Type
-	>::Type Type; 
-};
-
 // [Choose]
 // * Chooses between two different types based on a value
 
@@ -84,3 +72,48 @@ template<typename T, typename... ArgTypes> struct TGetNthType<0, T, ArgTypes...>
 // * Gets size without need of std
 
 typedef decltype(sizeof(0)) TSize;
+
+// [Decay]
+// * Returns the decayed type, meaning it removes all references, qualifiers and
+// * applies array-to-pointer and function-to-pointer conversions.
+
+template<typename T>
+struct TDecay 
+{ 
+	typedef typename NTypeTraitsInternals::TDecayHelper<
+		typename TRemoveConst<typename TRemoveReference<T>::Type>::Type
+	>::Type Type; 
+};
+
+// [Get type]
+// * Gets type variations
+
+template<typename T>
+struct TGetType
+{
+	typedef T Value;
+
+	typedef T& Reference;
+	typedef const T& ConstReference;
+
+	typedef T* Pointer;
+	typedef const T* ConstPointer;
+};
+
+// [Call traits]
+// * Determines which type will be used for call 
+// * Similar to boost's call_traits, ie. having info about optimizations of which type is used
+
+template <typename T>
+struct TCallTraits : TGetType<T>
+{
+private:
+
+	enum { IsSmallType = ((sizeof(T) <= sizeof(void*)) && TIsPODType<T>::Value ) || TIsArithmetic<T>::Value };
+
+public:
+
+	typedef typename NTypeTraitsInternals::TCallTraitsHelper<T, IsSmallType>::Type Param;
+	typedef typename NTypeTraitsInternals::TCallTraitsHelper<T, IsSmallType>::ConstType ConstParam;
+
+};

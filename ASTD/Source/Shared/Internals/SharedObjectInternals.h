@@ -2,7 +2,7 @@
 #pragma once
 
 #include "Type/TypeUtilities.h"
-#include "Validation/Validation.h"
+#include "Validation/Check.h"
 
 namespace NSharedInternals
 {

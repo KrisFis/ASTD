@@ -4,11 +4,11 @@
 #include "Build/Configurations.h"
 #include "Platform/PlatformDefinitions.h"
 
-#if DO_VALIDATION
+#if DO_CHECKS
 
 	#include <iostream>
 
-	namespace NValidationPrivate
+	namespace NChecksPrivate
 	{
 		DIAG_WARNINGS_PUSH()
 		DIAG_WARNINGS_SUPRESS(DIAG_WARNING_NULL_DEREFERENCE)
@@ -29,7 +29,7 @@
 	#define CHECK_IMPL(expression)												\
 		((!!(expression)) || []()												\
 		{ 																		\
-			NValidationPrivate::LogFailed(#expression, __FILE__, __LINE__);		\
+			NChecksPrivate::LogFailed(#expression, __FILE__, __LINE__);		\
 			static bool didBreak = false; 										\
 			if(!didBreak) 														\
 			{ 																	\
@@ -41,14 +41,15 @@
 	#define CHECKF_IMPL(expression)												\
 		((!!(expression)) || []()												\
 		{ 																		\
-			NValidationPrivate::LogFailed(#expression, __FILE__, __LINE__);		\
+			NChecksPrivate::LogFailed(#expression, __FILE__, __LINE__);		\
 			DEBUG_BREAK();														\
-			NValidationPrivate::Crash();										\
+			NChecksPrivate::Crash();										\
 			return false; 														\
 		}())
 
 #else
 
-	#define CHECK_IMPL(...)
+	#define CHECK_IMPL(expression) (!!(expression))
+	#define CHECKF_IMPL(expression) (!!(expression))
 
 #endif

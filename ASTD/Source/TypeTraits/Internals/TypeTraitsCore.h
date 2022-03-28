@@ -46,18 +46,18 @@ template <typename T> struct TRemoveReference<T&&> { typedef T Type; };
 // [Is Const]
 // * Checks whether provided type is const, volatile or both
 
-template<typename T> struct TIsConstVolatile { enum { Value = false }; };
-template<typename T> struct TIsConstVolatile<const T> { enum { Value = true }; };
-template<typename T> struct TIsConstVolatile<volatile T> { enum { Value = true }; };
-template<typename T> struct TIsConstVolatile<const volatile T> { enum { Value = true }; };
+template<typename T> struct TIsConst { enum { Value = false }; };
+template<typename T> struct TIsConst<const T> { enum { Value = true }; };
+template<typename T> struct TIsConst<volatile T> { enum { Value = true }; };
+template<typename T> struct TIsConst<const volatile T> { enum { Value = true }; };
 
 // [Remove Const]
 // * Removes "const" and "volatile" from type
 
-template<typename T> struct TRemoveConstVolatile { typedef T Type; };
-template<typename T> struct TRemoveConstVolatile<const T> { typedef T Type; };
-template<typename T> struct TRemoveConstVolatile<volatile T> { typedef T Type; };
-template<typename T> struct TRemoveConstVolatile<const volatile T> { typedef T Type; };
+template<typename T> struct TRemoveConst { typedef T Type; };
+template<typename T> struct TRemoveConst<const T> { typedef T Type; };
+template<typename T> struct TRemoveConst<volatile T> { typedef T Type; };
+template<typename T> struct TRemoveConst<const volatile T> { typedef T Type; };
 
 // [Is Pointer]
 // * Checks whether provided type is pointer
@@ -93,6 +93,7 @@ template<> struct TIsBoolType<bool> { enum { Value = true }; };
 template<typename T> struct TIsFloatingType { enum { Value = false }; };
 template<> struct TIsFloatingType<float> { enum { Value = true }; };
 template<> struct TIsFloatingType<double> { enum { Value = true }; };
+template<> struct TIsFloatingType<long double> { enum { Value = true }; };
 
 // [Is Integer Type]
 // * Checks whether specific type is integer type
@@ -125,3 +126,24 @@ template<> struct TIsSignedType<uint8> { enum { Value = false }; };
 template<> struct TIsSignedType<uint16> { enum { Value = false }; };
 template<> struct TIsSignedType<uint32> { enum { Value = false }; };
 template<> struct TIsSignedType<uint64> { enum { Value = false }; };
+
+// [Is arithmetic]
+// * Checks whether specific type is arithmetic
+
+template <typename T> 
+struct TIsArithmetic 
+{
+private:
+
+	typedef typename TRemoveConst<T>::Type TestType;
+
+public:
+
+	enum { Value = 
+			TIsIntegerType<TestType>::Value ||
+			TIsFloatingType<TestType>::Value ||
+			TIsCharacterType<TestType>::Value ||
+			TIsBoolType<TestType>::Value
+	}; 
+
+};
