@@ -3,14 +3,13 @@
 
 #include "Type/TypeUtilities.h"
 #include "TypeTraits/TypeTraits.h"
+#include "Math/MathUtilities.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Internals/ArrayTypeTraits.h"
 
 #include "Containers/InitializerList/InitializerList.h"
 
-// TODO(jan.kristian.fisera):
-// * Round memory allocation and reservation should be power of 2
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
 class TArray
 {
@@ -229,7 +228,6 @@ public: // Swap
 		if(!IsValidIndex(FirstIdx) || !IsValidIndex(SecondIdx)) return;
 		else if(FirstIdx + Num > Count || SecondIdx + Num > Count) return;
 		
-		// TODO(jan.kristian.fisera): Overlaping indices can overwrite each other!
 		SwapImpl(FirstIdx, SecondIdx, Num);
 	}
 
@@ -395,7 +393,7 @@ private: // Helper methods
 			const SizeType oldCount = Count;
 
 			Count += InCount;
-			RelocateIfNeededImpl();
+			RealocateIfNeededImpl();
 
 			CopyElementImpl(Allocator.GetData() + oldCount, Value, InCount);
 		}
@@ -404,7 +402,7 @@ private: // Helper methods
 	void AddImpl(ElementType&& Value)
 	{
 		++Count;
-		RelocateIfNeededImpl();
+		RealocateIfNeededImpl();
 
 		MoveElementImpl(Allocator.GetData() + Count - 1, Move(Value), 1);
 	}
@@ -414,7 +412,7 @@ private: // Helper methods
 		if(InCount > 0)
 		{
 			Count += InCount;
-			RelocateIfNeededImpl();
+			RealocateIfNeededImpl();
 		}
 	}
 
@@ -434,7 +432,7 @@ private: // Helper methods
 
 		--Count;
 
-		RelocateIfNeededImpl();
+		RealocateIfNeededImpl();
 	}
 
 	void RemoveImpl(SizeType Index)
@@ -456,7 +454,7 @@ private: // Helper methods
 
 		--Count;
 
-		RelocateIfNeededImpl();
+		RealocateIfNeededImpl();
 	}
 
 	void SwapImpl(SizeType FirstIdx, SizeType SecondIdx, SizeType Num)
@@ -549,7 +547,7 @@ private: // Helper methods
 			const SizeType oldCount = Count;
 
 			Count += InCount;
-			RelocateIfNeededImpl();
+			RealocateIfNeededImpl();
 
 			if(preferMove)
 				MoveElementsImpl(Allocator.GetData() + oldCount, InData, InCount);
@@ -703,14 +701,13 @@ private: // Helper methods
 		}
 	}
 
-	void RelocateIfNeededImpl()
+	void RealocateIfNeededImpl()
 	{
 		const SizeType reserved = Allocator.GetCount();
-		const SizeType nextReserved = reserved == 0 ? 2 : 2 * reserved;
 
 		if(Count > reserved)
 		{
-			ReserveImpl(nextReserved);
+			ReserveImpl(reserved == 0 ? 2 : SMath::FloorToPowerOfTwo<uint64>(2 * reserved));
 		}
 	}
 
