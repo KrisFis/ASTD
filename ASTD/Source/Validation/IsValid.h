@@ -13,11 +13,29 @@ namespace NChecksPrivateTraits
 	DECLARE_HAS_METHOD_TRAIT(THasIsValidMethod, IsValid())
 
 	template<typename TestType>
-	struct FGenericIsValidCheck<const TestType&, typename TEnableIf<!TIsPointer<TestType>::Value && THasIsValidMethod<TestType>::Value>::Type>
+	struct FGenericIsValidCheck<TestType, typename TEnableIf<!TIsPointer<TestType>::Value && THasIsValidMethod<TestType>::Value>::Type>
 	{
 		FORCEINLINE static constexpr bool IsValid(const TestType& Test)
 		{
 			return Test.IsValid();
+		}
+	};
+
+	template<typename TestType>
+	struct FGenericIsValidCheck<TestType, typename TEnableIf<TIsPointer<TestType>::Value && THasIsValidMethod<typename TRemovePointer<TestType>::Type>::Value>::Type>
+	{
+		FORCEINLINE static constexpr bool IsValid(const TestType* Test)
+		{
+			return Test && Test->IsValid();
+		}
+	};
+
+	template<typename TestType>
+	struct FGenericIsValidCheck<TestType, typename TEnableIf<TIsPointer<TestType>::Value && !THasIsValidMethod<typename TRemovePointer<TestType>::Type>::Value>::Type>
+	{
+		FORCEINLINE static constexpr bool IsValid(const TestType* Test)
+		{
+			return Test != nullptr;
 		}
 	};
 
@@ -26,7 +44,7 @@ namespace NChecksPrivateTraits
 	template<typename TestType>
 	struct FGenericIsValidCheckTraits
 	{
-		typedef typename TChoose<TIsPointer<TestType>::Value, typename TGetType<TestType>::ConstPointer, typename TGetType<TestType>::ConstReference>::Result DesiredType;
+		typedef typename TChoose<TIsPointer<TestType>::Value, typename TGetType<TestType>::ConstPointer, typename TGetType<TestType>::ConstReference>::Type DesiredType;
 
 		enum { HasGenericIsValidFunc = THasIsValidField<FGenericIsValidCheck<TestType>>::Value };
 	};
@@ -35,7 +53,7 @@ namespace NChecksPrivateTraits
 }
 
 template<typename TestType,
-		 typename = typename TEnableIf<NChecksPrivateTraits::FGenericIsValidCheckTraits<TestType>::HasGenericIsValidFunc>::Type>
+		 typename = typename TEnableIf<!NChecksPrivateTraits::THasGlobalIsValid<TestType>::Value && NChecksPrivateTraits::FGenericIsValidCheckTraits<TestType>::HasGenericIsValidFunc>::Type>
 FORCEINLINE constexpr bool IsValid(const TestType& Test)
 {
 	typedef typename NChecksPrivateTraits::FGenericIsValidCheckTraits<TestType>::DesiredType DesiredType;
@@ -44,7 +62,7 @@ FORCEINLINE constexpr bool IsValid(const TestType& Test)
 }
 
 template<typename TestType,
-	typename = typename TEnableIf<!NChecksPrivateTraits::THasGlobalIsValid<TestType>::Value && !NChecksPrivateTraits::FGenericIsValidCheckTraits<TestType>::HasGenericIsValidFunc>::Type>
+		typename = typename TEnableIf<!NChecksPrivateTraits::THasGlobalIsValid<TestType>::Value && !NChecksPrivateTraits::FGenericIsValidCheckTraits<TestType>::HasGenericIsValidFunc>::Type>
 FORCEINLINE constexpr bool IsValid(TestType Test)
 {
 	static_assert(sizeof(TestType) < 0, "IsValid() function overload for type is not implemented");

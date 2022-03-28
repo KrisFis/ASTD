@@ -91,13 +91,13 @@ struct TDecay
 template<typename T>
 struct TGetType
 {
-	typedef T Value;
+	typedef typename TDecay<T>::Type Value;
 
-	typedef T& Reference;
-	typedef const T& ConstReference;
+	typedef Value& Reference;
+	typedef const Value& ConstReference;
 
-	typedef T* Pointer;
-	typedef const T* ConstPointer;
+	typedef Value* Pointer;
+	typedef const Value* ConstPointer;
 };
 
 // [Call traits]
