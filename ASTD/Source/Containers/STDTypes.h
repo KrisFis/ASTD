@@ -2,7 +2,7 @@
 #pragma once
 
 // * TODO(kristian.fisera): Implement custom version of containers
-// * Remains: TFastMap, TMap, TFastSet, TSet, TArray, FString
+// * Remains: TFastMap, TMap, TFastSet, TSet
 ////////////////////////////////////////////////
 
 #include <unordered_map>
@@ -10,9 +10,6 @@
 #include <map>
 #include <set>
 #include <vector>
-#include <string>
-
-using FString = std::string;
 
 template<typename T, typename R>
 using TFastMap = std::unordered_map<T, R>;
