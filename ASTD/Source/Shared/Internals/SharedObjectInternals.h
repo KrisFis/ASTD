@@ -32,13 +32,13 @@ namespace NSharedInternals
 		
 	public: // Setters [Add]
 	
-		FORCEINLINE_DEBUGGABLE void AddShared() 
+		FORCEINLINE void AddShared() 
 		{
 			CHECK_RET(SharedCount < UINT16_MAX);
 			++SharedCount;
 		}
 		
-		FORCEINLINE_DEBUGGABLE void AddWeak() 
+		FORCEINLINE void AddWeak() 
 		{
 			CHECK_RET(WeakCount < UINT16_MAX); // overflow
 			++WeakCount;
@@ -46,14 +46,14 @@ namespace NSharedInternals
 		
 	public: // Setters [REMOVE]
 	
-		FORCEINLINE_DEBUGGABLE void RemoveShared()
+		FORCEINLINE void RemoveShared()
 		{
 			CHECK_RET(SharedCount > 0); // underflow
 			if(SharedCount == 1) DeconstructObjectImpl();
 			--SharedCount;
 		}
 		
-		FORCEINLINE_DEBUGGABLE void RemoveWeak()
+		FORCEINLINE void RemoveWeak()
 		{
 			CHECK_RET(WeakCount > 0); // underflow
 			--WeakCount;
@@ -102,7 +102,7 @@ namespace NSharedInternals
 			return Object;
 		}
 		
-		FORCEINLINE_DEBUGGABLE virtual void DeconstructObjectImpl() override 
+		FORCEINLINE virtual void DeconstructObjectImpl() override 
 		{
 			if(Object)
 			{
@@ -197,7 +197,7 @@ namespace NSharedInternals
 	
 	public: // Helper methods [Remove]
 	
-		FORCEINLINE_DEBUGGABLE void RemoveShared()
+		FORCEINLINE void RemoveShared()
 		{
 			if(!IsValid()) return;
 			
@@ -209,7 +209,7 @@ namespace NSharedInternals
 			}
 		}
 		
-		FORCEINLINE_DEBUGGABLE void RemoveWeak()
+		FORCEINLINE void RemoveWeak()
 		{
 			if(!IsValid()) return;
 			
