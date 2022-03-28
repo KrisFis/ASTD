@@ -8,11 +8,10 @@
 	#define UNICODE
 #endif
 
-// Disable CRT warnings
-// #if !defined(_CRT_SECURE_NO_WARNINGS)
-// 	#define _CRT_SECURE_NO_WARNINGS
-// 	#define _CRT_NONSTDC_NO_WARNINGS
-// #endif
+// Disable CRT SECURE WARNINGS warnings
+#if !defined(_CRT_SECURE_NO_WARNINGS)
+ 	#define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include <Windows.h>
 #include <intrin.h>
