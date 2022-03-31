@@ -117,8 +117,34 @@ void ValidTest()
 	CHECK(IsValid(dataPtr));
 }
 
+void OptionalTest()
+{
+	TOptional<SCustomData> myOpt;
+	CHECK(!myOpt.IsSet());
+
+	myOpt = SCustomData(1, 2);
+	CHECK(myOpt.IsSet());
+
+	SLogger::Begin() << "Optional test 1: " << myOpt->A << SLogger::End();
+
+	TOptional<SCustomData> myOpt2(Move(myOpt));
+
+	SLogger::Begin() << "Optional test 2: " << myOpt2->A << SLogger::End();
+
+	SCustomData& testData = myOpt2.GetRef();
+
+	SLogger::Begin() << "Optional test 3: " << testData.A << SLogger::End();
+
+	myOpt2.Reset();
+	SCustomData testData2 = myOpt2.Get(SCustomData(2, 2));
+
+	SLogger::Begin() << "Optional test 4: " << testData2.A << SLogger::End();
+}
+
 int main()
 {
+	SLogger::EmptyLine();
+	OptionalTest();
 	SLogger::EmptyLine();
 	ValidTest();
 	SLogger::EmptyLine();

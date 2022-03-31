@@ -40,7 +40,7 @@ public: // Getters
 
 public: // Peek
 
-	FORCEINLINE bool Peek(ElementType& OutValue) const { return PeakImpl(OutValue); }
+	FORCEINLINE bool Peek(ElementType& OutValue) const { return PeekImpl(OutValue); }
 
 public: // Enqueue
 
@@ -59,7 +59,7 @@ public: // Empty
 
 private: // Helper methods
 
-	bool PeakImpl(ElementType& OutValue) const
+	bool PeekImpl(ElementType& OutValue) const
 	{
 		AllocatorNodeType* node = Allocator.GetHead();
 		if(node) // Should we use copy constructor ?

@@ -16,7 +16,7 @@ class TArray
 public: // Types
 
 	typedef InElementType ElementType;
-	typedef NArrayTypeTraits::TElementInfo<ElementType> ElementInfo;
+	typedef NContainerInternals::TElementInfo<ElementType> ElementInfo;
 
 	typedef InAllocator AllocatorType;
 	typedef NArrayTypeTraits::TAllocatorInfo<AllocatorType> AllocatorInfo;
