@@ -6,6 +6,20 @@
 #include "TypeTraits/Internals/TypeTraitsIsType.h"
 #include "TypeTraits/Internals/TypeTraitsInternals.h"
 
+// [Size]
+// * Gets size type without need of std (same as std::size_t)
+
+typedef decltype(sizeof(0)) TSize;
+
+// [Remove const reference]
+// * Removes const and reference from specific type
+
+template<typename T>
+struct TRemoveConstReference
+{
+	typedef typename TRemoveConst<typename TRemoveReference<T>::Type>::Type Type;
+};
+
 // [Choose]
 // * Chooses between two different types based on a value
 
@@ -68,21 +82,50 @@ struct TIsCastable { enum { Value = TIsDerivedFrom<T, R>::Value || TIsBaseOf<T, 
 template<uint32 N, typename T, typename... ArgTypes> struct TGetNthType { typedef typename TGetNthType<N - 1, ArgTypes...>::Type Type; };
 template<typename T, typename... ArgTypes> struct TGetNthType<0, T, ArgTypes...> { typedef T Type; };
 
-// [Size]
-// * Gets size without need of std
 
-typedef decltype(sizeof(0)) TSize;
+// [Is arithmetic]
+// * Checks whether specific type is arithmetic
+
+template <typename T> 
+struct TIsArithmetic 
+{
+	enum { Value = 
+			TIsIntegerType<T>::Value ||
+			TIsFloatingType<T>::Value ||
+			TIsCharacterType<T>::Value ||
+			TIsBoolType<T>::Value
+	}; 
+};
 
 // [Decay]
-// * Returns the decayed type, meaning it removes all references, qualifiers and
-// * applies array-to-pointer and function-to-pointer conversions.
+// * Returns the decayed type
+// * ie. applies array-to-pointer and function-to-pointer conversions
 
 template<typename T>
-struct TDecay 
-{ 
+struct TDecay
+{
 	typedef typename NTypeTraitsInternals::TDecayHelper<
-		typename TRemoveConst<typename TRemoveReference<T>::Type>::Type
-	>::Type Type; 
+		typename TRemoveConstReference<T>::Type
+	>::Type Type;
+};
+
+// [Pure]
+// * Removes all qualifiers
+
+template<typename T>
+struct TPure
+{
+private:
+
+	typedef typename TRemoveConstReference<T>::Type TestType;
+
+public:
+
+	typedef typename TChoose<
+		TIsPointer<TestType>::Value, 
+		typename TRemovePointer<TestType>::Type,
+		typename NTypeTraitsInternals::TDecayHelper<TestType>::Type
+	>::Type Type;
 };
 
 // [Get type]
@@ -91,7 +134,7 @@ struct TDecay
 template<typename T>
 struct TGetType
 {
-	typedef typename TDecay<T>::Type Value;
+	typedef typename TPure<T>::Type Value;
 
 	typedef Value& Reference;
 	typedef const Value& ConstReference;

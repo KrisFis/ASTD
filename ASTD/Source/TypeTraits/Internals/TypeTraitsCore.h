@@ -73,12 +73,18 @@ template<typename T> struct TRemovePointer { typedef T Type; };
 template<typename T> struct TRemovePointer<T*> { typedef T Type; };
 template<typename T> struct TRemovePointer<const T*> { typedef T Type; };
 
-// [Is Array Type]
-// * Checks whether specific type is array type
+// [Is Array]
+// * Checks whether specific type is array
 
-template<typename T> struct TIsArrayType { enum { Value = false }; };
-template<typename T> struct TIsArrayType<T[]> { enum { Value = true }; };
-template<typename T, uint32 N> struct TIsArrayType<T[N]> { enum { Value = true }; };
+template<typename T> struct TIsArray { enum { Value = false }; };
+template<typename T> struct TIsArray<T[]> { enum { Value = true }; };
+template<typename T, uint32 N> struct TIsArray<T[N]> { enum { Value = true }; };
+
+// [Is Function]
+// * Checks whether specific type is function
+
+template<typename T> struct TIsFunctionType { enum { Value = false }; };
+template <typename RetType, typename... Params> struct TIsFunctionType<RetType(Params...)> { enum { Value = true }; };
 
 // [Is Bool Type]
 // * Checks whether specific type is bool type
@@ -126,24 +132,3 @@ template<> struct TIsSignedType<uint8> { enum { Value = false }; };
 template<> struct TIsSignedType<uint16> { enum { Value = false }; };
 template<> struct TIsSignedType<uint32> { enum { Value = false }; };
 template<> struct TIsSignedType<uint64> { enum { Value = false }; };
-
-// [Is arithmetic]
-// * Checks whether specific type is arithmetic
-
-template <typename T> 
-struct TIsArithmetic 
-{
-private:
-
-	typedef typename TRemoveConst<T>::Type TestType;
-
-public:
-
-	enum { Value = 
-			TIsIntegerType<TestType>::Value ||
-			TIsFloatingType<TestType>::Value ||
-			TIsCharacterType<TestType>::Value ||
-			TIsBoolType<TestType>::Value
-	}; 
-
-};

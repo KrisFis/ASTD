@@ -51,13 +51,13 @@
 ////////////////////////////////////////////////////////
 
 // In "MethodCall" parameter "TestType" can be used
-#define DECLARE_HAS_GLOBAL_METHOD_TRAIT(DeclareName, MethodCall)																\
+#define GENERATE_HAS_GLOBAL_METHOD_TRAIT(DeclareName, MethodCall)																\
 	template <typename CheckType>																								\
 	struct DeclareName																											\
 	{																															\
 	private:																													\
 																																\
-		typedef typename TDecay<CheckType>::Type PureType;																		\
+		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
 		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(MethodCall())>;						\
 																																\
@@ -71,13 +71,13 @@
 	};
 
 // In "MethodCall" parameter "TestType" can be used
-#define DECLARE_HAS_METHOD_TRAIT(DeclareName, MethodCall)																		\
+#define GENERATE_HAS_METHOD_TRAIT(DeclareName, MethodCall)																		\
 	template <typename CheckType>																								\
 	struct DeclareName																											\
 	{																															\
 	private:																													\
 																																\
-		typedef typename TDecay<CheckType>::Type PureType;																		\
+		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
 		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(DeclVal<TestType>().MethodCall)>;		\
 																																\
@@ -90,13 +90,13 @@
 		static constexpr bool Value = FGetTestValue<PureType>::Value;															\
 	};
 
-#define DECLARE_HAS_FIELD_TRAIT(DeclareName, FieldName)																			\
+#define GENERATE_HAS_FIELD_TRAIT(DeclareName, FieldName)																		\
 	template <typename CheckType>																								\
 	struct DeclareName																											\
 	{																															\
 	private:																													\
 																																\
-		typedef typename TDecay<CheckType>::Type PureType;																		\
+		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
 		template<typename TestType> static auto TestHasField(int32)->TTrueValue<decltype(&TestType::FieldName)>;				\
 																																\
