@@ -12,7 +12,7 @@ namespace NLoggerTypeTraits
 	{
 		enum 
 		{
-			Int = TIsIntegerType<typename TDecay<T>::Type>::Value,
+			Int = TIsIntegerType<T>::Value,
 			String = TIsSame<T, SString>::Value,
 			StringW = TIsSame<typename TRemovePointer<T>::Type, wchar>::Value,
 			Other = !Int && !String && !StringW

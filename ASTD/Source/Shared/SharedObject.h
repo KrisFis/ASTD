@@ -52,7 +52,7 @@ public: // Assignment operators [SharedPtr]
 public: // Pointer operators
 
 	FORCEINLINE ObjectType* operator->() const { return Get(); }
-	FORCEINLINE ObjectType& operator*() const { CHECK_THIS(); return *Get(); }
+	FORCEINLINE ObjectType& operator*() const { return *Get(); }
 
 public: // Validation
 
@@ -179,7 +179,7 @@ public: // Pointer operators
 		// * Our weak pointer supports dereferencing without shared_ptr
 
 	FORCEINLINE ObjectType* operator->() const { return Get(); }
-	FORCEINLINE ObjectType& operator*() const { CHECK_THIS(); return *Get(); }
+	FORCEINLINE ObjectType& operator*() const { return *Get(); }
 	
 public: // Validity
 

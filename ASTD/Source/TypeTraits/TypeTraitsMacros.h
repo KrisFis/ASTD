@@ -46,16 +46,38 @@
 #define DECLARE_VARIADIC_ITERATOR_TRAIT(DeclareName, InMethodName) DECLARE_VARIADIC_ITERATOR_RET_TRAIT(DeclareName, void, ;, InMethodName)
 
 ////////////////////////////////////////////////////////
-// TODO(kristian.fisera): BETTER IMPLEMENTATION
+// GENERATES METHOD/FIELD CHECK TRAIT
+// * TODO(kristian.fisera): MISSING COMMENT
 ////////////////////////////////////////////////////////
 
-#define DECLARE_HAS_METHOD_TRAIT(DeclareName, MethodCall)																		\
+// In "MethodCall" parameter "TestType" can be used
+#define GENERATE_HAS_GLOBAL_METHOD_TRAIT(DeclareName, MethodCall)																\
 	template <typename CheckType>																								\
 	struct DeclareName																											\
 	{																															\
 	private:																													\
 																																\
-		typedef typename TDecay<CheckType>::Type PureType;																		\
+		typedef typename TPure<CheckType>::Type PureType;																		\
+																																\
+		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(MethodCall())>;						\
+																																\
+		template<typename> static auto TestHasMethod(int64)->TConstBool<false>;													\
+																																\
+		template<class TestType> struct FGetTestValue : decltype(TestHasMethod<TestType>(0)){};									\
+																																\
+	public:																														\
+																																\
+		static constexpr bool Value = FGetTestValue<PureType>::Value;															\
+	};
+
+// In "MethodCall" parameter "TestType" can be used
+#define GENERATE_HAS_METHOD_TRAIT(DeclareName, MethodCall)																		\
+	template <typename CheckType>																								\
+	struct DeclareName																											\
+	{																															\
+	private:																													\
+																																\
+		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
 		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(DeclVal<TestType>().MethodCall)>;		\
 																																\
@@ -65,16 +87,16 @@
 																																\
 	public:																														\
 																																\
-		static constexpr bool = Value = FGetTestValue<PureType>::Value;															\
+		static constexpr bool Value = FGetTestValue<PureType>::Value;															\
 	};
 
-#define DECLARE_HAS_FIELD_TRAIT(DeclareName, FieldName)																			\
+#define GENERATE_HAS_FIELD_TRAIT(DeclareName, FieldName)																		\
 	template <typename CheckType>																								\
 	struct DeclareName																											\
 	{																															\
 	private:																													\
 																																\
-		typedef typename TDecay<CheckType>::Type PureType;																		\
+		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
 		template<typename TestType> static auto TestHasField(int32)->TTrueValue<decltype(&TestType::FieldName)>;				\
 																																\
@@ -84,6 +106,6 @@
 																																\
 	public:																														\
 																																\
-		static constexpr bool = Value = FGetTestValue<PureType>::Value;															\
+		static constexpr bool Value = FGetTestValue<PureType>::Value;															\
 	};
 	

@@ -37,8 +37,20 @@ struct SCustomData
 		SLogger::Begin() << "Destructor" << SLogger::End();
 	}
 
+	// Instance is valid
+	FORCEINLINE bool IsValid() const 
+	{ 
+		return A == 1;
+	}
+
 	uint8 A, B;
 };
+
+// Global is valid
+static bool IsValid(const SCustomData& Data) 
+{ 
+	return Data.IsValid();
+}
 
 void StringTest1()
 {
@@ -93,8 +105,22 @@ void StringTest4()
 	SLogger::Begin() << "Result 3 is " << result3 << SLogger::End();
 }
 
+void ValidTest()
+{
+	SCustomData data(1,2);
+	SLogger::Begin() << "[REF] Valid check test: " << (CHECK_VALID(data) ? "TRUE" : "FALSE") << SLogger::End();
+
+	SCustomData* dataPtr = &data;
+	SLogger::Begin() << "[REF] Valid check test: " << (CHECK_VALID(dataPtr) ? "TRUE" : "FALSE") << SLogger::End();
+
+	CHECK(IsValid(data));
+	CHECK(IsValid(dataPtr));
+}
+
 int main()
 {
+	SLogger::EmptyLine();
+	ValidTest();
 	SLogger::EmptyLine();
 	StringTest1();
 	SLogger::EmptyLine();
