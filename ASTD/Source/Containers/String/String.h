@@ -230,7 +230,9 @@ public: // Manipulation
 
 		if(newData.GetCount() > 0)
 		{
-			Data.Emplace(newData);
+			Data.Empty(false);
+			Data.MoveFrom(newData);
+			Data.ShrinkToFit();
 		}
 	}
 

@@ -2,12 +2,11 @@
 #pragma once
 
 #include "Type/TypeUtilities.h"
+#include "TypeTraits/TypeTraits.h"
 #include "TypeTraits/TypeMethods.h"
 #include "Validation/Check.h"
 
 #include "Memory/MemoryUtilities.h"
-
-#include "Containers/Internals/ContainerInternals.h"
 
 template<typename InElementType>
 class TOptional
@@ -16,11 +15,10 @@ class TOptional
 public: // Typedefs
 
 	typedef InElementType ElementType;
-	typedef NContainerInternals::TElementInfo<ElementType> ElementInfo;
 
 public: // Asserts
 
-	static_assert(ElementInfo::IsValid, "Element type is not valid");
+	static_assert(!TIsSame<ElementType, void>::Value && !TIsReference<ElementType>::Value, "Element type is not valid");
 
 public: // Constructors
 
@@ -60,18 +58,7 @@ public: // Getters
 
 	// Gets copy
 	FORCEINLINE ElementType Get(const ElementType& Default) { return IsSet() ? *Value : Default; }
-	FORCEINLINE ElementType Get() 
-	{
-		// TODO(jan.kristian.fisera): Has trivial constructor should be prefered much better
-		if constexpr(ElementInfo::IsTrivial)
-		{
-			return IsSet() ? *Value : ElementInfo();
-		}
-		else
-		{
-			static_assert(sizeof(ElementType) < 0, "Unsuppported type for default construction");
-		}
-	}
+	FORCEINLINE ElementType Get() { return GetDefaultedImpl(); }
 
 	// Gets reference, but can crash
 	FORCEINLINE const ElementType& GetRef() const { CHECKF(IsSet()); return *Value; }
@@ -82,15 +69,11 @@ public: // Manipulation
 	FORCEINLINE void Set(const ElementType& InValue) { Reset(); FillToEmpty(InValue); }
 	FORCEINLINE void Set(ElementType&& InValue) { Reset(); FillToEmpty(Move(InValue)); }
 
-	void Reset() 
+	void Reset()
 	{
 		if(Value)
 		{
-			if constexpr(!ElementInfo::IsTrivial)
-			{
-				SMemory::CallDestructor(Value);
-			}
-
+			DestructElementPrivate(Value);
 			SMemory::Deallocate(Value);
 			Value = nullptr;
 		}
@@ -101,49 +84,81 @@ private: // Helper methods
 	void FillToEmpty(const ElementType& InValue)
 	{
 		Value = (ElementType*)SMemory::Allocate(sizeof(ElementType));
-		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
-		{
-			SMemory::CallCopyConstructor(Value, InValue);
-		}
-		else
-		{
-			SMemory::Copy(
-				Value,
-				&InValue,
-				sizeof(ElementType)
-			);
-		}
+		CopyElementPrivate(Value, &InValue);
 	}
 
 	void FillToEmpty(ElementType&& InValue)
 	{
 		Value = (ElementType*)SMemory::Allocate(sizeof(ElementType));
-		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
-		{
-			SMemory::CallMoveConstructor(Value, Move(InValue));
-		}
-		else
-		{
-			SMemory::Copy(
-				Value,
-				&InValue,
-				sizeof(ElementType)
-			);
-		}
+		MoveElementPrivate(Value, &InValue);
 	}
 
-	void FillToEmpty(const TOptional& Other) 
+	FORCEINLINE void FillToEmpty(const TOptional& Other) 
 	{
 		if(Other.IsSet())
+		{
 			FillToEmpty(*Other.Value);
+		}
 	}
 
-	void FillToEmpty(TOptional&& Other)
+	FORCEINLINE void FillToEmpty(TOptional&& Other)
 	{
 		if(Other.IsSet())
 		{
 			FillToEmpty(Move(*Other.Value));
 			Other.Value = nullptr;
+		}
+	}
+
+	void GetDefaultedImpl()
+	{
+		if constexpr(TIsConstructible<ElementType>::Value)
+		{
+			return IsSet() ? *Value : ElementType();
+		}
+		else
+		{
+			static_assert(sizeof(ElementType) < 0, "Unsuppported type for default construction");
+		}
+	}
+
+	static void CopyElementPrivate(ElementType* DestValue, ElementType* SourceVal)
+	{
+		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
+		{
+			SMemory::CallCopyConstructor(DestValue, *SourceVal);
+		}
+		else
+		{
+			SMemory::Copy(
+				DestValue,
+				SourceVal,
+				sizeof(ElementType)
+			);
+		}
+	}
+
+	static void MoveElementPrivate(ElementType* DestValue, ElementType* SourceVal)
+	{
+		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
+		{
+			SMemory::CallMoveConstructor(DestValue, Move(*SourceVal));
+		}
+		else
+		{
+			SMemory::Copy(
+				DestValue,
+				SourceVal,
+				sizeof(ElementType)
+			);
+		}
+	}
+
+	static void DestructElementPrivate(ElementType* Value)
+	{
+		if constexpr(!TIsTriviallyDestructible<ElementType>::Value)
+		{
+			SMemory::CallDestructor(Value);
 		}
 	}
 

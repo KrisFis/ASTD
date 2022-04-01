@@ -6,7 +6,6 @@
 #include "Math/MathUtilities.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
-#include "Containers/Array/Internals/ArrayTypeTraits.h"
 
 #include "Containers/InitializerList/InitializerList.h"
 
@@ -16,10 +15,7 @@ class TArray
 public: // Types
 
 	typedef InElementType ElementType;
-	typedef NContainerInternals::TElementInfo<ElementType> ElementInfo;
-
 	typedef InAllocator AllocatorType;
-	typedef NArrayTypeTraits::TAllocatorInfo<AllocatorType> AllocatorInfo;
 
 	typedef ElementType* ArrayIteratorType;
 	typedef const ElementType* ConstArrayIteratorType;
@@ -29,8 +25,8 @@ public: // Types
 
 public: // Asserts
 
-	static_assert(ElementInfo::IsValid, "Element type is not valid");
-	static_assert(AllocatorInfo::IsValid, "Allocator type is not valid");
+	static_assert(!TIsSame<ElementType, void>::Value && !TIsReference<ElementType>::Value, "Element type is not valid");
+	static_assert(!TIsSame<AllocatorType, void>::Value && TIsSignedType<SizeType>::Value, "Allocator type is not valid");
 
 public: // Constructors
 
@@ -54,7 +50,7 @@ public: // Constructors
 
 public: // Destructor
 
-	FORCEINLINE ~TArray() { EmptyImpl(); }
+	FORCEINLINE ~TArray() { EmptyImpl(true); }
 
 public: // Compare operators
 
@@ -63,10 +59,10 @@ public: // Compare operators
 
 public: // Assign operators
 
-	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Other); return *this; }
-	FORCEINLINE TArray& operator=(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); return *this; }
+	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(true); FillToEmptyImpl(Other); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { EmptyImpl(true); FillToEmptyImpl(Move(Other)); return *this; }
 
-	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
+	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(true); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
 
 public: // Get operators
 
@@ -98,16 +94,12 @@ public: // Append
 	FORCEINLINE void Append(const ElementListType& InList) { AppendImpl(InList.begin(), InList.size()); }
 	FORCEINLINE void Append(const ElementType* InData, SizeType InCount) { AppendImpl(InData, InCount); } 
 
-	void AppendUnitialized(SizeType NumToAdd) 
-	{
-		if(NumToAdd > 0)
-			GrowImpl(Count + NumToAdd);
-	}
+	FORCEINLINE void AppendUnitialized(SizeType NumToAdd) { if(NumToAdd > 0) GrowImpl(Count + NumToAdd); }
 
-public: // Emplace
+public: // Move/Copy
 
-	void Emplace(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); }
-	void Emplace(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); }
+	FORCEINLINE void MoveFrom(const TArray& Other) { AppendImpl(Move(Other)); }
+	FORCEINLINE void MoveFrom(TArray&& Other) { AppendImpl(Move(Other)); }
 
 public: // Add
 
@@ -371,8 +363,8 @@ public: // Other
 		}
 	}
 
-	FORCEINLINE void Reset() { EmptyImpl(); }
-	FORCEINLINE void Empty() { EmptyImpl(); }
+	FORCEINLINE void Reset() { EmptyImpl(true); }
+	FORCEINLINE void Empty(bool ReleaseResources = true) { EmptyImpl(ReleaseResources); }
 
 public: // Iterators
 
@@ -489,7 +481,7 @@ private: // Helper methods
 	{
 		if(Num == 0)
 		{
-			EmptyImpl();
+			EmptyImpl(true);
 		}
 		else
 		{
@@ -529,13 +521,17 @@ private: // Helper methods
 		Allocator.Allocate(Num - Allocator.GetCount());
 	}
 
-	void EmptyImpl() 
+	void EmptyImpl(bool Release)
 	{
 		if(Count > 0)
 		{
 			DestructImpl(Allocator.GetData(), Count);
 
-			Allocator.Release();
+			if(Release)
+			{
+				Allocator.Release();
+			}
+
 			Count = 0; 
 		}
 	}
@@ -607,7 +603,7 @@ private: // Helper methods
 	// Make sure elements array and values array does NOT OVERLAP
 	static void CopyElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
@@ -627,7 +623,7 @@ private: // Helper methods
 	// Construction from one value, that is reused
 	static void CopyElementImpl(ElementType* ElementArray, const ElementType& Value, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
@@ -649,7 +645,7 @@ private: // Helper methods
 
 	static void MoveElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
@@ -669,7 +665,7 @@ private: // Helper methods
 	// Construction from one value, that is reused
 	static void MoveElementImpl(ElementType* ElementArray, ElementType&& Value, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
 		{
 			// Having count greater than 1 can be unpredictable in specific case where object modifies value in move constructor
 			for(SizeType i = 0; i < InCount; ++i)
@@ -692,7 +688,7 @@ private: // Helper methods
 
 	static void DestructImpl(ElementType* ElementArray, SizeType InCount)
 	{
-		if constexpr (!ElementInfo::IsTrivial)
+		if constexpr (!TIsTriviallyDestructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
