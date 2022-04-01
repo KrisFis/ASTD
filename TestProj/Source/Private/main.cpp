@@ -97,12 +97,12 @@ void StringTest4()
 	SString test = TEXT("ccc:cc: :cc::cc:ccc");
 	SString result = test.Replace(TEXT(':'), TEXT('|'));
 	SString result2 = test.Replace(TEXT("cC"), TEXT("abc"), 2, false);
-	SString result3 = test.Replace(TEXT("cC"), TEXT("abc"), 2, true);
+	SString result3 = test.Replace(TEXT("cC"), TEXT("abc"), 2);
 
 	SLogger::Begin() << "Writing result for replace of array \"" << test << "\"" << SLogger::End();
-	SLogger::Begin() << "Result 1 is " << result << SLogger::End();
-	SLogger::Begin() << "Result 2 is " << result2 << SLogger::End();
-	SLogger::Begin() << "Result 3 is " << result3 << SLogger::End();
+	SLogger::Begin() << "Test 1 - Reference: \"ccc|cc| |cc||cc|ccc\", Result: \"" << result << "\"" << SLogger::End();
+	SLogger::Begin() << "Test 2 - Reference: \"abcc:abc: :cc::cc:ccc\", Result: \"" << result2 << "\"" << SLogger::End();
+	SLogger::Begin() << "Test 3 - Reference: \"ccc:cc: :cc::cc:ccc\", Result: \"" << result3 << "\"" << SLogger::End();
 }
 
 void ValidTest()

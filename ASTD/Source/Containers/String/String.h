@@ -42,8 +42,8 @@ public: // Compare operators
 
 public: // Assign operators
 
-	FORCEINLINE SString& operator=(const SString& Other) { EmptyImpl(); FillToEmptyImpl(Other); return *this; }
-	FORCEINLINE SString& operator=(SString&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); return *this; }
+	FORCEINLINE SString& operator=(const SString& Other) { EmptyImpl(true); FillToEmptyImpl(Other); return *this; }
+	FORCEINLINE SString& operator=(SString&& Other) { EmptyImpl(true); FillToEmptyImpl(Move(Other)); return *this; }
 
 	FORCEINLINE SString& operator+=(const SString& Other) { AppendImpl(Other); return *this; }
 	FORCEINLINE SString& operator+=(SString&& Other) { AppendImpl(Move(Other)); return *this; }
@@ -162,7 +162,7 @@ public: // Const manipulation
 
 		if(OutRight)
 		{
-			OutRight->Data = DataType(foundPtr, Data.GetCount() - asIndex + 1);
+			OutRight->Data = DataType(foundPtr + 1, Data.GetCount() - asIndex);
 		}
 
 		return true;
@@ -172,7 +172,7 @@ public: // Const manipulation
 	{
 		TArray<SString> result;
 
-		SplitBySubstringPrivate(*this, Delimiter, DiscardEmpty, CaseSensitive,
+		SplitBySubstringPrivate(*this, Delimiter, DiscardEmpty, CaseSensitive, Data.GetCount(),
 			[&result, &Num](const CharType* Ptr, SizeType Count) -> bool
 			{
 				SString& newStr = result.AddUnitialized_GetRef();
@@ -197,30 +197,30 @@ public: // Manipulation
 	// -1 = All
 	void ReplaceInline(const SString& From, const SString& To, SizeType Num = -1, bool CaseSensitive = true)
 	{
-		CHECK_RET(Num != 0);
-
 		DataType newData(Data.GetCount(), true);
-		SplitBySubstringPrivate(*this, From, false, CaseSensitive,
+		SplitBySubstringPrivate(*this, From, false, CaseSensitive, (Num == -1) ? Data.GetCount() : Num,
 			[&newData, &To, &Num](const CharType* Ptr, SizeType Count) -> bool
 			{
 				const bool isLast = (*(Ptr + Count + 1) == CHAR_TERM);
 
+				if(Count > 0)
+				{
+					newData.Append(Ptr, Count);
+				}
+
 				if(!isLast)
 				{
-					if(Count > 0)
-					{
-						newData.Append(Ptr, Count);
-					}
-
 					if(To.Data.GetCount() > 1)
 					{
 						newData.Append(To.Data.GetData(), To.Data.GetCount() - 1);
 					}
 				}
 
-				if(--Num == 0 || isLast)
+				if(isLast)
 				{
 					newData.Add(CHAR_TERM);
+
+					// is redundant, but if implementation changes this might save a day
 					return true;
 				}
 
@@ -230,7 +230,7 @@ public: // Manipulation
 
 		if(newData.GetCount() > 0)
 		{
-			Data.Emplace(newData);
+			Data.Replace(newData);
 		}
 	}
 
@@ -325,8 +325,8 @@ public: // Manipulation
 
 public: // Reset
 
-	FORCEINLINE void Empty() { EmptyImpl(); }
-	FORCEINLINE void Reset() { EmptyImpl(); }
+	FORCEINLINE void Reset() { EmptyImpl(true); }
+	FORCEINLINE void Empty(bool ReleaseResources = true) { EmptyImpl(ReleaseResources); }
 
 public: // Other
 
@@ -362,7 +362,7 @@ private: // Helper methods
 			Data = DataType({CHAR_TERM});
 	}
 
-	FORCEINLINE void EmptyImpl() { Data.Empty(); }
+	FORCEINLINE void EmptyImpl(bool ReleaseResources) { Data.Empty(ReleaseResources); }
 	FORCEINLINE SizeType GetLastCharIndex() const { return Data.GetCount() - 2; }
 
 	static bool IsAtIndexPrivate(const SString& Main, const SString& Value, SizeType Index, bool CaseSensitive)
@@ -407,8 +407,13 @@ private: // Helper methods
 	static void SplitBySubstringPrivate(
 		const SString& Main, const SString& Sub, 
 		bool IgnoreEmpty, bool CaseSensitive,
+		SizeType MaxSplits,
 		FuncType&& Functor)
 	{
+		// There has to be at least two splits
+		// * Otherwise its not "split" but "cut"
+		CHECKF(MaxSplits > 1);
+
 		const SizeType mainLen = Main.GetLength();
 		const SizeType subLen = Sub.GetLength();
 
@@ -432,6 +437,11 @@ private: // Helper methods
 				}
 
 				init = current + subLen;
+
+				if(--MaxSplits == 0)
+				{
+					break;
+				}
 			}
 
 			if (!IgnoreEmpty || *init != CHAR_TERM)
