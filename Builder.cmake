@@ -19,7 +19,12 @@ function(builder_setup_build)
 	
 	if(MSVC)
 		add_link_options("/NODEFAULTLIB:MSVCRT")
-	endif(MSVC)
+		# /GR- -> disable RTTI
+		add_compile_options("/GR-")
+	else()
+		# /fno-rtti -> disable RTTI
+		add_compile_options("-fno-rtti")
+	endif()
 
 	# Definitions
 	# -----------------------------------------------------------
