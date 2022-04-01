@@ -31,21 +31,21 @@ public: // Asserts
 public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
-	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { FillToEmptyImpl(Other); }
-	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { FillToEmptyImpl(Move(Other)); }
-	FORCEINLINE TArray(SizeType InCount, bool ReserveOnly = false) : Allocator(), Count(0) { FillToEmptyImpl(InCount, ReserveOnly); }
+	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { AppendImpl(Other); }
+	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { ReplaceImpl(Move(Other)); }
+	FORCEINLINE TArray(SizeType InCount, bool ReserveOnly = false) : Allocator(), Count(0) { ResizeImpl(InCount, ReserveOnly); }
 	FORCEINLINE TArray(const ElementListType& InList)
 		: Allocator()
 		, Count(0)
 	{ 
-		FillToEmptyImpl(InList.begin(), InList.size()); 
+		AppendImpl(InList.begin(), InList.size()); 
 	}
 
 	FORCEINLINE TArray(const ElementType* InData, SizeType InCount) 
 		: Allocator()
 		, Count(0)
 	{
-		FillToEmptyImpl(InData, InCount);
+		AppendImpl(InData, InCount);
 	}
 
 public: // Destructor
@@ -59,10 +59,10 @@ public: // Compare operators
 
 public: // Assign operators
 
-	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(true); FillToEmptyImpl(Other); return *this; }
-	FORCEINLINE TArray& operator=(TArray&& Other) { EmptyImpl(true); FillToEmptyImpl(Move(Other)); return *this; }
+	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(true); AppendImpl(Other); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { ReplaceImpl(Move(Other)); return *this; }
 
-	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(true); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
+	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(true); AppendImpl(InList.begin(), InList.size()); return *this; }
 
 public: // Get operators
 
@@ -96,10 +96,10 @@ public: // Append
 
 	FORCEINLINE void AppendUnitialized(SizeType NumToAdd) { if(NumToAdd > 0) GrowImpl(Count + NumToAdd); }
 
-public: // Move/Copy
+public: // Replace
 
-	FORCEINLINE void MoveFrom(const TArray& Other) { AppendImpl(Move(Other)); }
-	FORCEINLINE void MoveFrom(TArray&& Other) { AppendImpl(Move(Other)); }
+	FORCEINLINE void Replace(TArray& Other) { ReplaceImpl(Move(Other)); }
+	FORCEINLINE void Replace(TArray&& Other) { ReplaceImpl(Move(Other)); }
 
 public: // Add
 
@@ -319,49 +319,12 @@ public: // Contains
 
 public: // Other
 
-	void ShrinkToFit() 
-	{ 
-		if(Count < Allocator.GetCount()) 
-		{ 
-			ShrinkImpl(Count);
-		}
-	}
+	FORCEINLINE void ShrinkToFit() { if(Count < Allocator.GetCount()) ShrinkImpl(Count); }
+	FORCEINLINE void Shrink(SizeType Num) { if(Num < Count) ShrinkImpl(Num); }
+	FORCEINLINE void Grow(SizeType Num) { if(Num > Count) GrowImpl(Num); }
 
-	void Shrink(SizeType Num)
-	{
-		if(Num < Count)
-		{
-			ShrinkImpl(Num);
-		}
-	}
-
-	void Grow(SizeType Num)
-	{ 
-		if(Num > Count)
-		{
-			GrowImpl(Num); 
-		}
-	}
-
-	void Resize(SizeType Num)
-	{
-		if(Num > Count)
-		{
-			GrowImpl(Num);
-		}
-		else if(Num < Count)
-		{
-			ShrinkImpl(Num);
-		}
-	}
-
-	void Reserve(SizeType Num)
-	{ 
-		if(Num > Count)
-		{
-			ReserveImpl(Num);
-		}
-	}
+	FORCEINLINE void Resize(SizeType Num) { ResizeImpl(Num, false); }
+	FORCEINLINE void Reserve(SizeType Num) { if(Num > Count) ReserveImpl(Num); }
 
 	FORCEINLINE void Reset() { EmptyImpl(true); }
 	FORCEINLINE void Empty(bool ReleaseResources = true) { EmptyImpl(ReleaseResources); }
@@ -564,40 +527,32 @@ private: // Helper methods
 
 	FORCEINLINE void AppendImpl(const TArray& Other) { AppendImpl(Other.GetData(), Other.Count); }
 
-	void FillToEmptyImpl(const ElementType* InData, SizeType InCount, bool preferMove = false)
+	void ReplaceImpl(TArray&& Other)
 	{
-		if(InData)
-		{
-			Allocator.Allocate(InCount);
+		EmptyImpl(true);
 
-			if(preferMove)
-				MoveElementsPrivate(Allocator.GetData(), InData, InCount);
+		Allocator.SetData(Other.Allocator.GetData());
+		Allocator.SetCount(Other.Allocator.GetCount());
+		Count = Other.Count;
+
+		Other.Allocator.SetData(nullptr);
+		Other.Allocator.SetCount(0);
+		Other.Count = 0;
+	}
+
+	void ResizeImpl(SizeType Num, bool ReserveOnly)
+	{
+		if(Num > Count)
+		{
+			if(ReserveOnly)
+				ReserveImpl(Num);
 			else
-				CopyElementsPrivate(Allocator.GetData(), InData, InCount);
-
-			Count = InCount;
+				GrowImpl(Num);
 		}
-	}
-	
-	FORCEINLINE void FillToEmptyImpl(const TArray& Other) { FillToEmptyImpl(Other.GetData(), Other.Count); }
-
-	void FillToEmptyImpl(TArray&& Other)
-	{
-		FillToEmptyImpl(Other.GetData(), Other.GetCount(), true);
-
+		else if(Num < Count)
 		{
-			Other.Allocator.SetData(nullptr);
-			Other.Allocator.SetCount(0);
-			Other.Count = 0;
+			ShrinkImpl(Num);
 		}
-	}
-
-	void FillToEmptyImpl(SizeType InCount, bool ReserveOnly) 
-	{
-		if(ReserveOnly)
-			ReserveImpl(InCount);
-		else
-			GrowImpl(InCount); 
 	}
 
 	void RealocateIfNeededImpl()
@@ -606,7 +561,7 @@ private: // Helper methods
 
 		if(Count > reserved)
 		{
-			ReserveImpl(reserved == 0 ? 2 : SMath::FloorToPowerOfTwo<uint64>(2 * reserved));
+			ReserveImpl(SMath::CeilToPowerOfTwo<uint64>(Count));
 		}
 	}
 
