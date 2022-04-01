@@ -42,8 +42,8 @@ public: // Compare operators
 
 public: // Assign operators
 
-	FORCEINLINE SString& operator=(const SString& Other) { EmptyImpl(); FillToEmptyImpl(Other); return *this; }
-	FORCEINLINE SString& operator=(SString&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); return *this; }
+	FORCEINLINE SString& operator=(const SString& Other) { EmptyImpl(true); FillToEmptyImpl(Other); return *this; }
+	FORCEINLINE SString& operator=(SString&& Other) { EmptyImpl(true); FillToEmptyImpl(Move(Other)); return *this; }
 
 	FORCEINLINE SString& operator+=(const SString& Other) { AppendImpl(Other); return *this; }
 	FORCEINLINE SString& operator+=(SString&& Other) { AppendImpl(Move(Other)); return *this; }
@@ -327,8 +327,8 @@ public: // Manipulation
 
 public: // Reset
 
-	FORCEINLINE void Empty() { EmptyImpl(); }
-	FORCEINLINE void Reset() { EmptyImpl(); }
+	FORCEINLINE void Reset() { EmptyImpl(true); }
+	FORCEINLINE void Empty(bool ReleaseResources = true) { EmptyImpl(ReleaseResources); }
 
 public: // Other
 
@@ -364,7 +364,7 @@ private: // Helper methods
 			Data = DataType({CHAR_TERM});
 	}
 
-	FORCEINLINE void EmptyImpl() { Data.Empty(); }
+	FORCEINLINE void EmptyImpl(bool ReleaseResources) { Data.Empty(ReleaseResources); }
 	FORCEINLINE SizeType GetLastCharIndex() const { return Data.GetCount() - 2; }
 
 	static bool IsAtIndexPrivate(const SString& Main, const SString& Value, SizeType Index, bool CaseSensitive)
