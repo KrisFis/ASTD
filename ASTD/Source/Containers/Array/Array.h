@@ -54,8 +54,8 @@ public: // Destructor
 
 public: // Compare operators
 
-	FORCEINLINE bool operator==(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
-	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
+	FORCEINLINE bool operator==(const TArray& Other) const { return CompareAllocatorsPrivate(&Allocator, &Other.Allocator, Count); }
+	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsPrivate(&Allocator, &Other.Allocator, Count); }
 
 public: // Assign operators
 
@@ -240,7 +240,7 @@ public: // Find Index
 	{
 		for(SizeType i = 0; i < Count; ++i)
 		{
-			if(CompareElementsImpl(GetElementAtImpl(i), &Value))
+			if(CompareElementsPrivate(GetElementAtImpl(i), &Value))
 			{
 				return i;
 			}
@@ -387,7 +387,7 @@ private: // Helper methods
 			Count += InCount;
 			RealocateIfNeededImpl();
 
-			CopyElementImpl(Allocator.GetData() + oldCount, Value, InCount);
+			CopyElementPrivate(Allocator.GetData() + oldCount, Value, InCount);
 		}
 	}
 
@@ -396,7 +396,7 @@ private: // Helper methods
 		++Count;
 		RealocateIfNeededImpl();
 
-		MoveElementImpl(Allocator.GetData() + Count - 1, Move(Value), 1);
+		MoveElementPrivate(Allocator.GetData() + Count - 1, Move(Value), 1);
 	}
 
 	void AddUnitializedImpl(SizeType InCount = 1)
@@ -410,7 +410,7 @@ private: // Helper methods
 
 	void RemoveSwapImpl(SizeType Index)
 	{
-		DestructImpl(GetElementAtImpl(Index), 1);
+		DestructPrivate(GetElementAtImpl(Index), 1);
 
 		if(Index != Count - 1)
 		{
@@ -429,7 +429,7 @@ private: // Helper methods
 
 	void RemoveImpl(SizeType Index)
 	{
-		DestructImpl(GetElementAtImpl(Index), 1);
+		DestructPrivate(GetElementAtImpl(Index), 1);
 
 		if(Index != Count - 1)
 		{
@@ -485,7 +485,7 @@ private: // Helper methods
 		}
 		else
 		{
-			DestructImpl(GetElementAtImpl(Num), Count - Num);
+			DestructPrivate(GetElementAtImpl(Num), Count - Num);
 
 			// Copy to temporary allocator
 			AllocatorType tmp;
@@ -525,7 +525,7 @@ private: // Helper methods
 	{
 		if(Count > 0)
 		{
-			DestructImpl(Allocator.GetData(), Count);
+			DestructPrivate(Allocator.GetData(), Count);
 
 			if(Release)
 			{
@@ -546,9 +546,9 @@ private: // Helper methods
 			RealocateIfNeededImpl();
 
 			if(preferMove)
-				MoveElementsImpl(Allocator.GetData() + oldCount, InData, InCount);
+				MoveElementsPrivate(Allocator.GetData() + oldCount, InData, InCount);
 			else
-				CopyElementsImpl(Allocator.GetData() + oldCount, InData, InCount);
+				CopyElementsPrivate(Allocator.GetData() + oldCount, InData, InCount);
 		}
 	}
 
@@ -571,9 +571,9 @@ private: // Helper methods
 			Allocator.Allocate(InCount);
 
 			if(preferMove)
-				MoveElementsImpl(Allocator.GetData(), InData, InCount);
+				MoveElementsPrivate(Allocator.GetData(), InData, InCount);
 			else
-				CopyElementsImpl(Allocator.GetData(), InData, InCount);
+				CopyElementsPrivate(Allocator.GetData(), InData, InCount);
 
 			Count = InCount;
 		}
@@ -600,8 +600,18 @@ private: // Helper methods
 			GrowImpl(InCount); 
 	}
 
+	void RealocateIfNeededImpl()
+	{
+		const SizeType reserved = Allocator.GetCount();
+
+		if(Count > reserved)
+		{
+			ReserveImpl(reserved == 0 ? 2 : SMath::FloorToPowerOfTwo<uint64>(2 * reserved));
+		}
+	}
+
 	// Make sure elements array and values array does NOT OVERLAP
-	static void CopyElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
+	static void CopyElementsPrivate(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
 	{
 		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
 		{
@@ -621,7 +631,7 @@ private: // Helper methods
 	}
 
 	// Construction from one value, that is reused
-	static void CopyElementImpl(ElementType* ElementArray, const ElementType& Value, SizeType InCount)
+	static void CopyElementPrivate(ElementType* ElementArray, const ElementType& Value, SizeType InCount)
 	{
 		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
 		{
@@ -643,7 +653,7 @@ private: // Helper methods
 		}
 	}
 
-	static void MoveElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
+	static void MoveElementsPrivate(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
 	{
 		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
 		{
@@ -663,7 +673,7 @@ private: // Helper methods
 	}
 
 	// Construction from one value, that is reused
-	static void MoveElementImpl(ElementType* ElementArray, ElementType&& Value, SizeType InCount)
+	static void MoveElementPrivate(ElementType* ElementArray, ElementType&& Value, SizeType InCount)
 	{
 		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
 		{
@@ -686,7 +696,7 @@ private: // Helper methods
 		}
 	}
 
-	static void DestructImpl(ElementType* ElementArray, SizeType InCount)
+	static void DestructPrivate(ElementType* ElementArray, SizeType InCount)
 	{
 		if constexpr (!TIsTriviallyDestructible<ElementType>::Value)
 		{
@@ -697,23 +707,13 @@ private: // Helper methods
 		}
 	}
 
-	void RealocateIfNeededImpl()
-	{
-		const SizeType reserved = Allocator.GetCount();
-
-		if(Count > reserved)
-		{
-			ReserveImpl(reserved == 0 ? 2 : SMath::FloorToPowerOfTwo<uint64>(2 * reserved));
-		}
-	}
-
-	FORCEINLINE bool CompareAllocatorsImpl(const AllocatorType* Lhs, const AllocatorType* Rhs, SizeType InCount) const
+	FORCEINLINE static bool CompareAllocatorsPrivate(const AllocatorType* Lhs, const AllocatorType* Rhs, SizeType InCount)
 	{
 		return (Lhs->GetCount() >= InCount && Rhs->GetCount() >= InCount) ? 
 			SMemory::Compare(Lhs->GetData(), Rhs->GetData(), sizeof(ElementType) * InCount) == 0 : false;
 	}
 
-	FORCEINLINE bool CompareElementsImpl(const ElementType* Lhs, const ElementType* Rhs) const
+	FORCEINLINE static bool CompareElementsPrivate(const ElementType* Lhs, const ElementType* Rhs)
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
 		return SMemory::Compare(Lhs, Rhs, sizeof(ElementType)) == 0;

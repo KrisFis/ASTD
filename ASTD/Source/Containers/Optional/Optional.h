@@ -121,7 +121,7 @@ private: // Helper methods
 		}
 	}
 
-	static void CopyElementPrivate(ElementType* DestValue, ElementType* SourceVal)
+	static void CopyElementPrivate(ElementType* DestValue, const ElementType* SourceVal)
 	{
 		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
 		{
