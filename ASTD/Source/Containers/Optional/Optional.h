@@ -4,7 +4,6 @@
 #include "Type/TypeUtilities.h"
 #include "TypeTraits/TypeTraits.h"
 #include "TypeTraits/TypeMethods.h"
-#include "Validation/Check.h"
 
 #include "Memory/MemoryUtilities.h"
 
@@ -47,8 +46,8 @@ public: // Assign operators
 
 public: // Dereference operators
 
-	FORCEINLINE const ElementType* operator->() const { CHECKF(IsSet()); return Value; }
-	FORCEINLINE ElementType* operator->() { CHECKF(IsSet()); return Value; }
+	FORCEINLINE const ElementType* operator->() const { return Value; }
+	FORCEINLINE ElementType* operator->() { return Value; }
 
 public: // Checks
 
@@ -61,8 +60,8 @@ public: // Getters
 	FORCEINLINE ElementType Get() { return GetDefaultedImpl(); }
 
 	// Gets reference, but can crash
-	FORCEINLINE const ElementType& GetRef() const { CHECKF(IsSet()); return *Value; }
-	FORCEINLINE ElementType& GetRef() { CHECKF(IsSet()); return *Value; }
+	FORCEINLINE const ElementType& GetRef() const { return *Value; }
+	FORCEINLINE ElementType& GetRef() { return *Value; }
 
 public: // Manipulation
 
