@@ -12,7 +12,7 @@ struct SWindowsPlatformCString : public SGenericPlatformCString
 	FORCEINLINE static int32 ToInt32(const wchar* Value) { return _wtoi(Value); }
 
 	// Converts integer value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromInt32(int32 Value, char* Buffer) { return __itoa(Value, Buffer, 10); }
+	FORCEINLINE static char* FromInt32(int32 Value, char* Buffer) { return _itoa(Value, Buffer, 10); }
 	FORCEINLINE static wchar* FromInt32(int32 Value, wchar* Buffer) { return _itow(Value, Buffer, 10); }
 
 	// Converts the string pointed to, by the argument str to a long integer
@@ -36,8 +36,8 @@ struct SWindowsPlatformCString : public SGenericPlatformCString
 
 		for(uint16 i = 0;;++i)
 		{
-			Buffer[index] = (wchar)buf[index];
-			if(buf[index] == '\0')
+			Buffer[i] = (wchar)buf[i];
+			if(buf[i] == '\0')
 				break;
 		}
 

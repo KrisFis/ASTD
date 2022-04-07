@@ -157,7 +157,8 @@ public: // Const manipulation
 
 		if(OutLeft)
 		{
-			OutLeft->Data = DataType(Data.GetData(), asIndex);
+			OutLeft->Data = DataType(Data.GetData(), asIndex + 1);
+			OutLeft->Data[asIndex] = CHAR_TERM;
 		}
 
 		if(OutRight)
