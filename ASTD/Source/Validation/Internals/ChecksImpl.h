@@ -19,7 +19,7 @@
 		OPTIMIZATIONS_RESET();
 		DIAG_WARNINGS_POP()
 
-		static void LogFailed(const tchar* Expression, const tchar* File, int32 Line)
+		static void LogFailed(const char* Expression, const char* File, int32 Line)
 		{
 			// TODO(jan.kristian.fisera): Make use of native logging, instead of std::cerr
 			std::cerr << "Check failed: \"" << Expression << '"' << " at " << File << ':' << Line << std::endl;

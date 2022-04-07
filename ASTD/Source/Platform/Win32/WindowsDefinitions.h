@@ -4,6 +4,19 @@
 #include "Build/Configurations.h"
 #include "Build/PreprocessorHelpers.h"
 
+// Windows setup
+
+#if USE_UNICODE
+	#define UNICODE
+#endif
+
+// Disable CRT warnings
+#pragma warning(disable : 4996)
+#define _CRT_NONSTDC_NO_WARNINGS
+
+#include <Windows.h>
+#include <intrin.h>
+
 // PLATFORM
 ////////////////////////////////////////////////////////////////////////
 
@@ -11,7 +24,7 @@
 #define PLATFORM_STRUCT(name) SWindowsPlatform ## name
 #define PLATFORM_CLASS(name) CWindowsPlatform ## name
 
-#define DO_PRAGMA(command) __pragma(#command)
+#define DO_PRAGMA(command) __pragma(command)
 
 #define ASSEMBLY(code) __asm(code)
 
@@ -42,18 +55,3 @@
 
 #define OPTIMIZATIONS_DISABLE() DO_PRAGMA( optimize("", off) )
 #define OPTIMIZATIONS_RESET() DO_PRAGMA( optimize("", on) )
-
-// Windows setup
-
-#if USE_UNICODE
-	#define UNICODE
-#endif
-
-// Disable CRT warnings
-// #if !defined(_CRT_SECURE_NO_WARNINGS)
-// 	#define _CRT_SECURE_NO_WARNINGS
-// 	#define _CRT_NONSTDC_NO_WARNINGS
-// #endif
-
-#include <Windows.h>
-#include <intrin.h>

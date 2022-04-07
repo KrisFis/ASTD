@@ -20,10 +20,10 @@ function(builder_setup_build)
 	if(MSVC)
 		add_link_options("/NODEFAULTLIB:MSVCRT")
 		# /GR- -> disable RTTI
-		add_compile_options("/GR-")
+		string(REPLACE "/GR" "/GR-" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
 	else()
 		# /fno-rtti -> disable RTTI
-		add_compile_options("-fno-rtti")
+		set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fno-rtti")
 	endif()
 
 	# Definitions
