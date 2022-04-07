@@ -9,6 +9,6 @@
 #endif
 
 // As default CHECKs are used for debug build
-#if !defined(DO_VALIDATION)
-	#define DO_VALIDATION BUILD_DEBUG
+#if !defined(DO_CHECKS)
+	#define DO_CHECKS BUILD_DEBUG
 #endif

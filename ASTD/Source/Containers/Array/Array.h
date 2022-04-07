@@ -6,7 +6,6 @@
 #include "Math/MathUtilities.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
-#include "Containers/Array/Internals/ArrayTypeTraits.h"
 
 #include "Containers/InitializerList/InitializerList.h"
 
@@ -16,10 +15,7 @@ class TArray
 public: // Types
 
 	typedef InElementType ElementType;
-	typedef NArrayTypeTraits::TElementInfo<ElementType> ElementInfo;
-
 	typedef InAllocator AllocatorType;
-	typedef NArrayTypeTraits::TAllocatorInfo<AllocatorType> AllocatorInfo;
 
 	typedef ElementType* ArrayIteratorType;
 	typedef const ElementType* ConstArrayIteratorType;
@@ -29,44 +25,44 @@ public: // Types
 
 public: // Asserts
 
-	static_assert(ElementInfo::IsValid, "Element type is not valid");
-	static_assert(AllocatorInfo::IsValid, "Allocator type is not valid");
+	static_assert(!TIsSame<ElementType, void>::Value && !TIsReference<ElementType>::Value, "Element type is not valid");
+	static_assert(!TIsSame<AllocatorType, void>::Value && TIsSignedType<SizeType>::Value, "Allocator type is not valid");
 
 public: // Constructors
 
 	FORCEINLINE TArray() : Allocator(), Count(0) {}
-	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { FillToEmptyImpl(Other); }
-	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { FillToEmptyImpl(Move(Other)); }
-	FORCEINLINE TArray(SizeType InCount, bool ReserveOnly = false) : Allocator(), Count(0) { FillToEmptyImpl(InCount, ReserveOnly); }
+	FORCEINLINE TArray(const TArray& Other) : Allocator(), Count(0) { AppendImpl(Other); }
+	FORCEINLINE TArray(TArray&& Other) : Allocator(), Count(0) { ReplaceImpl(Move(Other)); }
+	FORCEINLINE TArray(SizeType InCount, bool ReserveOnly = false) : Allocator(), Count(0) { ResizeImpl(InCount, ReserveOnly); }
 	FORCEINLINE TArray(const ElementListType& InList)
 		: Allocator()
 		, Count(0)
 	{ 
-		FillToEmptyImpl(InList.begin(), InList.size()); 
+		AppendImpl(InList.begin(), InList.size()); 
 	}
 
 	FORCEINLINE TArray(const ElementType* InData, SizeType InCount) 
 		: Allocator()
 		, Count(0)
 	{
-		FillToEmptyImpl(InData, InCount);
+		AppendImpl(InData, InCount);
 	}
 
 public: // Destructor
 
-	FORCEINLINE ~TArray() { EmptyImpl(); }
+	FORCEINLINE ~TArray() { EmptyImpl(true); }
 
 public: // Compare operators
 
-	FORCEINLINE bool operator==(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
-	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsImpl(&Allocator, &Other.Allocator, Count); }
+	FORCEINLINE bool operator==(const TArray& Other) const { return CompareAllocatorsPrivate(&Allocator, &Other.Allocator, Count); }
+	FORCEINLINE bool operator!=(const TArray& Other) const { return CompareAllocatorsPrivate(&Allocator, &Other.Allocator, Count); }
 
 public: // Assign operators
 
-	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Other); return *this; }
-	FORCEINLINE TArray& operator=(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); return *this; }
+	FORCEINLINE TArray& operator=(const TArray& Other) { EmptyImpl(true); AppendImpl(Other); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& Other) { ReplaceImpl(Move(Other)); return *this; }
 
-	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(); FillToEmptyImpl(InList.begin(), InList.size()); return *this; }
+	FORCEINLINE TArray& operator=(const ElementListType& InList) { EmptyImpl(true); AppendImpl(InList.begin(), InList.size()); return *this; }
 
 public: // Get operators
 
@@ -98,16 +94,12 @@ public: // Append
 	FORCEINLINE void Append(const ElementListType& InList) { AppendImpl(InList.begin(), InList.size()); }
 	FORCEINLINE void Append(const ElementType* InData, SizeType InCount) { AppendImpl(InData, InCount); } 
 
-	void AppendUnitialized(SizeType NumToAdd) 
-	{
-		if(NumToAdd > 0)
-			GrowImpl(Count + NumToAdd);
-	}
+	FORCEINLINE void AppendUnitialized(SizeType NumToAdd) { if(NumToAdd > 0) GrowImpl(Count + NumToAdd); }
 
-public: // Emplace
+public: // Replace
 
-	void Emplace(const TArray& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); }
-	void Emplace(TArray&& Other) { EmptyImpl(); FillToEmptyImpl(Move(Other)); }
+	FORCEINLINE void Replace(TArray& Other) { ReplaceImpl(Move(Other)); }
+	FORCEINLINE void Replace(TArray&& Other) { ReplaceImpl(Move(Other)); }
 
 public: // Add
 
@@ -248,7 +240,7 @@ public: // Find Index
 	{
 		for(SizeType i = 0; i < Count; ++i)
 		{
-			if(CompareElementsImpl(GetElementAtImpl(i), &Value))
+			if(CompareElementsPrivate(GetElementAtImpl(i), &Value))
 			{
 				return i;
 			}
@@ -327,52 +319,15 @@ public: // Contains
 
 public: // Other
 
-	void ShrinkToFit() 
-	{ 
-		if(Count < Allocator.GetCount()) 
-		{ 
-			ShrinkImpl(Count);
-		}
-	}
+	FORCEINLINE void ShrinkToFit() { if(Count < Allocator.GetCount()) ShrinkImpl(Count); }
+	FORCEINLINE void Shrink(SizeType Num) { if(Num < Count) ShrinkImpl(Num); }
+	FORCEINLINE void Grow(SizeType Num) { if(Num > Count) GrowImpl(Num); }
 
-	void Shrink(SizeType Num)
-	{
-		if(Num < Count)
-		{
-			ShrinkImpl(Num);
-		}
-	}
+	FORCEINLINE void Resize(SizeType Num) { ResizeImpl(Num, false); }
+	FORCEINLINE void Reserve(SizeType Num) { if(Num > Count) ReserveImpl(Num); }
 
-	void Grow(SizeType Num)
-	{ 
-		if(Num > Count)
-		{
-			GrowImpl(Num); 
-		}
-	}
-
-	void Resize(SizeType Num)
-	{
-		if(Num > Count)
-		{
-			GrowImpl(Num);
-		}
-		else if(Num < Count)
-		{
-			ShrinkImpl(Num);
-		}
-	}
-
-	void Reserve(SizeType Num)
-	{ 
-		if(Num > Count)
-		{
-			ReserveImpl(Num);
-		}
-	}
-
-	FORCEINLINE void Reset() { EmptyImpl(); }
-	FORCEINLINE void Empty() { EmptyImpl(); }
+	FORCEINLINE void Reset() { EmptyImpl(true); }
+	FORCEINLINE void Empty(bool ReleaseResources = true) { EmptyImpl(ReleaseResources); }
 
 public: // Iterators
 
@@ -395,7 +350,7 @@ private: // Helper methods
 			Count += InCount;
 			RealocateIfNeededImpl();
 
-			CopyElementImpl(Allocator.GetData() + oldCount, Value, InCount);
+			CopyElementPrivate(Allocator.GetData() + oldCount, Value, InCount);
 		}
 	}
 
@@ -404,7 +359,7 @@ private: // Helper methods
 		++Count;
 		RealocateIfNeededImpl();
 
-		MoveElementImpl(Allocator.GetData() + Count - 1, Move(Value), 1);
+		MoveElementPrivate(Allocator.GetData() + Count - 1, Move(Value), 1);
 	}
 
 	void AddUnitializedImpl(SizeType InCount = 1)
@@ -418,7 +373,7 @@ private: // Helper methods
 
 	void RemoveSwapImpl(SizeType Index)
 	{
-		DestructImpl(GetElementAtImpl(Index), 1);
+		DestructPrivate(GetElementAtImpl(Index), 1);
 
 		if(Index != Count - 1)
 		{
@@ -437,7 +392,7 @@ private: // Helper methods
 
 	void RemoveImpl(SizeType Index)
 	{
-		DestructImpl(GetElementAtImpl(Index), 1);
+		DestructPrivate(GetElementAtImpl(Index), 1);
 
 		if(Index != Count - 1)
 		{
@@ -489,11 +444,11 @@ private: // Helper methods
 	{
 		if(Num == 0)
 		{
-			EmptyImpl();
+			EmptyImpl(true);
 		}
 		else
 		{
-			DestructImpl(GetElementAtImpl(Num), Count - Num);
+			DestructPrivate(GetElementAtImpl(Num), Count - Num);
 
 			// Copy to temporary allocator
 			AllocatorType tmp;
@@ -529,13 +484,17 @@ private: // Helper methods
 		Allocator.Allocate(Num - Allocator.GetCount());
 	}
 
-	void EmptyImpl() 
+	void EmptyImpl(bool Release)
 	{
 		if(Count > 0)
 		{
-			DestructImpl(Allocator.GetData(), Count);
+			DestructPrivate(Allocator.GetData(), Count);
 
-			Allocator.Release();
+			if(Release)
+			{
+				Allocator.Release();
+			}
+
 			Count = 0; 
 		}
 	}
@@ -550,9 +509,9 @@ private: // Helper methods
 			RealocateIfNeededImpl();
 
 			if(preferMove)
-				MoveElementsImpl(Allocator.GetData() + oldCount, InData, InCount);
+				MoveElementsPrivate(Allocator.GetData() + oldCount, InData, InCount);
 			else
-				CopyElementsImpl(Allocator.GetData() + oldCount, InData, InCount);
+				CopyElementsPrivate(Allocator.GetData() + oldCount, InData, InCount);
 		}
 	}
 
@@ -568,46 +527,48 @@ private: // Helper methods
 
 	FORCEINLINE void AppendImpl(const TArray& Other) { AppendImpl(Other.GetData(), Other.Count); }
 
-	void FillToEmptyImpl(const ElementType* InData, SizeType InCount, bool preferMove = false)
+	void ReplaceImpl(TArray&& Other)
 	{
-		if(InData)
-		{
-			Allocator.Allocate(InCount);
+		EmptyImpl(true);
 
-			if(preferMove)
-				MoveElementsImpl(Allocator.GetData(), InData, InCount);
+		Allocator.SetData(Other.Allocator.GetData());
+		Allocator.SetCount(Other.Allocator.GetCount());
+		Count = Other.Count;
+
+		Other.Allocator.SetData(nullptr);
+		Other.Allocator.SetCount(0);
+		Other.Count = 0;
+	}
+
+	void ResizeImpl(SizeType Num, bool ReserveOnly)
+	{
+		if(Num > Count)
+		{
+			if(ReserveOnly)
+				ReserveImpl(Num);
 			else
-				CopyElementsImpl(Allocator.GetData(), InData, InCount);
-
-			Count = InCount;
+				GrowImpl(Num);
 		}
-	}
-	
-	FORCEINLINE void FillToEmptyImpl(const TArray& Other) { FillToEmptyImpl(Other.GetData(), Other.Count); }
-
-	void FillToEmptyImpl(TArray&& Other)
-	{
-		FillToEmptyImpl(Other.GetData(), Other.GetCount(), true);
-
+		else if(Num < Count)
 		{
-			Other.Allocator.SetData(nullptr);
-			Other.Allocator.SetCount(0);
-			Other.Count = 0;
+			ShrinkImpl(Num);
 		}
 	}
 
-	void FillToEmptyImpl(SizeType InCount, bool ReserveOnly) 
+	void RealocateIfNeededImpl()
 	{
-		if(ReserveOnly)
-			ReserveImpl(InCount);
-		else
-			GrowImpl(InCount); 
+		const SizeType reserved = Allocator.GetCount();
+
+		if(Count > reserved)
+		{
+			ReserveImpl(SMath::CeilToPowerOfTwo<uint64>(Count));
+		}
 	}
 
 	// Make sure elements array and values array does NOT OVERLAP
-	static void CopyElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
+	static void CopyElementsPrivate(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
@@ -625,9 +586,9 @@ private: // Helper methods
 	}
 
 	// Construction from one value, that is reused
-	static void CopyElementImpl(ElementType* ElementArray, const ElementType& Value, SizeType InCount)
+	static void CopyElementPrivate(ElementType* ElementArray, const ElementType& Value, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportCopy && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
@@ -647,9 +608,9 @@ private: // Helper methods
 		}
 	}
 
-	static void MoveElementsImpl(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
+	static void MoveElementsPrivate(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
@@ -667,9 +628,9 @@ private: // Helper methods
 	}
 
 	// Construction from one value, that is reused
-	static void MoveElementImpl(ElementType* ElementArray, ElementType&& Value, SizeType InCount)
+	static void MoveElementPrivate(ElementType* ElementArray, ElementType&& Value, SizeType InCount)
 	{
-		if constexpr (ElementInfo::SupportMove && !(ElementInfo::IsTrivial))
+		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
 		{
 			// Having count greater than 1 can be unpredictable in specific case where object modifies value in move constructor
 			for(SizeType i = 0; i < InCount; ++i)
@@ -690,9 +651,9 @@ private: // Helper methods
 		}
 	}
 
-	static void DestructImpl(ElementType* ElementArray, SizeType InCount)
+	static void DestructPrivate(ElementType* ElementArray, SizeType InCount)
 	{
-		if constexpr (!ElementInfo::IsTrivial)
+		if constexpr (!TIsTriviallyDestructible<ElementType>::Value)
 		{
 			for(SizeType i = 0; i < InCount; ++i)
 			{
@@ -701,23 +662,13 @@ private: // Helper methods
 		}
 	}
 
-	void RealocateIfNeededImpl()
-	{
-		const SizeType reserved = Allocator.GetCount();
-
-		if(Count > reserved)
-		{
-			ReserveImpl(reserved == 0 ? 2 : SMath::FloorToPowerOfTwo<uint64>(2 * reserved));
-		}
-	}
-
-	FORCEINLINE bool CompareAllocatorsImpl(const AllocatorType* Lhs, const AllocatorType* Rhs, SizeType InCount) const
+	FORCEINLINE static bool CompareAllocatorsPrivate(const AllocatorType* Lhs, const AllocatorType* Rhs, SizeType InCount)
 	{
 		return (Lhs->GetCount() >= InCount && Rhs->GetCount() >= InCount) ? 
 			SMemory::Compare(Lhs->GetData(), Rhs->GetData(), sizeof(ElementType) * InCount) == 0 : false;
 	}
 
-	FORCEINLINE bool CompareElementsImpl(const ElementType* Lhs, const ElementType* Rhs) const
+	FORCEINLINE static bool CompareElementsPrivate(const ElementType* Lhs, const ElementType* Rhs)
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
 		return SMemory::Compare(Lhs, Rhs, sizeof(ElementType)) == 0;

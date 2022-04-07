@@ -37,8 +37,20 @@ struct SCustomData
 		SLogger::Begin() << "Destructor" << SLogger::End();
 	}
 
+	// Instance is valid
+	FORCEINLINE bool IsValid() const 
+	{ 
+		return A == 1;
+	}
+
 	uint8 A, B;
 };
+
+// Global is valid
+static bool IsValid(const SCustomData& Data) 
+{ 
+	return Data.IsValid();
+}
 
 void StringTest1()
 {
@@ -85,16 +97,56 @@ void StringTest4()
 	SString test = TEXT("ccc:cc: :cc::cc:ccc");
 	SString result = test.Replace(TEXT(':'), TEXT('|'));
 	SString result2 = test.Replace(TEXT("cC"), TEXT("abc"), 2, false);
-	SString result3 = test.Replace(TEXT("cC"), TEXT("abc"), 2, true);
+	SString result3 = test.Replace(TEXT("cC"), TEXT("abc"), 2);
 
 	SLogger::Begin() << "Writing result for replace of array \"" << test << "\"" << SLogger::End();
-	SLogger::Begin() << "Result 1 is " << result << SLogger::End();
-	SLogger::Begin() << "Result 2 is " << result2 << SLogger::End();
-	SLogger::Begin() << "Result 3 is " << result3 << SLogger::End();
+	SLogger::Begin() << "Test 1 - Reference: \"ccc|cc| |cc||cc|ccc\", Result: \"" << result << "\"" << SLogger::End();
+	SLogger::Begin() << "Test 2 - Reference: \"abcc:abc: :cc::cc:ccc\", Result: \"" << result2 << "\"" << SLogger::End();
+	SLogger::Begin() << "Test 3 - Reference: \"ccc:cc: :cc::cc:ccc\", Result: \"" << result3 << "\"" << SLogger::End();
+}
+
+void ValidTest()
+{
+	SCustomData data(1,2);
+	SLogger::Begin() << "[REF] Valid check test: " << (CHECK_VALID(data) ? "TRUE" : "FALSE") << SLogger::End();
+
+	SCustomData* dataPtr = &data;
+	SLogger::Begin() << "[REF] Valid check test: " << (CHECK_VALID(dataPtr) ? "TRUE" : "FALSE") << SLogger::End();
+
+	CHECK(IsValid(data));
+	CHECK(IsValid(dataPtr));
+}
+
+void OptionalTest()
+{
+	TOptional<SCustomData> myOpt;
+	CHECK(!myOpt.IsSet());
+
+	myOpt = SCustomData(1, 2);
+	CHECK(myOpt.IsSet());
+
+	SLogger::Begin() << "Optional test 1: " << myOpt->A << SLogger::End();
+
+	TOptional<SCustomData> myOpt2(Move(myOpt));
+
+	SLogger::Begin() << "Optional test 2: " << myOpt2->A << SLogger::End();
+
+	SCustomData& testData = myOpt2.GetRef();
+
+	SLogger::Begin() << "Optional test 3: " << testData.A << SLogger::End();
+
+	myOpt2.Reset();
+	SCustomData testData2 = myOpt2.Get(SCustomData(2, 2));
+
+	SLogger::Begin() << "Optional test 4: " << testData2.A << SLogger::End();
 }
 
 int main()
 {
+	SLogger::EmptyLine();
+	OptionalTest();
+	SLogger::EmptyLine();
+	ValidTest();
 	SLogger::EmptyLine();
 	StringTest1();
 	SLogger::EmptyLine();

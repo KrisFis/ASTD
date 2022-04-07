@@ -46,18 +46,18 @@ template <typename T> struct TRemoveReference<T&&> { typedef T Type; };
 // [Is Const]
 // * Checks whether provided type is const, volatile or both
 
-template<typename T> struct TIsConstVolatile { enum { Value = false }; };
-template<typename T> struct TIsConstVolatile<const T> { enum { Value = true }; };
-template<typename T> struct TIsConstVolatile<volatile T> { enum { Value = true }; };
-template<typename T> struct TIsConstVolatile<const volatile T> { enum { Value = true }; };
+template<typename T> struct TIsConst { enum { Value = false }; };
+template<typename T> struct TIsConst<const T> { enum { Value = true }; };
+template<typename T> struct TIsConst<volatile T> { enum { Value = true }; };
+template<typename T> struct TIsConst<const volatile T> { enum { Value = true }; };
 
 // [Remove Const]
 // * Removes "const" and "volatile" from type
 
-template<typename T> struct TRemoveConstVolatile { typedef T Type; };
-template<typename T> struct TRemoveConstVolatile<const T> { typedef T Type; };
-template<typename T> struct TRemoveConstVolatile<volatile T> { typedef T Type; };
-template<typename T> struct TRemoveConstVolatile<const volatile T> { typedef T Type; };
+template<typename T> struct TRemoveConst { typedef T Type; };
+template<typename T> struct TRemoveConst<const T> { typedef T Type; };
+template<typename T> struct TRemoveConst<volatile T> { typedef T Type; };
+template<typename T> struct TRemoveConst<const volatile T> { typedef T Type; };
 
 // [Is Pointer]
 // * Checks whether provided type is pointer
@@ -73,12 +73,18 @@ template<typename T> struct TRemovePointer { typedef T Type; };
 template<typename T> struct TRemovePointer<T*> { typedef T Type; };
 template<typename T> struct TRemovePointer<const T*> { typedef T Type; };
 
-// [Is Array Type]
-// * Checks whether specific type is array type
+// [Is Array]
+// * Checks whether specific type is array
 
-template<typename T> struct TIsArrayType { enum { Value = false }; };
-template<typename T> struct TIsArrayType<T[]> { enum { Value = true }; };
-template<typename T, uint32 N> struct TIsArrayType<T[N]> { enum { Value = true }; };
+template<typename T> struct TIsArray { enum { Value = false }; };
+template<typename T> struct TIsArray<T[]> { enum { Value = true }; };
+template<typename T, uint32 N> struct TIsArray<T[N]> { enum { Value = true }; };
+
+// [Is Function]
+// * Checks whether specific type is function
+
+template<typename T> struct TIsFunctionType { enum { Value = false }; };
+template <typename RetType, typename... Params> struct TIsFunctionType<RetType(Params...)> { enum { Value = true }; };
 
 // [Is Bool Type]
 // * Checks whether specific type is bool type
@@ -93,6 +99,7 @@ template<> struct TIsBoolType<bool> { enum { Value = true }; };
 template<typename T> struct TIsFloatingType { enum { Value = false }; };
 template<> struct TIsFloatingType<float> { enum { Value = true }; };
 template<> struct TIsFloatingType<double> { enum { Value = true }; };
+template<> struct TIsFloatingType<long double> { enum { Value = true }; };
 
 // [Is Integer Type]
 // * Checks whether specific type is integer type

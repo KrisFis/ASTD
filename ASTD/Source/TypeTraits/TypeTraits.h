@@ -6,16 +6,18 @@
 #include "TypeTraits/Internals/TypeTraitsIsType.h"
 #include "TypeTraits/Internals/TypeTraitsInternals.h"
 
-// [Decay]
-// * Returns the decayed type, meaning it removes all references, qualifiers and
-// * applies array-to-pointer and function-to-pointer conversions.
+// [Size]
+// * Gets size type without need of std (same as std::size_t)
+
+typedef decltype(sizeof(0)) TSize;
+
+// [Remove const reference]
+// * Removes const and reference from specific type
 
 template<typename T>
-struct TDecay 
-{ 
-	typedef typename NTypeTraitsInternals::TDecayHelper<
-		typename TRemoveConstVolatile<typename TRemoveReference<T>::Type>::Type
-	>::Type Type; 
+struct TRemoveConstReference
+{
+	typedef typename TRemoveConst<typename TRemoveReference<T>::Type>::Type Type;
 };
 
 // [Choose]
@@ -80,7 +82,81 @@ struct TIsCastable { enum { Value = TIsDerivedFrom<T, R>::Value || TIsBaseOf<T, 
 template<uint32 N, typename T, typename... ArgTypes> struct TGetNthType { typedef typename TGetNthType<N - 1, ArgTypes...>::Type Type; };
 template<typename T, typename... ArgTypes> struct TGetNthType<0, T, ArgTypes...> { typedef T Type; };
 
-// [Size]
-// * Gets size without need of std
 
-typedef decltype(sizeof(0)) TSize;
+// [Is arithmetic]
+// * Checks whether specific type is arithmetic
+
+template <typename T> 
+struct TIsArithmetic 
+{
+	enum { Value = 
+			TIsIntegerType<T>::Value ||
+			TIsFloatingType<T>::Value ||
+			TIsCharacterType<T>::Value ||
+			TIsBoolType<T>::Value
+	}; 
+};
+
+// [Decay]
+// * Returns the decayed type
+// * ie. applies array-to-pointer and function-to-pointer conversions
+
+template<typename T>
+struct TDecay
+{
+	typedef typename NTypeTraitsInternals::TDecayHelper<
+		typename TRemoveConstReference<T>::Type
+	>::Type Type;
+};
+
+// [Pure]
+// * Removes all qualifiers
+
+template<typename T>
+struct TPure
+{
+private:
+
+	typedef typename TRemoveConstReference<T>::Type TestType;
+
+public:
+
+	typedef typename TChoose<
+		TIsPointer<TestType>::Value, 
+		typename TRemovePointer<TestType>::Type,
+		typename NTypeTraitsInternals::TDecayHelper<TestType>::Type
+	>::Type Type;
+};
+
+// [Get type]
+// * Gets type variations
+
+template<typename T>
+struct TGetType
+{
+	typedef typename TPure<T>::Type Value;
+
+	typedef Value& Reference;
+	typedef const Value& ConstReference;
+
+	typedef Value* Pointer;
+	typedef const Value* ConstPointer;
+};
+
+// [Call traits]
+// * Determines which type will be used for call 
+// * Similar to boost's call_traits, ie. having info about optimizations of which type is used
+
+template <typename T>
+struct TCallTraits : TGetType<T>
+{
+private:
+
+	enum { IsSmallType = ((sizeof(T) <= sizeof(void*)) && TIsPODType<T>::Value ) || TIsArithmetic<T>::Value };
+
+public:
+
+	typedef typename NTypeTraitsInternals::TCallTraitsHelper<T, IsSmallType>::Type Param;
+	typedef typename NTypeTraitsInternals::TCallTraitsHelper<T, IsSmallType>::ConstType ConstParam;
+
+};

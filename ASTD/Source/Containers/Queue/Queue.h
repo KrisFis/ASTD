@@ -40,7 +40,7 @@ public: // Getters
 
 public: // Peek
 
-	FORCEINLINE bool Peek(ElementType& OutValue) const { return PeakImpl(OutValue); }
+	FORCEINLINE bool Peek(ElementType& OutValue) const { return PeekImpl(OutValue); }
 
 public: // Enqueue
 
@@ -59,16 +59,12 @@ public: // Empty
 
 private: // Helper methods
 
-	bool PeakImpl(ElementType& OutValue) const
+	bool PeekImpl(ElementType& OutValue) const
 	{
 		AllocatorNodeType* node = Allocator.GetHead();
-		if(node) // Should we use copy constructor ?
+		if(node)
 		{
-			SMemory::Copy(
-				&OutValue,
-				&node->Value,
-				sizeof(ElementType)
-			);
+			CopyElementPrivate(&OutValue, &node->Value);
 		}
 
 		return node != nullptr;
@@ -77,14 +73,14 @@ private: // Helper methods
 	AllocatorNodeType* AddImpl(const ElementType& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		SMemory::CallCopyConstructor(&node->Value, Value);
+		MoveElementPrivate(&node->Value, &Value);
 		return node;
 	}
 
 	AllocatorNodeType* AddImpl(ElementType&& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		SMemory::CallMoveConstructor(&node->Value, Move(Value));
+		MoveElementPrivate(&node->Value, &Value);
 		return node;
 	}
 
@@ -96,7 +92,7 @@ private: // Helper methods
 			return false;
 		}
 
-		SMemory::CallDestructor(&node->Value);
+		DestructElementPrivate(&node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -110,13 +106,7 @@ private: // Helper methods
 			return false;
 		}
 
-		SMemory::Copy(
-			&OutValue,
-			&node->Value,
-			sizeof(ElementType)
-		);
-
-		SMemory::CallDestructor(&node->Value);
+		MoveElementPrivate(&OutValue, &node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -129,7 +119,7 @@ private: // Helper methods
 		{
 			while(currentNode != nullptr)
 			{
-				SMemory::CallDestructor(&currentNode->Value);
+				DestructElementPrivate(&currentNode->Value);
 				currentNode = currentNode->Next;
 			}
 
@@ -145,12 +135,7 @@ private: // Helper methods
 		while(currentNode != nullptr)
 		{
 			AllocatorNodeType* newNode = Allocator.Allocate(1);
-
-			SMemory::Copy(
-				&newNode->Value,
-				&currentNode->Value,
-				sizeof(ElementType)
-			);
+			CopyElementPrivate(&newNode->Value, &currentNode->Value);
 		}
 	}
 
@@ -163,6 +148,46 @@ private: // Helper methods
 
 		Other.Allocator.SetHead(nullptr);
 		Other.Allocator.SetTail(nullptr);
+	}
+
+	static void CopyElementPrivate(ElementType* DestVal, const ElementType* SourceVal)
+	{
+		if constexpr(!TIsTriviallyCopyConstructible<ElementType>::Value)
+		{
+			SMemory::CallCopyConstructor(DestVal, *SourceVal);
+		}
+		else
+		{
+			SMemory::Copy(
+				DestVal,
+				SourceVal,
+				sizeof(ElementType)
+			);
+		}
+	}
+
+	static void MoveElementPrivate(ElementType* DestVal, ElementType* SourceVal)
+	{
+		if constexpr(!TIsTriviallyMoveConstructible<ElementType>::Value)
+		{
+			SMemory::CallMoveConstructor(DestVal, Move(*SourceVal));
+		}
+		else
+		{
+			SMemory::Copy(
+				DestVal,
+				SourceVal,
+				sizeof(ElementType)
+			);
+		}
+	}
+
+	static void DestructElementPrivate(ElementType* Value)
+	{
+		if constexpr(!TIsTriviallyDestructible<ElementType>::Value)
+		{
+			SMemory::CallDestructor(Value);
+		}
 	}
 
 private: // Fields

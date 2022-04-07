@@ -50,14 +50,17 @@
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Allocator/FixedArrayAllocator.h"
 
+#include "Containers/InitializerList/InitializerList.h"
+
+#include "Containers/Optional/Optional.h"
+
 #include "Containers/Queue/Queue.h"
 #include "Containers/Queue/Allocator/QueueAllocator.h"
-
-#include "Containers/InitializerList/InitializerList.h"
 
 #include "Containers/String/String.h"
 
 #include "Containers/STDTypes.h"
 
 // Validation
-#include "Validation/Validation.h"
+#include "Validation/Check.h"
+#include "Validation/IsValid.h"
