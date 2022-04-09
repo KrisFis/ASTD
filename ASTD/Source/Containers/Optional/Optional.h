@@ -56,8 +56,8 @@ public: // Checks
 public: // Getters
 
 	// Gets copy
-	FORCEINLINE ElementType Get(const ElementType& Default) { return IsSet() ? *Value : Default; }
-	FORCEINLINE ElementType Get() { return GetDefaultedImpl(); }
+	FORCEINLINE ElementType Get(const ElementType& Default) const { return IsSet() ? *Value : Default; }
+	FORCEINLINE ElementType Get() const { return GetDefaultedImpl(); }
 
 	// Gets reference, but can crash
 	FORCEINLINE const ElementType& GetRef() const { return *Value; }
@@ -104,12 +104,12 @@ private: // Helper methods
 	{
 		if(Other.IsSet())
 		{
-			FillToEmpty(Move(*Other.Value));
+			Value = Other.Value;
 			Other.Value = nullptr;
 		}
 	}
 
-	void GetDefaultedImpl()
+	ElementType GetDefaultedImpl()
 	{
 		if constexpr(TIsConstructible<ElementType>::Value)
 		{
