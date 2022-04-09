@@ -91,7 +91,7 @@ public: // Methods
 			}
 		}
 
-		SMemory::Deallocate(Node);
+		SMemory::Deallocate(Node, sizeof(NodeType));
 	}
 
 	void Release()
@@ -100,7 +100,7 @@ public: // Methods
 		while(currentNode != nullptr)
 		{
 			NodeType* nextNode = currentNode->Next;
-			SMemory::Deallocate(currentNode);
+			SMemory::Deallocate(currentNode, sizeof(NodeType));
 			currentNode = nextNode;
 		}
 

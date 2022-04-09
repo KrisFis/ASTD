@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "TypeTraits/TypeTraits.h"
 #include "TypeTraits/TypeMethods.h"
 #include "Platform/PlatformMemory.h"
 
@@ -30,3 +31,13 @@ struct SMemory : public SPlatformMemory
 		Object->~ElementType();
 	}
 };
+
+void* operator new(TSize Size)
+{
+	return SMemory::Allocate((uint32)Size);
+}
+
+void operator delete(void* Ptr, TSize Size)
+{
+	return SMemory::Deallocate(Ptr, (uint32)Size);
+}

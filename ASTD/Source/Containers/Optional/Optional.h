@@ -73,7 +73,7 @@ public: // Manipulation
 		if(Value)
 		{
 			DestructElementPrivate(Value);
-			SMemory::Deallocate(Value);
+			SMemory::Deallocate(Value, sizeof(ElementType));
 			Value = nullptr;
 		}
 	}

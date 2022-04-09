@@ -141,21 +141,37 @@ void OptionalTest()
 	SLogger::Begin() << "Optional test 4: " << testData2.A << SLogger::End();
 }
 
+void CheckAllocatedMemory()
+{
+	const double allocatedMemory = SMemory::GetAllocatedBytes();
+	SLogger::Begin() << "Allocated Memory: " << allocatedMemory << SLogger::End();
+	//CHECKF(allocatedMemory < TINY_NUMBER);
+}
+
 int main()
 {
+	CheckAllocatedMemory();
+
 	SLogger::EmptyLine();
 	OptionalTest();
+	CheckAllocatedMemory();
 	SLogger::EmptyLine();
 	ValidTest();
+	CheckAllocatedMemory();
 	SLogger::EmptyLine();
 	StringTest1();
+	CheckAllocatedMemory();
 	SLogger::EmptyLine();
 	StringTest2();
+	CheckAllocatedMemory();
 	SLogger::EmptyLine();
 	StringTest3();
+	CheckAllocatedMemory();
 	SLogger::EmptyLine();
 	StringTest4();
+	CheckAllocatedMemory();
 	SLogger::EmptyLine();
 
+	CheckAllocatedMemory();
 	return 0;
 }
