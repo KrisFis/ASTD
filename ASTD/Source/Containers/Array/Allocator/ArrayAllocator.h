@@ -40,13 +40,11 @@ public: // Manipulation
 	// @return - array of new elements
 	ElementType* Allocate(SizeType Num)
 	{
-		static constexpr TSize ELEMENT_SIZE = sizeof(ElementType);
-
-		ElementType* newData = (ElementType*)SMemory::Allocate(ELEMENT_SIZE * (Count + Num));
+		ElementType* newData = (ElementType*)SMemory::Allocate(sizeof(ElementType) * (Count + Num));
 		if(Data)
 		{
-			SMemory::Copy(newData, Data, ELEMENT_SIZE * Count);
-			SMemory::Deallocate(Data);
+			SMemory::Copy(newData, Data, sizeof(ElementType) * Count);
+			SMemory::Deallocate(Data, sizeof(ElementType) * Count);
 		}
 
 		ElementType* elementPtr = newData + Count;
@@ -62,7 +60,7 @@ public: // Manipulation
 	{	
 		if(Data)
 		{
-			SMemory::Deallocate(Data);
+			SMemory::Deallocate(Data, sizeof(ElementType) * Count);
 
 			Data = nullptr;
 			Count = 0;
