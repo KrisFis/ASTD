@@ -19,6 +19,7 @@
 
 // Types
 #include "Type/TypeUtilities.h"
+#include "Type/TypeHash.h"
 
 // TypeTraits
 #include "TypeTraits/TypeTraits.h"
@@ -46,16 +47,19 @@
 #include "String/CStringUtilities.h"
 
 // Containers
+#include "Containers/InitializerList/InitializerList.h"
+
 #include "Containers/Array/Array.h"
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/Array/Allocator/FixedArrayAllocator.h"
 
-#include "Containers/InitializerList/InitializerList.h"
-
-#include "Containers/Optional/Optional.h"
+#include "Containers/Set/Set.h"
+#include "Containers/Set/Allocator/SetAllocator.h"
 
 #include "Containers/Queue/Queue.h"
 #include "Containers/Queue/Allocator/QueueAllocator.h"
+
+#include "Containers/Optional/Optional.h"
 
 #include "Containers/String/String.h"
 
