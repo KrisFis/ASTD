@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "Core/Platform/Generic/GenericMemory.h"
+#include "Core/Platform/Base/BaseMemory.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc
-struct SWindowsPlatformMemory : public SGenericPlatformMemory
+struct SWindowsPlatformMemory : public SBasePlatformMemory
 {
 	// Allocates new memory
 	FORCEINLINE static void* Allocate(int64 Size) 

@@ -63,14 +63,14 @@ namespace NChecksPrivate
 
 		enum {
 			HasGlobalValid = THasGlobalIsValid<DesiredType>::Value,
-			HasGenericValid = THasValidateField<TValidProvider<DesiredType>>::Value,
+			HasBaseValid = THasValidateField<TValidProvider<DesiredType>>::Value,
 
-			ValidProvided = HasGlobalValid || HasGenericValid
+			ValidProvided = HasGlobalValid || HasBaseValid
 		};
 	};
 }
 
-template<typename T, typename TEnableIf<NChecksPrivate::TValidFinder<T>::HasGenericValid>::Type* = nullptr>
+template<typename T, typename TEnableIf<NChecksPrivate::TValidFinder<T>::HasBaseValid>::Type* = nullptr>
 FORCEINLINE static constexpr bool IsValid(const T& Object)
 {
 	return NChecksPrivate::TValidProvider<typename NChecksPrivate::TValidFinder<T>::DesiredType>::Validate(Object);

@@ -6,7 +6,7 @@
 
 #include "Core/Platform/PlatformTypes.h"
 
-struct SGenericPlatformMemory
+struct SBasePlatformMemory
 {
 	static constexpr long double BITS_PER_BYTE = 8; // bits
 	static constexpr long double KiB_PER_BYTE = 1.e-3; // kibibytes
