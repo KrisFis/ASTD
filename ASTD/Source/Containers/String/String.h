@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Type/TypeUtilities.h"
-#include "String/CStringUtilities.h"
+#include "Core/Types.h"
+#include "Core/CString.h"
 #include "Validation/Check.h"
 
 #include "Containers/Array/Array.h"

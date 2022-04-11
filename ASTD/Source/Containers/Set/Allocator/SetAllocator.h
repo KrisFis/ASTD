@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Type/TypeUtilities.h"
+#include "Core/Types.h"
 
 template<typename InElementType>
 class TSetAllocator

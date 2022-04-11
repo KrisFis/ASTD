@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "Type/TypeUtilities.h"
+#include "Core/Types.h"
 
-#include "Memory/MemoryUtilities.h"
+#include "Core/Memory.h"
 
 template<typename InElementType>
 class TQueueAllocator

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Type/TypeUtilities.h"
-#include "TypeTraits/TypeTraits.h"
+#include "Core/Types.h"
+#include "Core/Type/TypeTraits.h"
 
 #include "Shared/SharedObject.h"
 

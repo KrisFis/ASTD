@@ -5,46 +5,30 @@
 // * Should include all features and functionality of ASTD
 /////////////////////////////////////////
 
-// Build
-#include "Build/BuildDefinitions.h"
-#include "Build/PreprocessorHelpers.h"
-#include "Build/Configurations.h"
+// Core | Build
+#include "Core/Build/BuildDefinitions.h"
+#include "Core/Build/PreprocessorHelpers.h"
+#include "Core/Build/Configurations.h"
 
-// Platform
-#include "Platform/PlatformDefinitions.h"
-#include "Platform/PlatformTypes.h"
-#include "Platform/PlatformMemory.h"
-#include "Platform/PlatformTime.h"
-#include "Platform/PlatformCString.h"
+// Core | Platform
+#include "Core/Platform/PlatformDefinitions.h"
+#include "Core/Platform/PlatformTypes.h"
+#include "Core/Platform/PlatformMemory.h"
+#include "Core/Platform/PlatformTime.h"
+#include "Core/Platform/PlatformCString.h"
 
-// Types
-#include "Type/TypeUtilities.h"
-#include "Type/TypeHash.h"
+// Core | Types
+#include "Core/Type/TypeHash.h"
+#include "Core/Type/TypeTraits.h"
+#include "Core/Type/TypeMethods.h"
+#include "Core/Type/TypeTraitsMacros.h"
 
-// TypeTraits
-#include "TypeTraits/TypeTraits.h"
-#include "TypeTraits/TypeMethods.h"
-#include "TypeTraits/TypeTraitsMacros.h"
-
-// Shared
-#include "Shared/SharedObject.h"
-#include "Shared/SharedClass.h"
-#include "Shared/SharedUtils.h"
-
-// Math
-#include "Math/MathUtilities.h"
-
-// Memory
-#include "Memory/MemoryUtilities.h"
-
-// Time
-#include "Time/TimeUtilities.h"
-
-// Log
-#include "Log/LogUtilities.h"
-
-// String
-#include "String/CStringUtilities.h"
+// Core
+#include "Core/Types.h"
+#include "Core/Math.h"
+#include "Core/Memory.h"
+#include "Core/Time.h"
+#include "Core/CString.h"
 
 // Containers
 #include "Containers/InitializerList/InitializerList.h"
@@ -64,6 +48,14 @@
 #include "Containers/String/String.h"
 
 #include "Containers/STDTypes.h"
+
+// Shared
+#include "Shared/SharedObject.h"
+#include "Shared/SharedClass.h"
+#include "Shared/SharedUtils.h"
+
+// Log
+#include "Log/Logger.h"
 
 // Validation
 #include "Validation/Check.h"

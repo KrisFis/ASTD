@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Memory/MemoryUtilities.h"
+#include "Core/Memory.h"
 
 // Main allocator used by TArray
 // * Has data inlined

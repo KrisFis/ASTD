@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "Type/TypeUtilities.h"
-#include "TypeTraits/TypeTraits.h"
-#include "TypeTraits/TypeTraitsMacros.h"
+#include "Core/Types.h"
+#include "Core/Type/TypeTraits.h"
+#include "Core/Type/TypeTraitsMacros.h"
 
 namespace NChecksPrivate
 {
