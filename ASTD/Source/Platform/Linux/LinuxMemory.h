@@ -38,3 +38,5 @@ private:
 
 	static uint64 AllocatedBytes;
 };
+
+uint64 SLinuxPlatformMemory::AllocatedBytes = 0;
