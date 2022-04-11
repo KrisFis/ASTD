@@ -1,9 +1,9 @@
 
 #pragma once
 
-#include "Type/TypeUtilities.h"
-#include "TypeTraits/TypeTraits.h"
-#include "Math/MathUtilities.h"
+#include "Core/Types.h"
+#include "Core/Type/TypeTraits.h"
+#include "Core/Math.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 

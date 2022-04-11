@@ -1,0 +1,29 @@
+
+#pragma once
+
+#include "Core/Build/Configurations.h"
+#include "Core/Platform/PlatformTypes.h"
+
+// Text definition
+
+#define PTR_DIFF(Ptr1, Ptr2) static_cast<int64>(Ptr1 - Ptr2)
+#define PTR_DIFF_TYPED(RetType, Ptr1, Ptr2) static_cast<RetType>(Ptr1 -Ptr2)
+
+#if defined(TEXT)
+	#undef TEXT
+#endif
+
+#define ANSITEXT(text) text
+#define WIDETEXT(text) L ## text
+
+#if USE_UNICODE
+	#define TEXT(text) WIDETEXT(text)
+	typedef wchar tchar;
+#else
+	#define TEXT(text) ANSITEXT(text)
+	typedef char tchar;
+#endif
+
+#define INDEX_NONE -1
+#define CHAR_TERM '\0'
+#define CHAR_SLASH '/'

@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "Build/Configurations.h"
-#include "Platform/PlatformDefinitions.h"
+#include "Core/Build/Configurations.h"
+#include "Core/Platform/PlatformDefinitions.h"
 
 #if DO_CHECKS
 

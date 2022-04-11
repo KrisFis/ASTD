@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "Type/TypeUtilities.h"
-#include "TypeTraits/TypeTraits.h"
-#include "TypeTraits/TypeMethods.h"
+#include "Core/Types.h"
+#include "Core/Type/TypeTraits.h"
+#include "Core/Type/TypeMethods.h"
 
-#include "Memory/MemoryUtilities.h"
+#include "Core/Memory.h"
 
 template<typename InElementType>
 class TOptional

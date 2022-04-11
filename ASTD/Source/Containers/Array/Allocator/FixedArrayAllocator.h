@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Memory/MemoryUtilities.h"
+#include "Core/Memory.h"
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 
 // Default array allocator but with fixed num of elements
