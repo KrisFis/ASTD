@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include <wctype.h>
 
-struct SGenericPlatformCString
+struct SBasePlatformCString
 {
 	static constexpr uint8 MAX_BUFFER_SIZE_INT32 = 33;
 	static constexpr uint8 MAX_BUFFER_SIZE_INT64 = 65;

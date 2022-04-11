@@ -3,7 +3,7 @@
 
 #include "Core/Platform/PlatformTypes.h"
 
-struct SGenericPlatformTime
+struct SBasePlatformTime
 {
 	static constexpr long double NS_PER_SECOND = 1.e9; // nanoseconds
 	static constexpr long double MICROS_PER_SECOND = 1.e6; // microseconds

@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "Core/Platform/Generic/GenericMemory.h"
+#include "Core/Platform/Base/BaseMemory.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://linux.die.net/man/2/mmap
-struct SLinuxPlatformMemory : public SGenericPlatformMemory
+struct SLinuxPlatformMemory : public SBasePlatformMemory
 {
 	// Allocates new memory
 	FORCEINLINE static void* Allocate(int64 Size)

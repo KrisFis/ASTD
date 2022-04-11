@@ -1,11 +1,11 @@
 
 #pragma once
 
-#include "Core/Platform/Generic/GenericCString.h"
+#include "Core/Platform/Base/BaseCString.h"
 
 #include <stdlib.h>
 
-struct SWindowsPlatformCString : public SGenericPlatformCString
+struct SWindowsPlatformCString : public SBasePlatformCString
 {
 	// Converts the string pointed to, by the argument str to an integer
 	FORCEINLINE static int32 ToInt32(const char* Value) { return atoi(Value); }
