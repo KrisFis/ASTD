@@ -3,6 +3,7 @@
 
 #include "Core/Types.h"
 #include "Core/Type/TypeTraits.h"
+#include "Algo/Memory.h"
 
 #include "Containers/Queue/Allocator/QueueAllocator.h"
 
@@ -64,7 +65,7 @@ private: // Helper methods
 		AllocatorNodeType* node = Allocator.GetHead();
 		if(node)
 		{
-			NMemoryType::CopyConstruct(&OutValue, &node->Value);
+			NAlgo::CopyElement(&OutValue, &node->Value);
 		}
 
 		return node != nullptr;
@@ -73,14 +74,14 @@ private: // Helper methods
 	AllocatorNodeType* AddImpl(const ElementType& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		NMemoryType::MoveConstruct(&node->Value, &Value);
+		NAlgo::MoveElement(&node->Value, &Value);
 		return node;
 	}
 
 	AllocatorNodeType* AddImpl(ElementType&& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		NMemoryType::MoveConstruct(&node->Value, &Value);
+		NAlgo::MoveElement(&node->Value, &Value);
 		return node;
 	}
 
@@ -92,7 +93,7 @@ private: // Helper methods
 			return false;
 		}
 
-		NMemoryType::Destruct(&node->Value);
+		NAlgo::DestructElement(&node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -106,7 +107,7 @@ private: // Helper methods
 			return false;
 		}
 
-		NMemoryType::MoveConstruct(&OutValue, &node->Value);
+		NAlgo::MoveElement(&OutValue, &node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -119,7 +120,7 @@ private: // Helper methods
 		{
 			while(currentNode != nullptr)
 			{
-				NMemoryType::Destruct(&currentNode->Value);
+				NAlgo::DestructElement(&currentNode->Value);
 				currentNode = currentNode->Next;
 			}
 
@@ -135,7 +136,7 @@ private: // Helper methods
 		while(currentNode != nullptr)
 		{
 			AllocatorNodeType* newNode = Allocator.Allocate(1);
-			NMemoryType::CopyConstruct(&newNode->Value, &currentNode->Value);
+			NAlgo::CopyElement(&newNode->Value, &currentNode->Value);
 		}
 	}
 

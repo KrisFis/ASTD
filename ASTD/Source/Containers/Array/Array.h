@@ -4,9 +4,9 @@
 #include "Core/Types.h"
 #include "Core/Type/TypeTraits.h"
 #include "Core/Math.h"
+#include "Algo/Memory.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
-
 #include "Containers/InitializerList/InitializerList.h"
 
 template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
@@ -486,7 +486,7 @@ private: // Helper methods
 
 			Count += InCount;
 			RealocateIfNeededImpl();
-			NMemoryType::CopyConstruct(Allocator.GetData() + oldCount, InData, InCount);
+			NAlgo::CopyElement(Allocator.GetData() + oldCount, InData, InCount);
 		}
 	}
 
@@ -499,7 +499,7 @@ private: // Helper methods
 			Count += InCount;
 			RealocateIfNeededImpl();
 
-			NMemoryType::MoveConstruct(Allocator.GetData() + oldCount, InData);
+			NAlgo::MoveElement(Allocator.GetData() + oldCount, InData);
 		}
 		else
 		{
@@ -561,7 +561,7 @@ private: // Helper methods
 	{
 		for(SizeType i = 0; i < InCount; ++i)
 		{
-			NMemoryType::Destruct(Element);
+			NAlgo::DestructElement(Element);
 			++Element;
 		}
 	}
@@ -575,7 +575,7 @@ private: // Helper methods
 	FORCEINLINE static bool CompareElementsPrivate(const ElementType* Lhs, const ElementType* Rhs)
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
-		return NMemoryType::Compare(Lhs, Rhs) == 0;
+		return SMemory::Compare(Lhs, Rhs, sizeof(ElementType)) == 0;
 	}
 
 private: // Fields

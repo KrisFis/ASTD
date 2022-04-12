@@ -104,7 +104,7 @@ struct TIsArithmetic
 template<typename T>
 struct TDecay
 {
-	typedef typename NTypeTraitsInternals::TDecayHelper<
+	typedef typename NTypeInternals::TDecayHelper<
 		typename TRemoveConstReference<T>::Type
 	>::Type Type;
 };
@@ -124,7 +124,7 @@ public:
 	typedef typename TChoose<
 		TIsPointer<TestType>::Value, 
 		typename TRemovePointer<TestType>::Type,
-		typename NTypeTraitsInternals::TDecayHelper<TestType>::Type
+		typename NTypeInternals::TDecayHelper<TestType>::Type
 	>::Type Type;
 };
 
@@ -156,7 +156,7 @@ private:
 
 public:
 
-	typedef typename NTypeTraitsInternals::TCallTraitsHelper<T, IsSmallType>::Type Param;
-	typedef typename NTypeTraitsInternals::TCallTraitsHelper<T, IsSmallType>::ConstType ConstParam;
+	typedef typename NTypeInternals::TCallTraitsHelper<T, IsSmallType>::Type Param;
+	typedef typename NTypeInternals::TCallTraitsHelper<T, IsSmallType>::ConstType ConstParam;
 
 };

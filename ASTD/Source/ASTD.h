@@ -57,6 +57,10 @@
 // Log
 #include "Log/Logger.h"
 
+// Utils
+#include "Algo/Memory.h"
+#include "Algo/Sort.h"
+
 // Validation
 #include "Validation/Check.h"
 #include "Validation/IsValid.h"

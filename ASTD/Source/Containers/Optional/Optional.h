@@ -5,7 +5,7 @@
 #include "Core/Type/TypeTraits.h"
 #include "Core/Type/TypeMethods.h"
 
-#include "Core/Memory.h"
+#include "Algo/Memory.h"
 
 template<typename InElementType>
 class TOptional
@@ -72,8 +72,8 @@ public: // Manipulation
 	{
 		if(Value)
 		{
-			NMemoryType::Destruct(Value);
-			NMemoryType::Deallocate(Value);
+			NAlgo::DestructElement(Value);
+			NAlgo::DeallocateElement(Value);
 			Value = nullptr;
 		}
 	}
@@ -82,14 +82,14 @@ private: // Helper methods
 
 	void FillToEmpty(const ElementType& InValue)
 	{
-		Value = NMemoryType::Allocate<ElementType>();
-		NMemoryType::CopyConstruct(Value, InValue);
+		Value = NAlgo::AllocateElement<ElementType>();
+		NAlgo::CopyElement(Value, InValue);
 	}
 
 	void FillToEmpty(ElementType&& InValue)
 	{
-		Value = NMemoryType::Allocate<ElementType>();
-		NMemoryType::MoveConstruct(Value, Move(InValue));
+		Value = NAlgo::AllocateElement<ElementType>();
+		NAlgo::MoveElement(Value, Move(InValue));
 	}
 
 	FORCEINLINE void FillToEmpty(const TOptional& Other) 
