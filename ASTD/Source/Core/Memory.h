@@ -93,7 +93,7 @@ namespace NMemoryType
 		{
 			SMemory::Copy(
 				Ptr,
-				&Value,
+				Value,
 				sizeof(T)
 			);
 		}
