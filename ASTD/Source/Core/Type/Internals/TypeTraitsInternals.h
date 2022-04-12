@@ -3,7 +3,7 @@
 
 #include "Core/Type/Internals/TypeTraitsCore.h"
 
-namespace NTypeTraitsInternals
+namespace NTypeInternals
 {
 	template<typename T>
 	struct TDecayHelper	{ typedef T Type; };

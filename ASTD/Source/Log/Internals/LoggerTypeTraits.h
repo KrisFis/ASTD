@@ -5,7 +5,7 @@
 #include "Core/Type/TypeTraits.h"
 #include "Containers/String/String.h"
 
-namespace NLoggerTypeTraits
+namespace NLogInternals
 {
 	template<typename T>
 	struct TGetSupportedType

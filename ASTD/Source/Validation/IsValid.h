@@ -5,7 +5,7 @@
 #include "Core/Type/TypeTraits.h"
 #include "Core/Type/TypeTraitsMacros.h"
 
-namespace NChecksPrivate
+namespace NValidationInternals
 {
 	GENERATE_HAS_FIELD_TRAIT(THasValidateField, Validate)
 	GENERATE_HAS_GLOBAL_METHOD_TRAIT(THasGlobalIsValid, IsValid(DeclVal<TestType>()))
@@ -70,13 +70,13 @@ namespace NChecksPrivate
 	};
 }
 
-template<typename T, typename TEnableIf<NChecksPrivate::TValidFinder<T>::HasBaseValid>::Type* = nullptr>
+template<typename T, typename TEnableIf<NValidationInternals::TValidFinder<T>::HasBaseValid>::Type* = nullptr>
 FORCEINLINE static constexpr bool IsValid(const T& Object)
 {
-	return NChecksPrivate::TValidProvider<typename NChecksPrivate::TValidFinder<T>::DesiredType>::Validate(Object);
+	return NValidationInternals::TValidProvider<typename NValidationInternals::TValidFinder<T>::DesiredType>::Validate(Object);
 }
 
-template<typename T, typename TEnableIf<!NChecksPrivate::TValidFinder<T>::ValidProvided>::Type* = nullptr>
+template<typename T, typename TEnableIf<!NValidationInternals::TValidFinder<T>::ValidProvided>::Type* = nullptr>
 FORCEINLINE static constexpr bool IsValid(...)
 {
 	static_assert(sizeof(T) < 0, "IsValid() function overload for type is not implemented");

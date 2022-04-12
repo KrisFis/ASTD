@@ -2,8 +2,7 @@
 #pragma once
 
 #include "Core/Types.h"
-
-#include "Core/Memory.h"
+#include "Algo/Memory.h"
 
 template<typename InElementType>
 class TQueueAllocator
@@ -49,7 +48,7 @@ public: // Methods
 		NodeType* prevNode = Tail;
 		for(SizeType i = 0; i < Num; ++i)
 		{
-			NodeType* newNode = NMemoryType::Allocate<NodeType>();
+			NodeType* newNode = NAlgo::AllocateElement<NodeType>();
 			newNode->Previous = prevNode;
 			newNode->Next = nullptr;
 
@@ -91,7 +90,7 @@ public: // Methods
 			}
 		}
 
-		NMemoryType::Deallocate(Node);
+		NAlgo::DeallocateElement(Node);
 	}
 
 	void Release()
@@ -100,7 +99,7 @@ public: // Methods
 		while(currentNode != nullptr)
 		{
 			NodeType* nextNode = currentNode->Next;
-			NMemoryType::Deallocate(currentNode);
+			NAlgo::DeallocateElement(currentNode);
 			currentNode = nextNode;
 		}
 

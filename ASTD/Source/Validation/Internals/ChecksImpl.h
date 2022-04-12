@@ -8,7 +8,7 @@
 
 	#include <iostream>
 
-	namespace NChecksPrivate
+	namespace NValidationInternals
 	{
 		DIAG_WARNINGS_PUSH()
 		DIAG_WARNINGS_SUPRESS(DIAG_WARNING_NULL_DEREFERENCE)
@@ -29,7 +29,7 @@
 	#define CHECK_IMPL(expression)												\
 		((!!(expression)) || []()												\
 		{ 																		\
-			NChecksPrivate::LogFailed(#expression, __FILE__, __LINE__);		\
+			NValidationInternals::LogFailed(#expression, __FILE__, __LINE__);		\
 			static bool didBreak = false; 										\
 			if(!didBreak) 														\
 			{ 																	\
@@ -41,9 +41,9 @@
 	#define CHECKF_IMPL(expression)												\
 		((!!(expression)) || []()												\
 		{ 																		\
-			NChecksPrivate::LogFailed(#expression, __FILE__, __LINE__);		\
+			NValidationInternals::LogFailed(#expression, __FILE__, __LINE__);		\
 			DEBUG_BREAK();														\
-			NChecksPrivate::Crash();										\
+			NValidationInternals::Crash();										\
 			return false; 														\
 		}())
 

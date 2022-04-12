@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Core/Memory.h"
+#include "Algo/Memory.h"
 
 // Main allocator used by TArray
 // * Has data inlined
@@ -40,7 +40,7 @@ public: // Manipulation
 	// @return - array of new elements
 	ElementType* Allocate(SizeType Num)
 	{
-		ElementType* newData = NMemoryType::Allocate<ElementType>(Count + Num);
+		ElementType* newData = NAlgo::AllocateElement<ElementType>(Count + Num);
 		if(Data)
 		{
 			SMemory::Copy(newData, Data, sizeof(ElementType) * Count);
@@ -60,7 +60,7 @@ public: // Manipulation
 	{	
 		if(Data)
 		{
-			NMemoryType::Deallocate(Data, Count);
+			NAlgo::DeallocateElement(Data, Count);
 
 			Data = nullptr;
 			Count = 0;

@@ -16,27 +16,27 @@ struct SLogger
 
 	FORCEINLINE static void EmptyLine() { std::cout << std::endl; }
 
-	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::Int>::Type* = nullptr>
+	template<typename T, typename TEnableIf<NLogInternals::TGetSupportedType<T>::Int>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
 	{
 		std::cout << (int64)Value;
 		return *this;
 	}
 
-	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::String>::Type* = nullptr>
+	template<typename T, typename TEnableIf<NLogInternals::TGetSupportedType<T>::String>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
 	{
 		return operator<<(Value.GetChars());
 	}
 
-	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::StringW>::Type* = nullptr>
+	template<typename T, typename TEnableIf<NLogInternals::TGetSupportedType<T>::StringW>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
 	{
 		std::wcout << Value;
 		return *this;
 	}
 
-	template<typename T, typename TEnableIf<NLoggerTypeTraits::TGetSupportedType<T>::Other>::Type* = nullptr>
+	template<typename T, typename TEnableIf<NLogInternals::TGetSupportedType<T>::Other>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE const SLogger& operator<<(T Value) const
 	{
 		std::cout << Value;
