@@ -40,7 +40,7 @@ public: // Manipulation
 	// @return - array of new elements
 	ElementType* Allocate(SizeType Num)
 	{
-		ElementType* newData = (ElementType*)SMemory::Allocate(sizeof(ElementType) * (Count + Num));
+		ElementType* newData = NMemoryType::Allocate<ElementType>(Count + Num);
 		if(Data)
 		{
 			SMemory::Copy(newData, Data, sizeof(ElementType) * Count);
@@ -60,7 +60,7 @@ public: // Manipulation
 	{	
 		if(Data)
 		{
-			SMemory::Deallocate(Data, sizeof(ElementType) * Count);
+			NMemoryType::Deallocate(Data, Count);
 
 			Data = nullptr;
 			Count = 0;

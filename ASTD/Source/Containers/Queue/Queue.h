@@ -64,7 +64,7 @@ private: // Helper methods
 		AllocatorNodeType* node = Allocator.GetHead();
 		if(node)
 		{
-			CopyElementPrivate(&OutValue, &node->Value);
+			NMemoryType::CopyConstruct(&OutValue, &node->Value);
 		}
 
 		return node != nullptr;
@@ -73,14 +73,14 @@ private: // Helper methods
 	AllocatorNodeType* AddImpl(const ElementType& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		MoveElementPrivate(&node->Value, &Value);
+		NMemoryType::MoveConstruct(&node->Value, &Value);
 		return node;
 	}
 
 	AllocatorNodeType* AddImpl(ElementType&& Value)
 	{
 		AllocatorNodeType* node = Allocator.Allocate(1);
-		MoveElementPrivate(&node->Value, &Value);
+		NMemoryType::MoveConstruct(&node->Value, &Value);
 		return node;
 	}
 
@@ -92,7 +92,7 @@ private: // Helper methods
 			return false;
 		}
 
-		DestructElementPrivate(&node->Value);
+		NMemoryType::Destruct(&node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -106,7 +106,7 @@ private: // Helper methods
 			return false;
 		}
 
-		MoveElementPrivate(&OutValue, &node->Value);
+		NMemoryType::MoveConstruct(&OutValue, &node->Value);
 		Allocator.Deallocate(node);
 
 		return true;
@@ -119,7 +119,7 @@ private: // Helper methods
 		{
 			while(currentNode != nullptr)
 			{
-				DestructElementPrivate(&currentNode->Value);
+				NMemoryType::Destruct(&currentNode->Value);
 				currentNode = currentNode->Next;
 			}
 
@@ -135,7 +135,7 @@ private: // Helper methods
 		while(currentNode != nullptr)
 		{
 			AllocatorNodeType* newNode = Allocator.Allocate(1);
-			CopyElementPrivate(&newNode->Value, &currentNode->Value);
+			NMemoryType::CopyConstruct(&newNode->Value, &currentNode->Value);
 		}
 	}
 
@@ -148,46 +148,6 @@ private: // Helper methods
 
 		Other.Allocator.SetHead(nullptr);
 		Other.Allocator.SetTail(nullptr);
-	}
-
-	static void CopyElementPrivate(ElementType* DestVal, const ElementType* SourceVal)
-	{
-		if constexpr(!TIsTriviallyCopyConstructible<ElementType>::Value)
-		{
-			SMemory::CallCopyConstructor(DestVal, *SourceVal);
-		}
-		else
-		{
-			SMemory::Copy(
-				DestVal,
-				SourceVal,
-				sizeof(ElementType)
-			);
-		}
-	}
-
-	static void MoveElementPrivate(ElementType* DestVal, ElementType* SourceVal)
-	{
-		if constexpr(!TIsTriviallyMoveConstructible<ElementType>::Value)
-		{
-			SMemory::CallMoveConstructor(DestVal, Move(*SourceVal));
-		}
-		else
-		{
-			SMemory::Copy(
-				DestVal,
-				SourceVal,
-				sizeof(ElementType)
-			);
-		}
-	}
-
-	static void DestructElementPrivate(ElementType* Value)
-	{
-		if constexpr(!TIsTriviallyDestructible<ElementType>::Value)
-		{
-			SMemory::CallDestructor(Value);
-		}
 	}
 
 private: // Fields

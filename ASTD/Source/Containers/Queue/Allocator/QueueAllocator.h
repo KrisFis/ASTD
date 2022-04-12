@@ -49,7 +49,7 @@ public: // Methods
 		NodeType* prevNode = Tail;
 		for(SizeType i = 0; i < Num; ++i)
 		{
-			NodeType* newNode = (NodeType*)SMemory::Allocate(sizeof(NodeType));
+			NodeType* newNode = NMemoryType::Allocate<NodeType>();
 			newNode->Previous = prevNode;
 			newNode->Next = nullptr;
 
@@ -91,7 +91,7 @@ public: // Methods
 			}
 		}
 
-		SMemory::Deallocate(Node, sizeof(NodeType));
+		NMemoryType::Deallocate(Node);
 	}
 
 	void Release()
@@ -100,7 +100,7 @@ public: // Methods
 		while(currentNode != nullptr)
 		{
 			NodeType* nextNode = currentNode->Next;
-			SMemory::Deallocate(currentNode, sizeof(NodeType));
+			NMemoryType::Deallocate(currentNode);
 			currentNode = nextNode;
 		}
 

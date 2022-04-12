@@ -20,60 +20,74 @@ typedef SPlatformMemory SMemory;
 namespace NMemoryType
 {
 	// Allocates elements
-	template<typename T, typename R>
-	T* Allocate(R Num)
+	template<typename T>
+	FORCEINLINE T* Allocate(int64 Num = 1)
 	{
-		return SMemory::Allocate(Num * sizeof(T));
+		return (T*)SMemory::Allocate(Num * sizeof(T));
 	}
 
-	template<typename T, typename R>
-	T* AllocateZeroed(R Num)
+	template<typename T>
+	FORCEINLINE T* AllocateZeroed(int64 Num = 1)
 	{
-		return SMemory::AllocateZeroed(Num * sizeof(T));
+		return (T*)SMemory::AllocateZeroed(Num * sizeof(T));
 	}
 
 	// Deallocate elements
-	template<typename T, typename R>
-	void Deallocate(T* Ptr, R Num)
+	template<typename T>
+	FORCEINLINE void Deallocate(T* Ptr, int64 Num = 1)
 	{
 		return SMemory::Deallocate(Ptr, Num * sizeof(T));
 	}
 
 	// Construct element
 	template<typename T, typename... ArgTypes>
-	void Construct(T* Ptr, ArgTypes&&... Args)
+	FORCEINLINE void Construct(T* Ptr, ArgTypes&&... Args)
 	{
 		if constexpr (!TIsTriviallyConstructible<T, ArgTypes...>::Value)
 		{
-			::new((void*)Object) T(Forward<ArgTypes>(Args)...);
+			::new((void*)Ptr) T(Forward<ArgTypes>(Args)...);
 		}
 	}
 
-	// Copy construct element
 	template<typename T>
-	void Construct<T, const T&>(T* Ptr, const T& Value)
+	FORCEINLINE void CopyConstruct(T* To, const T* From, int64 Num)
 	{
-		if constexpr(!TIsTriviallyCopyConstructible<T>::Value)
+		if constexpr (!TIsTriviallyCopyConstructible<T>::Value)
 		{
-			::new((void*)Object) T(Value);
+			while(Num-- > 0)
+			{
+				::new((void*)To) T(*From);
+				++To; ++From;
+			}
 		}
 		else
 		{
 			SMemory::Copy(
-				Ptr,
-				&Value,
-				sizeof(T)
+				To,
+				From,
+				sizeof(T) * Num
 			);
 		}
 	}
 
-	// Move construct element
 	template<typename T>
-	void Construct<T, T&&>(T* Ptr, T&& Value)
+	FORCEINLINE void CopyConstruct(T* Ptr, const T* Value)
+	{
+		CopyConstruct(Ptr, Value, 1);
+	}
+
+	template<typename T>
+	FORCEINLINE void CopyConstruct(T* Ptr, const T& Value)
+	{
+		CopyConstruct(Ptr, &Value, 1);
+	}
+
+	template<typename T>
+	FORCEINLINE void MoveConstruct(T* Ptr, T* Value)
 	{
 		if constexpr(!TIsTriviallyMoveConstructible<T>::Value)
 		{
-			::new((void*)Object) T(Move(Value));
+			::new((void*)Ptr) T(Move(*Value));
 		}
 		else
 		{
@@ -83,15 +97,33 @@ namespace NMemoryType
 				sizeof(T)
 			);
 		}
+	}
+
+	template<typename T>
+	FORCEINLINE void MoveConstruct(T* Ptr, T&& Value)
+	{
+		MoveConstruct(Ptr, &Value);
 	}
 
 	// Destruct element
 	template<typename T>
-	void Destruct(T* Ptr)
+	FORCEINLINE void Destruct(T* Ptr)
 	{
 		if constexpr(!TIsTriviallyDestructible<T>::Value)
 		{
-			Object->~T();
+			Ptr->~T();
 		}
+	}
+
+	template<typename T>
+	FORCEINLINE int64 Compare(const T* Lhs, const T* Rhs)
+	{
+		return SMemory::Compare(Lhs, Rhs, sizeof(T));
+	}
+
+	template<typename T>
+	FORCEINLINE int64 Compare(const T& Lhs, const T& Rhs)
+	{
+		return Compare(&Lhs, &Rhs);
 	}
 }
