@@ -105,13 +105,13 @@ public: // Add
 
 	FORCEINLINE SizeType Add(const ElementType& Value)
 	{
-		AddImpl(Value);
+		AppendImpl(&Value, 1);
 		return Count - 1;
 	}
 
 	FORCEINLINE SizeType Add(ElementType&& Value)
 	{
-		AddImpl(Move(Value));
+		AppendImpl(&Value, 1, true);
 		return Count - 1;
 	}
 
@@ -123,13 +123,13 @@ public: // Add
 
 	FORCEINLINE ElementType& Add_GetRef(const ElementType& Value)
 	{
-		AddImpl(Value);
+		AppendImpl(&Value, 1);
 		return *GetElementAtImpl(Count - 1);
 	}
 
 	FORCEINLINE ElementType& Add_GetRef(ElementType&& Value)
 	{
-		AddImpl(Move(Value));
+		AppendImpl(&Value, 1, true);
 		return *GetElementAtImpl(Count - 1);
 	}
 
@@ -341,27 +341,6 @@ private: // Helper methods
 
 	FORCEINLINE ElementType* GetElementAtImpl(SizeType Idx) const { return Allocator.GetData() + Idx; }
 
-	void AddImpl(const ElementType& Value, SizeType InCount = 1)
-	{
-		if(InCount > 0)
-		{
-			const SizeType oldCount = Count;
-
-			Count += InCount;
-			RealocateIfNeededImpl();
-
-			CopyElementPrivate(Allocator.GetData() + oldCount, Value, InCount);
-		}
-	}
-
-	void AddImpl(ElementType&& Value)
-	{
-		++Count;
-		RealocateIfNeededImpl();
-
-		MoveElementPrivate(Allocator.GetData() + Count - 1, Move(Value), 1);
-	}
-
 	void AddUnitializedImpl(SizeType InCount = 1)
 	{
 		if(InCount > 0)
@@ -373,7 +352,7 @@ private: // Helper methods
 
 	void RemoveSwapImpl(SizeType Index)
 	{
-		DestructPrivate(GetElementAtImpl(Index), 1);
+		DestructElementsPrivate(GetElementAtImpl(Index));
 
 		if(Index != Count - 1)
 		{
@@ -392,7 +371,7 @@ private: // Helper methods
 
 	void RemoveImpl(SizeType Index)
 	{
-		DestructPrivate(GetElementAtImpl(Index), 1);
+		DestructElementsPrivate(GetElementAtImpl(Index));
 
 		if(Index != Count - 1)
 		{
@@ -448,7 +427,7 @@ private: // Helper methods
 		}
 		else
 		{
-			DestructPrivate(GetElementAtImpl(Num), Count - Num);
+			DestructElementsPrivate(GetElementAtImpl(Num), Count - Num);
 
 			// Copy to temporary allocator
 			AllocatorType tmp;
@@ -488,7 +467,7 @@ private: // Helper methods
 	{
 		if(Count > 0)
 		{
-			DestructPrivate(Allocator.GetData(), Count);
+			DestructElementsPrivate(Allocator.GetData(), Count);
 
 			if(Release)
 			{
@@ -499,7 +478,7 @@ private: // Helper methods
 		}
 	}
 
-	void AppendImpl(const ElementType* InData, SizeType InCount, bool preferMove = false)
+	void AppendImpl(const ElementType* InData, SizeType InCount)
 	{
 		if(InCount > 0)
 		{
@@ -507,11 +486,24 @@ private: // Helper methods
 
 			Count += InCount;
 			RealocateIfNeededImpl();
+			NMemoryType::CopyConstruct(Allocator.GetData() + oldCount, InData, InCount);
+		}
+	}
 
-			if(preferMove)
-				MoveElementsPrivate(Allocator.GetData() + oldCount, InData, InCount);
-			else
-				CopyElementsPrivate(Allocator.GetData() + oldCount, InData, InCount);
+	void AppendImpl(ElementType* InData, SizeType InCount, bool preferMove)
+	{
+		if(preferMove && Count == 1)
+		{
+			const SizeType oldCount = Count;
+
+			Count += InCount;
+			RealocateIfNeededImpl();
+
+			NMemoryType::MoveConstruct(Allocator.GetData() + oldCount, InData);
+		}
+		else
+		{
+			AppendImpl(InData, InCount);
 		}
 	}
 
@@ -565,100 +557,12 @@ private: // Helper methods
 		}
 	}
 
-	// Make sure elements array and values array does NOT OVERLAP
-	static void CopyElementsPrivate(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
+	FORCEINLINE static void DestructElementsPrivate(ElementType* Element, SizeType InCount = 1)
 	{
-		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
+		for(SizeType i = 0; i < InCount; ++i)
 		{
-			for(SizeType i = 0; i < InCount; ++i)
-			{
-				SMemory::CallCopyConstructor(ElementArray + i, *(ValuesArray + i));
-			}
-		}
-		else
-		{
-			SMemory::Copy(
-				ElementArray,
-				ValuesArray,
-				sizeof(ElementType) * InCount
-			);
-		}
-	}
-
-	// Construction from one value, that is reused
-	static void CopyElementPrivate(ElementType* ElementArray, const ElementType& Value, SizeType InCount)
-	{
-		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
-		{
-			for(SizeType i = 0; i < InCount; ++i)
-			{
-				SMemory::CallCopyConstructor(ElementArray + i, Value);
-			}
-		}
-		else
-		{
-			for(SizeType i = 0; i < InCount; ++i)
-			{
-				SMemory::Copy(
-					ElementArray + i,
-					&Value,
-					sizeof(ElementType)
-				);
-			}
-		}
-	}
-
-	static void MoveElementsPrivate(ElementType* ElementArray, const ElementType* ValuesArray, SizeType InCount)
-	{
-		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
-		{
-			for(SizeType i = 0; i < InCount; ++i)
-			{
-				SMemory::CallMoveConstructor(ElementArray + i, Move(*(const_cast<ElementType*>(ValuesArray + i))));
-			}
-		}
-		else
-		{
-			SMemory::Copy(
-				ElementArray,
-				ValuesArray,
-				sizeof(ElementType) * InCount
-			);
-		}
-	}
-
-	// Construction from one value, that is reused
-	static void MoveElementPrivate(ElementType* ElementArray, ElementType&& Value, SizeType InCount)
-	{
-		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
-		{
-			// Having count greater than 1 can be unpredictable in specific case where object modifies value in move constructor
-			for(SizeType i = 0; i < InCount; ++i)
-			{
-				SMemory::CallMoveConstructor(ElementArray + i, Move(Value));
-			}
-		}
-		else
-		{
-			for(SizeType i = 0; i < InCount; ++i)
-			{
-				SMemory::Copy(
-					ElementArray + i,
-					&Value,
-					sizeof(ElementType)
-				);
-			}
-		}
-	}
-
-	static void DestructPrivate(ElementType* ElementArray, SizeType InCount)
-	{
-		if constexpr (!TIsTriviallyDestructible<ElementType>::Value)
-		{
-			for(SizeType i = 0; i < InCount; ++i)
-			{
-				SMemory::CallDestructor(ElementArray + i);
-			}
+			NMemoryType::Destruct(Element);
+			++Element;
 		}
 	}
 
@@ -671,7 +575,7 @@ private: // Helper methods
 	FORCEINLINE static bool CompareElementsPrivate(const ElementType* Lhs, const ElementType* Rhs)
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
-		return SMemory::Compare(Lhs, Rhs, sizeof(ElementType)) == 0;
+		return NMemoryType::Compare(Lhs, Rhs) == 0;
 	}
 
 private: // Fields

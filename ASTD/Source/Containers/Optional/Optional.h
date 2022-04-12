@@ -72,8 +72,8 @@ public: // Manipulation
 	{
 		if(Value)
 		{
-			DestructElementPrivate(Value);
-			SMemory::Deallocate(Value, sizeof(ElementType));
+			NMemoryType::Destruct(Value);
+			NMemoryType::Deallocate(Value);
 			Value = nullptr;
 		}
 	}
@@ -82,14 +82,14 @@ private: // Helper methods
 
 	void FillToEmpty(const ElementType& InValue)
 	{
-		Value = (ElementType*)SMemory::Allocate(sizeof(ElementType));
-		CopyElementPrivate(Value, &InValue);
+		Value = NMemoryType::Allocate<ElementType>();
+		NMemoryType::CopyConstruct(Value, InValue);
 	}
 
 	void FillToEmpty(ElementType&& InValue)
 	{
-		Value = (ElementType*)SMemory::Allocate(sizeof(ElementType));
-		MoveElementPrivate(Value, &InValue);
+		Value = NMemoryType::Allocate<ElementType>();
+		NMemoryType::MoveConstruct(Value, Move(InValue));
 	}
 
 	FORCEINLINE void FillToEmpty(const TOptional& Other) 
@@ -118,46 +118,6 @@ private: // Helper methods
 		else
 		{
 			static_assert(sizeof(ElementType) < 0, "Unsuppported type for default construction");
-		}
-	}
-
-	static void CopyElementPrivate(ElementType* DestValue, const ElementType* SourceVal)
-	{
-		if constexpr (!TIsTriviallyCopyConstructible<ElementType>::Value)
-		{
-			SMemory::CallCopyConstructor(DestValue, *SourceVal);
-		}
-		else
-		{
-			SMemory::Copy(
-				DestValue,
-				SourceVal,
-				sizeof(ElementType)
-			);
-		}
-	}
-
-	static void MoveElementPrivate(ElementType* DestValue, ElementType* SourceVal)
-	{
-		if constexpr (!TIsTriviallyMoveConstructible<ElementType>::Value)
-		{
-			SMemory::CallMoveConstructor(DestValue, Move(*SourceVal));
-		}
-		else
-		{
-			SMemory::Copy(
-				DestValue,
-				SourceVal,
-				sizeof(ElementType)
-			);
-		}
-	}
-
-	static void DestructElementPrivate(ElementType* Value)
-	{
-		if constexpr(!TIsTriviallyDestructible<ElementType>::Value)
-		{
-			SMemory::CallDestructor(Value);
 		}
 	}
 
