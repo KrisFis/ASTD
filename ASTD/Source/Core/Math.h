@@ -39,6 +39,9 @@ struct SMath
 	FORCEINLINE static T Lerp(T Value, T Low, T High) { return (1 - Value) * Low + Value * High; }
 
 	template<typename T>
+	FORCEINLINE static T Map(T Value, T LowA, T HighA, T LowB, T HighB) { return Lerp((Value - LowA) / (HighA - LowA), LowB, HighB); }
+
+	template<typename T>
 	FORCEINLINE static T Floor(T Value) { return floor(Value); }
 
 	template<typename T>
