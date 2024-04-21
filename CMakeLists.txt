@@ -1,39 +1,13 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.22)
 
-project(ASTD)
+project(ASTD VERSION 1.0 DESCRIPTION "Alternity STD")
 
-# Init
-# -----------------------------------------------------------
+add_library(ASTD INTERFACE)
 
-set(ASTD_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/ASTD")
-set(TESTPROJ_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/TestProj")
+target_include_directories(${PROJECT_NAME} INTERFACE
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
-# Includes
-# -----------------------------------------------------------
-
-include("${CMAKE_CURRENT_LIST_DIR}/Builder.cmake")
-
-include("${ASTD_MODULE_PATH}/ASTDBuild.cmake")
-include("${TESTPROJ_MODULE_PATH}/TestProjBuild.cmake")
-
-# Setup
-# -----------------------------------------------------------
-
-builder_setup_build()
-
-# Includes && Sources
-# -----------------------------------------------------------
-
-ASTD_public_include_directories(${ASTD_MODULE_PATH} ASTD_INCLUDE_DIRS)
-TestProj_public_include_directories(${TESTPROJ_MODULE_PATH} TESTPROJ_INCLUDE_DIRS)
-
-ASTD_public_sources(${ASTD_MODULE_PATH} ASTD_SOURCES)
-TestProj_public_sources(${TESTPROJ_MODULE_PATH} TESTPROJ_SOURCES)
-
-set(ALL_INCLUDE_DIRS "${ASTD_INCLUDE_DIRS}" "${TESTPROJ_INCLUDE_DIRS}")
-set(ALL_SOURCES "${ASTD_SOURCES}" "${TESTPROJ_SOURCES}")
-
-# Modules
-# -----------------------------------------------------------
-
-builder_add_module(EXECUTABLE "TestProj" "${TESTPROJ_MODULE_PATH}" "" "${ALL_INCLUDE_DIRS}" "${ALL_SOURCES}" "")
+target_compile_definitions(${PROJECT_NAME} INTERFACE
+		$<$<CONFIG:Debug>:_DEBUG=1>
+)

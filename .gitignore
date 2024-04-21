@@ -1,12 +1,4 @@
-
-# Solutions cache
-.vs
-.idea
-.vscode
-
-# Solutions
-*.code-workspace
-
-# Binaries
-**/Binaries
-**/Intermediate
+# IDE
+.idea/**
+.vs/**
+cmake-build-*/**
