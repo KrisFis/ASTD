@@ -8,8 +8,10 @@
 template<typename InElementType>
 class TQueueAllocator
 {
+public:
 
-public: // Types
+	// Types
+	/////////////////////////////////
 
 	typedef InElementType ElementType;
 	typedef uint32 SizeType;
@@ -24,30 +26,34 @@ public: // Types
 
 	typedef SNode NodeType;
 
-public: // Constructor
+	// Constructor
+	/////////////////////////////////
 
-	FORCEINLINE TQueueAllocator() : Head(nullptr), Tail(nullptr) {}
+	FORCEINLINE TQueueAllocator() = default;
 
-public: // Operators
+	// Operators
+	/////////////////////////////////
 
-	FORCEINLINE bool operator==(const TQueueAllocator& Other) const { return Head == Other.Head && Tail == Other.Tail; }
-	FORCEINLINE bool operator!=(const TQueueAllocator& Other) const { return !operator==(Other); }
+	FORCEINLINE bool operator==(const TQueueAllocator& other) const { return _head == other._head && _tail == other._tail; }
+	FORCEINLINE bool operator!=(const TQueueAllocator& other) const { return !operator==(other); }
 
-public: // Getters
+	// Getters
+	/////////////////////////////////
 
-	FORCEINLINE NodeType* GetHead() const { return Head; }
-	FORCEINLINE void SetHead(NodeType* Node) { Head = Node; }
+	FORCEINLINE NodeType* GetHead() const { return _head; }
+	FORCEINLINE void SetHead(NodeType* Node) { _head = Node; }
 
-	FORCEINLINE NodeType* GetTail() const { return Tail; }
-	FORCEINLINE void SetTail(NodeType* Node) { Tail = Node; }
+	FORCEINLINE NodeType* GetTail() const { return _tail; }
+	FORCEINLINE void SetTail(NodeType* Node) { _tail = Node; }
 
-public: // Methods
+	// Methods
+	/////////////////////////////////
 
-	NodeType* Allocate(SizeType Num)
+	NodeType* Allocate(SizeType num)
 	{
 		NodeType* firstNode = nullptr;
-		NodeType* prevNode = Tail;
-		for(SizeType i = 0; i < Num; ++i)
+		NodeType* prevNode = _tail;
+		for(SizeType i = 0; i < num; ++i)
 		{
 			NodeType* newNode = NAlgo::AllocateElement<NodeType>();
 			newNode->Previous = prevNode;
@@ -62,41 +68,41 @@ public: // Methods
 			prevNode = newNode;
 		}
 
-		Tail = prevNode;
-		if(!Head) { Head = firstNode; }
+		_tail = prevNode;
+		if(!_head) { _head = firstNode; }
 
 		return firstNode;
 	}
 
-	void Deallocate(NodeType* Node)
+	void Deallocate(NodeType* node)
 	{
 		// Link previous node with next and vice versa
 		{
-			if(Node != Head)
+			if(node != _head)
 			{
-				Node->Previous->Next = Node->Next;
+				node->Previous->Next = node->Next;
 			}
 			else
 			{
-				Head = Node->Next;
+				_head = node->Next;
 			}
 
-			if(Node != Tail)
+			if(node != _tail)
 			{
-				Node->Next->Previous = Node->Previous;
+				node->Next->Previous = node->Previous;
 			}
 			else
 			{
-				Tail = Node->Previous;
+				_tail = node->Previous;
 			}
 		}
 
-		NAlgo::DeallocateElement(Node);
+		NAlgo::DeallocateElement(node);
 	}
 
 	void Release()
 	{
-		NodeType* currentNode = Head;
+		NodeType* currentNode = _head;
 		while(currentNode != nullptr)
 		{
 			NodeType* nextNode = currentNode->Next;
@@ -104,12 +110,12 @@ public: // Methods
 			currentNode = nextNode;
 		}
 
-		Head = nullptr;
-		Tail = nullptr;
+		_head = nullptr;
+		_tail = nullptr;
 	}
 
-private: // Fields
+private:
 
-	NodeType* Head;
-	NodeType* Tail;
+	NodeType* _head = nullptr;
+	NodeType* _tail = nullptr;
 };

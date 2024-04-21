@@ -2,37 +2,40 @@
 
 #pragma once
 
-#include "Core/Memory.h"
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 
 // Default array allocator but with fixed num of elements
 template<typename InElementType, uint32 InNumLimit>
 class TFixedArrayAllocator
 {
+public:
 
-public: // Typedef
+	// Typedef
+	/////////////////////////////////
 
 	typedef InElementType ElementType;
 	typedef typename TArrayAllocator<ElementType>::SizeType SizeType;
 
-public: // Getters
+	// Getters
+	/////////////////////////////////
 
-	FORCEINLINE ElementType* GetData() const { return Allocator.GetData(); }
-	FORCEINLINE void SetData(ElementType* InData) { Allocator.SetData(InData); }
-	FORCEINLINE SizeType GetCount() const { return Allocator.GetCount(); }
-	FORCEINLINE void GetCount(SizeType InCount) { Allocator.SetCount(InCount); }
+	FORCEINLINE ElementType* GetData() const { return _allocator.GetData(); }
+	FORCEINLINE void SetData(ElementType* data) { _allocator.SetData(data); }
+	FORCEINLINE SizeType GetCount() const { return _allocator.GetCount(); }
+	FORCEINLINE void GetCount(SizeType count) { _allocator.SetCount(count); }
 
-public: // Manipulation
+	// Manipulation
+	/////////////////////////////////
 
-	FORCEINLINE ElementType* Allocate(SizeType Num)
+	FORCEINLINE ElementType* Allocate(SizeType num)
 	{
-		CHECK_RET(GetCount() + Num <= InNumLimit, nullptr);
-		return Allocator.Allocate(Num);
+		CHECK_RET(GetCount() + num <= InNumLimit, nullptr);
+		return _allocator.Allocate(num);
 	}
 
-	FORCEINLINE void Release() { Allocator.Release(); }
+	FORCEINLINE void Release() { _allocator.Release(); }
 
-private: // Fields
+private:
 
-	TArrayAllocator<ElementType> Allocator;
+	TArrayAllocator<ElementType> _allocator = {};
 };

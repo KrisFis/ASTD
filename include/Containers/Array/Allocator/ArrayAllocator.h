@@ -9,49 +9,55 @@
 template<typename InElementType>
 class TArrayAllocator
 {
+public:
 
-public: // Types
+	// Types
+	/////////////////////////////////
 
 	typedef InElementType ElementType;
 	typedef int64 SizeType;
 
-public: // Constructor
+	// Constructor
+	/////////////////////////////////
 
-	FORCEINLINE TArrayAllocator() : Data(nullptr), Count(0) {}
+	FORCEINLINE TArrayAllocator() = default;
 
-public: // Destructor
+	// Destructor
+	/////////////////////////////////
 
 	FORCEINLINE ~TArrayAllocator() { Release(); }
 
-public: // Getters
+	// Getters
+	/////////////////////////////////
 
 	// Gets/Sets allocated data
-	FORCEINLINE ElementType* GetData() const { return Data; }
-	FORCEINLINE void SetData(ElementType* InData) { Data = InData; }
+	FORCEINLINE ElementType* GetData() const { return _data; }
+	FORCEINLINE void SetData(ElementType* data) { _data = data; }
 
 	// Gets/Sets allocated count
-	FORCEINLINE SizeType GetCount() const { return Count; }
-	FORCEINLINE void SetCount(SizeType InCount) { Count = InCount; }
+	FORCEINLINE SizeType GetCount() const { return _count; }
+	FORCEINLINE void SetCount(SizeType count) { _count = count; }
 
-public: // Manipulation
+	// Manipulation
+	/////////////////////////////////
 
 	// Allocates new elements
 	// @param - element size
 	// @param - how many of elements should be allocated
 	// @return - array of new elements
-	ElementType* Allocate(SizeType Num)
+	ElementType* Allocate(SizeType num)
 	{
-		ElementType* newData = NAlgo::AllocateElement<ElementType>(Count + Num);
-		if(Data)
+		ElementType* newData = NAlgo::AllocateElement<ElementType>(_count + num);
+		if(_data)
 		{
-			SMemory::Copy(newData, Data, sizeof(ElementType) * Count);
-			SMemory::Deallocate(Data, sizeof(ElementType) * Count);
+			SMemory::Copy(newData, _data, sizeof(ElementType) * _count);
+			SMemory::Deallocate(_data, sizeof(ElementType) * _count);
 		}
 
-		ElementType* elementPtr = newData + Count;
+		ElementType* elementPtr = newData + _count;
 
-		Data = newData;
-		Count += Num;
+		_data = newData;
+		_count += num;
 
 		return elementPtr;
 	}
@@ -59,17 +65,17 @@ public: // Manipulation
 	// Releases resources
 	void Release()
 	{	
-		if(Data)
+		if(_data)
 		{
-			NAlgo::DeallocateElement(Data, Count);
+			NAlgo::DeallocateElement(_data, _count);
 
-			Data = nullptr;
-			Count = 0;
+			_data = nullptr;
+			_count = 0;
 		}
 	}
 
-private: // Fields
+private:
 
-	ElementType* Data;
-	SizeType Count;
+	ElementType* _data = nullptr;
+	SizeType _count = 0;
 };
