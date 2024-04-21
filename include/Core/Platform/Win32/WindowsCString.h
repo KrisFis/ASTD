@@ -30,8 +30,8 @@ struct SWindowsPlatformCString : public SBasePlatformCString
 
 	// Converts double value to string in specified base, string is saved to provided buffer
 	FORCEINLINE static char* FromDouble(double val, int32 Digits, char* buf) { return _gcvt(val, Digits, buf); }
-	static wchar* FromDouble(double val, int32 Digits, wchar* buf) 
-	{ 
+	static wchar* FromDouble(double val, int32 Digits, wchar* buf)
+	{
 		char tmpBuf[_CVTBUFSIZE];
 		_gcvt(val, Digits, tmpBuf);
 
@@ -42,6 +42,6 @@ struct SWindowsPlatformCString : public SBasePlatformCString
 				break;
 		}
 
-		return buf; 
+		return buf;
 	}
 };

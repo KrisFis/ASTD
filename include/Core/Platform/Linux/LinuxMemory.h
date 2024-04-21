@@ -11,23 +11,23 @@ struct SLinuxPlatformMemory : public SBasePlatformMemory
 {
 	// Allocates new memory
 	FORCEINLINE static void* Allocate(int64 size)
-	{ 
+	{
 		_allocatedBytes += size;
-		return malloc(size); 
+		return malloc(size);
 	}
 
 	// Allocates new memory and sets every bit to zero
 	FORCEINLINE static void* AllocateZeroed(int64 size)
-	{ 
+	{
 		_allocatedBytes += size;
 		return calloc(size, sizeof(uint8));
 	}
 
 	// Deallocates memory
 	FORCEINLINE static void Deallocate(void* Ptr, int64 size)
-	{ 
+	{
 		_allocatedBytes -= size;
-		return free(Ptr); 
+		return free(Ptr);
 	}
 
 	// Gets allocated memory as specific type

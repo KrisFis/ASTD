@@ -5,7 +5,7 @@
 #include "Core/Type/Internals/TypeTraitsCore.h"
 
 // [Move]
-// * Indicates that an specific object may be "moved from"
+// * Indicates that an specific object should be "moved"
 
 template<typename T>
 FORCEINLINE typename TRemoveReference<T>::Type&& Move(T& obj) { return static_cast<typename TRemoveReference<T>::Type&&>(obj); }
@@ -14,7 +14,7 @@ template<typename T>
 FORCEINLINE typename TRemoveReference<T>::Type&& Move(T&& obj) { return static_cast<typename TRemoveReference<T>::Type&&>(obj); }
 
 // [Forward]
-// * Passed specific object with his type provided
+// * "Forwards" object's "passed by" type
 
 template<typename T>
 FORCEINLINE typename TRemoveReference<T>::Type& Forward(T& obj) { return obj; }

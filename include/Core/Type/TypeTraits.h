@@ -46,7 +46,7 @@ private: // Typedefs
 
 	typedef char No[1];
 	typedef char Yes[2];
-	
+
 private: // Testing
 
 	static Yes& Test(BaseType*);
@@ -55,7 +55,7 @@ private: // Testing
 	static DerivedType* ChildPtr() { return nullptr; }
 
 public: // Value
-	
+
 	enum { Value = sizeof(Test(ChildPtr())) == sizeof(Yes) };
 };
 
@@ -87,15 +87,15 @@ template<typename T, typename... ArgTypes> struct TGetNthType<0, T, ArgTypes...>
 // [Is arithmetic]
 // * Checks whether specific type is arithmetic
 
-template <typename T> 
-struct TIsArithmetic 
+template <typename T>
+struct TIsArithmetic
 {
-	enum { Value = 
+	enum { Value =
 			TIsIntegerType<T>::Value ||
 			TIsFloatingType<T>::Value ||
 			TIsCharacterType<T>::Value ||
 			TIsBoolType<T>::Value
-	}; 
+	};
 };
 
 // [Decay]
@@ -145,7 +145,7 @@ struct TGetType
 };
 
 // [Call traits]
-// * Determines which type will be used for call 
+// * Determines which type will be used for call
 // * Similar to boost's call_traits, ie. having info about optimizations of which type is used
 
 template <typename T>

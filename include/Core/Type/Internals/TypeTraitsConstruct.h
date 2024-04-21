@@ -52,13 +52,13 @@ struct TIsTriviallyMoveConstructible { enum { Value = TIsTriviallyConstructible<
 
 template<typename T>
 struct TIsTrivialType
-{ 
-	enum { Value = 
+{
+	enum { Value =
 		TIsTriviallyConstructible<T>::Value &&
 		TIsTriviallyDestructible<T>::Value &&
 		TIsTriviallyCopyConstructible<T>::Value &&
 		TIsTriviallyMoveConstructible<T>::Value
-	}; 
+	};
 };
 
 // Virtual
