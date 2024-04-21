@@ -8,56 +8,53 @@
 namespace NSharedInternals
 {
 	struct SNullType {};
-	
+
 	class CReferencerBase
 	{
-	public: // Constructors
-		
-		FORCEINLINE CReferencerBase()
-			: SharedCount(0)
-			, WeakCount(0)
-		{}
-		
+	public:
 		virtual ~CReferencerBase() = default;
-		
-	public: // Getters
+
+		// Getters
+		/////////////////////////////////
 	
-		FORCEINLINE bool HasAnyReference() const { return SharedCount + WeakCount > 0; }
-		FORCEINLINE uint16 GetSharedNum() const { return SharedCount; }
-		FORCEINLINE uint16 GetWeakCount() const { return WeakCount; }
+		FORCEINLINE bool HasAnyReference() const { return _sharedNum + _weakCount > 0; }
+		FORCEINLINE uint16 GetSharedNum() const { return _sharedNum; }
+		FORCEINLINE uint16 GetWeakCount() const { return _weakCount; }
 		
 		template<typename T>
 		FORCEINLINE T* GetObject() const { return reinterpret_cast<T*>(GetObjectImpl()); }
 		
 		FORCEINLINE bool HasObject() const { return GetObjectImpl() != nullptr; }
 		
-	public: // Setters [Add]
+		// Setters [Add]
+		/////////////////////////////////
 	
 		FORCEINLINE void AddShared() 
 		{
-			CHECK_RET(SharedCount < UINT16_MAX);
-			++SharedCount;
+			CHECK_RET(_sharedNum < UINT16_MAX);
+			++_sharedNum;
 		}
 		
 		FORCEINLINE void AddWeak() 
 		{
-			CHECK_RET(WeakCount < UINT16_MAX); // overflow
-			++WeakCount;
+			CHECK_RET(_weakCount < UINT16_MAX); // overflow
+			++_weakCount;
 		}
 		
-	public: // Setters [REMOVE]
+		// Setters [REMOVE]
+		/////////////////////////////////
 	
 		FORCEINLINE void RemoveShared()
 		{
-			CHECK_RET(SharedCount > 0); // underflow
-			if(SharedCount == 1) DeconstructObjectImpl();
-			--SharedCount;
+			CHECK_RET(_sharedNum > 0); // underflow
+			if(_sharedNum == 1) DeconstructObjectImpl();
+			--_sharedNum;
 		}
 		
 		FORCEINLINE void RemoveWeak()
 		{
-			CHECK_RET(WeakCount > 0); // underflow
-			--WeakCount;
+			CHECK_RET(_weakCount > 0); // underflow
+			--_weakCount;
 		}
 		
 	protected: // Children methods
@@ -67,32 +64,35 @@ namespace NSharedInternals
 		
 	protected: // Children fields
 	
-		uint16 SharedCount;
-		uint16 WeakCount;
+		uint16 _sharedNum = 0;
+		uint16 _weakCount = 0;
 	};
 	
 	template<typename T, typename DeleterT = void>
 	class TCustomReferencer : public CReferencerBase
 	{
-	public: // Typedefs
+	public:
+		// Typedefs
+		/////////////////////////////////
 	
 		typedef T ObjectType;
 		typedef DeleterT DeleterType;
 		
-	public: // Constructors
+		// Constructors
+		/////////////////////////////////
 	
 		FORCEINLINE TCustomReferencer(ObjectType* InObject, DeleterType InDeleter)
 			: CReferencerBase()
-			, Object(InObject)
-			, Deleter(InDeleter)
+			, _object(InObject)
+			, _deleter(InDeleter)
 		{}
 		
 		virtual ~TCustomReferencer() override
 		{
-			if (Object)
+			if (_object)
 			{
-				CHECK_RET(Deleter);
-				Deleter(Object);
+				CHECK_RET(_deleter);
+				Deleter(_object);
 			}
 		}
 		
@@ -100,41 +100,41 @@ namespace NSharedInternals
 	
 		FORCEINLINE virtual void* GetObjectImpl() const override 
 		{ 
-			return Object;
+			return _object;
 		}
 		
 		FORCEINLINE virtual void DeconstructObjectImpl() override 
 		{
-			if(Object)
+			if(_object)
 			{
-				CHECK_RET(Deleter);
+				CHECK_RET(_deleter);
 			
-				Deleter(Object);
-				Object = nullptr;
+				Deleter(_object);
+				_object = nullptr;
 			}
 		}
 		
 	private: // Fields
 	
-		ObjectType* Object;
-		DeleterType Deleter;
+		ObjectType* _object;
+		DeleterType _deleter;
 	};
 	
 	template<typename ObjectType>
-	FORCEINLINE static CReferencerBase* NewCustomReferencer(ObjectType* Object)
+	FORCEINLINE static CReferencerBase* NewCustomReferencer(ObjectType* obj)
 	{
-		return new TCustomReferencer<ObjectType>(Object, [](ObjectType* ToDelete) { delete ToDelete; });
+		return new TCustomReferencer<ObjectType>(obj, [](ObjectType* obj) { delete obj; });
 	}
 	
 	template<typename ObjectType, typename DeleterType>
-	FORCEINLINE static CReferencerBase* NewCustomReferencerWithDeleter(ObjectType* Object, DeleterType* Deleter)
+	FORCEINLINE static CReferencerBase* NewCustomReferencerWithDeleter(ObjectType* obj, DeleterType* delObj)
 	{
-		return new TCustomReferencer<ObjectType>(Object, Deleter);
+		return new TCustomReferencer<ObjectType>(obj, delObj);
 	}
 	
-	FORCEINLINE static void DeleteReferencer(CReferencerBase* Referencer)
+	FORCEINLINE static void DeleteReferencer(CReferencerBase* referencer)
 	{
-		delete Referencer;
+		delete referencer;
 	}
 	
 	// Contains helper methods for referencer
@@ -142,23 +142,21 @@ namespace NSharedInternals
 	// * Handles even deconstruction of referencer
 	struct SReferencerProxy
 	{
-	
-	public: // Constructors
-	
-		FORCEINLINE SReferencerProxy()
-			: Inner(nullptr)
-		{}
-	
+		// Constructors
+		/////////////////////////////////
+
 		FORCEINLINE SReferencerProxy(CReferencerBase* InReferencer)
-			: Inner(InReferencer)
+			: _inner(InReferencer)
 		{}
 	
-	public: // Compare operators
+		// Compare operators
+		/////////////////////////////////
 
-		FORCEINLINE bool operator==(const SReferencerProxy& Other) const { return Inner == Other.Inner; }
-		FORCEINLINE bool operator!=(const SReferencerProxy& Other) const { return !operator==(Other); }
+		FORCEINLINE bool operator==(const SReferencerProxy& other) const { return _inner == other._inner; }
+		FORCEINLINE bool operator!=(const SReferencerProxy& other) const { return !operator==(other); }
 
-	public: // Pointer operators
+		// Pointer operators
+		/////////////////////////////////
 
 		FORCEINLINE CReferencerBase* operator->() { return Get(); }
 		FORCEINLINE const CReferencerBase* operator->() const { return Get(); }
@@ -166,47 +164,52 @@ namespace NSharedInternals
 		FORCEINLINE CReferencerBase& operator*() { return *Get(); }
 		FORCEINLINE const CReferencerBase& operator*() const { return *Get(); }
 	
-	public: // Checkers
+		// Checkers
+		/////////////////////////////////
 	
-		FORCEINLINE bool IsValid() const { return Inner != nullptr; }
-		FORCEINLINE bool IsUnique() const { return Inner != nullptr && Inner->GetSharedNum() == 1; }
-		FORCEINLINE bool IsSafeToDereference() const { return Inner != nullptr && Inner->GetSharedNum() > 0; }
+		FORCEINLINE bool IsValid() const { return _inner != nullptr; }
+		FORCEINLINE bool IsUnique() const { return _inner != nullptr && _inner->GetSharedNum() == 1; }
+		FORCEINLINE bool IsSafeToDereference() const { return _inner != nullptr && _inner->GetSharedNum() > 0; }
 	
-	public: // Getters
+		// Getters
+		/////////////////////////////////
 	
-		FORCEINLINE CReferencerBase* Get() const { return Inner; }
+		FORCEINLINE CReferencerBase* Get() const { return _inner; }
 	
-	public: // Setters
+		// Setters
+		/////////////////////////////////
 	
-		FORCEINLINE void Set(CReferencerBase* InReferencer) { Inner = InReferencer; }
+		FORCEINLINE void Set(CReferencerBase* referencer) { _inner = referencer; }
 	
-	public: // Helper methods [Add]
+		// Helper methods [Add]
+		/////////////////////////////////
 	
 		FORCEINLINE void AddShared()
 		{
 			if(!IsValid()) return;
 			
-			Inner->AddShared();
+			_inner->AddShared();
 		}
 	
 		FORCEINLINE void AddWeak()
 		{
 			if(!IsValid()) return;
 			
-			Inner->AddWeak();
+			_inner->AddWeak();
 		}
 	
-	public: // Helper methods [Remove]
+		// Helper methods [Remove]
+		/////////////////////////////////
 	
 		FORCEINLINE void RemoveShared()
 		{
 			if(!IsValid()) return;
 			
-			Inner->RemoveShared();
-			if(!Inner->HasAnyReference())
+			_inner->RemoveShared();
+			if(!_inner->HasAnyReference())
 			{
-				DeleteReferencer(Inner);
-				Inner = nullptr;
+				DeleteReferencer(_inner);
+				_inner = nullptr;
 			}
 		}
 		
@@ -214,17 +217,16 @@ namespace NSharedInternals
 		{
 			if(!IsValid()) return;
 			
-			Inner->RemoveWeak();
-			if (!Inner->HasAnyReference())
+			_inner->RemoveWeak();
+			if (!_inner->HasAnyReference())
 			{
-				DeleteReferencer(Inner);
-				Inner = nullptr;
+				DeleteReferencer(_inner);
+				_inner = nullptr;
 			}
 		}
-	
-	private: // Fields
-	
-		CReferencerBase* Inner;
-		
+
+	private:
+
+		CReferencerBase* _inner = nullptr;
 	};
 }

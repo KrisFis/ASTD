@@ -9,23 +9,23 @@
 struct SWindowsPlatformMemory : public SBasePlatformMemory
 {
 	// Allocates new memory
-	FORCEINLINE static void* Allocate(int64 Size) 
+	FORCEINLINE static void* Allocate(int64 size) 
 	{ 
-		AllocatedBytes += Size;
-		return malloc(Size);
+		AllocatedBytes += size;
+		return malloc(size);
 	}
 
 	// Allocates new memory and sets every bit to zero
-	FORCEINLINE static void* AllocateZeroed(int64 Size) 
+	FORCEINLINE static void* AllocateZeroed(int64 size) 
 	{ 
-		AllocatedBytes += Size;
-		return calloc(Size, sizeof(uint8));
+		AllocatedBytes += size;
+		return calloc(size, sizeof(uint8));
 	}
 
 	// Deallocates memory
-	FORCEINLINE static void Deallocate(void* Ptr, int64 Size)
+	FORCEINLINE static void Deallocate(void* Ptr, int64 size)
 	{ 
-		AllocatedBytes -= Size;
+		AllocatedBytes -= size;
 		return free(Ptr); 
 	}
 

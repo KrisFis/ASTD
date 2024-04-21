@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "Core/Types.h"
 #include "Core/Type/TypeTraits.h"
 #include "Core/Type/TypeMethods.h"
 
@@ -11,102 +10,113 @@
 template<typename InElementType>
 class TOptional
 {
+public:
 
-public: // Typedefs
+	// Typedefs
+	/////////////////////////////////
 
 	typedef InElementType ElementType;
 
-public: // Asserts
+	// Asserts
+	/////////////////////////////////
 
 	static_assert(!TIsSame<ElementType, void>::Value && !TIsReference<ElementType>::Value, "Element type is not valid");
 
-public: // Constructors
+	// Constructors
+	/////////////////////////////////
 
-	FORCEINLINE TOptional() : Value(nullptr) {}
-	FORCEINLINE TOptional(const TOptional& Other) : Value(nullptr) { FillToEmpty(Other); }
-	FORCEINLINE TOptional(TOptional&& Other) : Value(nullptr) { FillToEmpty(Move(Other)); }
-	FORCEINLINE TOptional(const ElementType& InValue) : Value(nullptr) { FillToEmpty(InValue); }
-	FORCEINLINE TOptional(ElementType&& InValue) : Value(nullptr) { FillToEmpty(Move(InValue)); }
+	FORCEINLINE TOptional() = default;
+	FORCEINLINE TOptional(const TOptional& other) { FillToEmpty(other); }
+	FORCEINLINE TOptional(TOptional&& other) { FillToEmpty(Move(other)); }
+	FORCEINLINE TOptional(const ElementType& InValue) { FillToEmpty(InValue); }
+	FORCEINLINE TOptional(ElementType&& InValue) { FillToEmpty(Move(InValue)); }
 
-public: // Destructor
+	// Destructor
+	/////////////////////////////////
 
 	FORCEINLINE ~TOptional() { Reset(); }
 
-public: // Comparison operators
+	// Comparison operators
+	/////////////////////////////////
 
-	FORCEINLINE bool operator==(const TOptional& Other) const { return ComparePrivate(*this, Other); }
-	FORCEINLINE bool operator!=(const TOptional& Other) const { return !ComparePrivate(*this, Other); }
+	FORCEINLINE bool operator==(const TOptional& other) const { return ComparePrivate(*this, other); }
+	FORCEINLINE bool operator!=(const TOptional& other) const { return !ComparePrivate(*this, other); }
 
-public: // Assign operators
+	// Assign operators
+	/////////////////////////////////
 
-	FORCEINLINE TOptional& operator=(const TOptional& Other) { Reset(); FillToEmpty(Other); return *this; }
-	FORCEINLINE TOptional& operator=(TOptional&& Other) { Reset(); FillToEmpty(Move(Other)); return *this; }
+	FORCEINLINE TOptional& operator=(const TOptional& other) { Reset(); FillToEmpty(other); return *this; }
+	FORCEINLINE TOptional& operator=(TOptional&& other) { Reset(); FillToEmpty(Move(other)); return *this; }
 
 	FORCEINLINE TOptional& operator=(const ElementType& InValue) { Reset(); FillToEmpty(InValue); return *this; }
 	FORCEINLINE TOptional& operator=(ElementType&& InValue) { Reset(); FillToEmpty(Move(InValue)); return *this; }
 
-public: // Dereference operators
+	// Dereference operators
+	/////////////////////////////////
 
-	FORCEINLINE const ElementType* operator->() const { return Value; }
-	FORCEINLINE ElementType* operator->() { return Value; }
+	FORCEINLINE const ElementType* operator->() const { return _data; }
+	FORCEINLINE ElementType* operator->() { return _data; }
 
-public: // Checks
+	// Checks
+	/////////////////////////////////
 
-	FORCEINLINE bool IsSet() const { return Value != nullptr; }
+	FORCEINLINE bool IsSet() const { return _data != nullptr; }
 
-public: // Getters
+	// Getters
+	/////////////////////////////////
 
 	// Gets copy
-	FORCEINLINE ElementType Get(const ElementType& Default) const { return IsSet() ? *Value : Default; }
+	FORCEINLINE ElementType Get(const ElementType& defaultValue) const { return IsSet() ? *_data : defaultValue; }
 	FORCEINLINE ElementType Get() const { return GetDefaultedImpl(); }
 
 	// Gets reference, but can crash
-	FORCEINLINE const ElementType& GetRef() const { return *Value; }
-	FORCEINLINE ElementType& GetRef() { return *Value; }
+	FORCEINLINE const ElementType& GetRef() const { return *_data; }
+	FORCEINLINE ElementType& GetRef() { return *_data; }
 
-public: // Manipulation
+	// Manipulation
+	/////////////////////////////////
 
 	FORCEINLINE void Set(const ElementType& InValue) { Reset(); FillToEmpty(InValue); }
 	FORCEINLINE void Set(ElementType&& InValue) { Reset(); FillToEmpty(Move(InValue)); }
 
 	void Reset()
 	{
-		if(Value)
+		if(_data)
 		{
-			NAlgo::DestructElement(Value);
-			NAlgo::DeallocateElement(Value);
-			Value = nullptr;
+			NAlgo::DestructElement(_data);
+			NAlgo::DeallocateElement(_data);
+			_data = nullptr;
 		}
 	}
 
-private: // Helper methods
+private:
 
 	void FillToEmpty(const ElementType& InValue)
 	{
-		Value = NAlgo::AllocateElement<ElementType>();
-		NAlgo::CopyElement(Value, InValue);
+		_data = NAlgo::AllocateElement<ElementType>();
+		NAlgo::CopyElement(_data, InValue);
 	}
 
 	void FillToEmpty(ElementType&& InValue)
 	{
-		Value = NAlgo::AllocateElement<ElementType>();
-		NAlgo::MoveElement(Value, Move(InValue));
+		_data = NAlgo::AllocateElement<ElementType>();
+		NAlgo::MoveElement(_data, Move(InValue));
 	}
 
-	FORCEINLINE void FillToEmpty(const TOptional& Other) 
+	FORCEINLINE void FillToEmpty(const TOptional& other) 
 	{
-		if(Other.IsSet())
+		if(other.IsSet())
 		{
-			FillToEmpty(*Other.Value);
+			FillToEmpty(*other._data);
 		}
 	}
 
-	FORCEINLINE void FillToEmpty(TOptional&& Other)
+	FORCEINLINE void FillToEmpty(TOptional&& other)
 	{
-		if(Other.IsSet())
+		if(other.IsSet())
 		{
-			Value = Other.Value;
-			Other.Value = nullptr;
+			_data = other._data;
+			other._data = nullptr;
 		}
 	}
 
@@ -114,11 +124,12 @@ private: // Helper methods
 	{
 		if constexpr(TIsConstructible<ElementType>::Value)
 		{
-			return IsSet() ? *Value : ElementType();
+			return IsSet() ? *_data : ElementType();
 		}
 		else
 		{
 			static_assert(sizeof(ElementType) < 0, "Unsuppported type for default construction");
+			return DeclVal<ElementType>();
 		}
 	}
 
@@ -126,14 +137,11 @@ private: // Helper methods
 	{
 		if(Lhs.IsSet() == Rhs.IsSet())
 		{
-			return Lhs.IsSet() && (SMemory::Compare(Lhs.Value, Rhs.Value, sizeof(ElementType)) == 0);
+			return Lhs.IsSet() && SMemory::Compare(Lhs._data, Rhs._data, sizeof(ElementType)) == 0;
 		}
 
 		return false;
 	}
 
-private: // Fields
-
-	ElementType* Value;
-
+	ElementType* _data = nullptr;
 };

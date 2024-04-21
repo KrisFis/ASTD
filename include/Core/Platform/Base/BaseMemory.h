@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include <malloc.h>
 #include <memory.h>
 
 #include "Core/Platform/PlatformTypes.h"
@@ -24,11 +23,11 @@ struct SBasePlatformMemory
 	static constexpr long double TB_PER_BYTE = 1.e-12; // terabytes
 	
 	// Copies block of memory from destionation to source (does not handle overlapping)
-	FORCEINLINE static void* Copy(void* Destination, const void* Source, int64 Size) { return memcpy(Destination, Source, Size); }
+	FORCEINLINE static void* Copy(void* dest, const void* src, int64 size) { return memcpy(dest, src, size); }
 
 	// Copies block of memory from destionation to source (handles overlapping)
-	FORCEINLINE static void* Move(void* Destination, const void* Source, int64 Size) { return memmove(Destination, Source, Size); }
+	FORCEINLINE static void* Move(void* dest, const void* src, int64 size) { return memmove(dest, src, size); }
 
 	// Compares two blocks of memory
-	FORCEINLINE static int32 Compare(const void* Lhs, const void* Rhs, int64 Num) { return memcmp(Lhs, Rhs, Num); }
+	FORCEINLINE static int32 Compare(const void* lhs, const void* rhs, int64 num) { return memcmp(lhs, rhs, num); }
 };

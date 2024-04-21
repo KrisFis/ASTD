@@ -2,121 +2,127 @@
 
 #pragma once
 
-#include "Core/Types.h"
-#include "Core/Type/TypeTraits.h"
 #include "Algo/Memory.h"
-
 #include "Containers/Queue/Allocator/QueueAllocator.h"
 
 template<typename InElementType, typename InAllocatorType = TQueueAllocator<InElementType>>
 class TQueue
 {
-
-public: // Types
+public:
+	// Types
+	/////////////////////////////////
 
 	typedef InElementType ElementType;
 	typedef InAllocatorType AllocatorType;
 	typedef typename AllocatorType::NodeType AllocatorNodeType;
 
-public: // Constructors
+	// Constructors
+	/////////////////////////////////
 
-	FORCEINLINE TQueue() : Allocator() {}
-	FORCEINLINE TQueue(const TQueue& Other) : Allocator() { CopyFrom(Other); }
-	FORCEINLINE TQueue(TQueue&& Other) : Allocator() { MoveFrom(Move(Other)); }
+	FORCEINLINE TQueue() = default;
+	FORCEINLINE TQueue(const TQueue& other) { CopyFrom(other); }
+	FORCEINLINE TQueue(TQueue&& other) { MoveFrom(Move(other)); }
 
-public: // Destructor
+	// Destructor
+	/////////////////////////////////
 
 	FORCEINLINE ~TQueue() { EmptyImpl(); }
 
-public: // Operators
+	// Operators
+	/////////////////////////////////
 
-	FORCEINLINE bool operator==(const TQueue& Other) const { return Allocator == Other.Allocator; }
-	FORCEINLINE bool operator!=(const TQueue& Other) const { return Allocator != Other.Allocator; }
+	FORCEINLINE bool operator==(const TQueue& other) const { return _allocator == other._allocator; }
+	FORCEINLINE bool operator!=(const TQueue& other) const { return _allocator != other._allocator; }
 
-	FORCEINLINE TQueue& operator=(const TQueue& Other) { CopyFrom(Other); return *this; }
-	FORCEINLINE TQueue& operator=(TQueue&& Other) { MoveFrom(Move(Other)); return *this; }
+	FORCEINLINE TQueue& operator=(const TQueue& other) { CopyFrom(other); return *this; }
+	FORCEINLINE TQueue& operator=(TQueue&& other) { MoveFrom(Move(other)); return *this; }
 
-public: // Getters
+	// Getters
+	/////////////////////////////////
 
-	FORCEINLINE bool IsEmpty() const { return !Allocator.GetHead(); }
+	FORCEINLINE bool IsEmpty() const { return !_allocator.GetHead(); }
 
-public: // Peek
+	// Peek
+	/////////////////////////////////
 
-	FORCEINLINE bool Peek(ElementType& OutValue) const { return PeekImpl(OutValue); }
+	FORCEINLINE bool Peek(ElementType& outVal) const { return PeekImpl(outVal); }
 
-public: // Enqueue
+	// Enqueue
+	/////////////////////////////////
 
-	FORCEINLINE void Enqueue(const ElementType& Value) { AddImpl(Value); }
-	FORCEINLINE void Enqueue(ElementType&& Value) { AddImpl(Move(Value)); }
+	FORCEINLINE void Enqueue(const ElementType& val) { AddImpl(val); }
+	FORCEINLINE void Enqueue(ElementType&& val) { AddImpl(Move(val)); }
 
-public: // Dequeue
+	// Dequeue
+	/////////////////////////////////
 
 	FORCEINLINE bool Dequeue() { return RemoveFromHeadImpl(); }
-	FORCEINLINE bool Dequeue(ElementType& OutValue) { return RemoveFromHeadImpl(OutValue); }
+	FORCEINLINE bool Dequeue(ElementType& outVal) { return RemoveFromHeadImpl(outVal); }
 
-public: // Empty
+	// Empty
+	/////////////////////////////////
 
 	FORCEINLINE void Empty() { EmptyImpl(); }
 	FORCEINLINE void Reset() { EmptyImpl(); }
 
-private: // Helper methods
+private:
 
-	bool PeekImpl(ElementType& OutValue) const
+	bool PeekImpl(ElementType& outVal) const
 	{
-		AllocatorNodeType* node = Allocator.GetHead();
+		AllocatorNodeType* node = _allocator.GetHead();
 		if(node)
 		{
-			NAlgo::CopyElement(&OutValue, &node->Value);
+			NAlgo::CopyElement(&outVal, &node->Value);
 		}
 
 		return node != nullptr;
 	}
 
-	AllocatorNodeType* AddImpl(const ElementType& Value)
+	AllocatorNodeType* AddImpl(const ElementType& val)
 	{
-		AllocatorNodeType* node = Allocator.Allocate(1);
-		NAlgo::MoveElement(&node->Value, &Value);
+		AllocatorNodeType* node = _allocator.Allocate(1);
+		NAlgo::MoveElement(&node->Value, &val);
 		return node;
 	}
 
-	AllocatorNodeType* AddImpl(ElementType&& Value)
+	AllocatorNodeType* AddImpl(ElementType&& val)
 	{
-		AllocatorNodeType* node = Allocator.Allocate(1);
-		NAlgo::MoveElement(&node->Value, &Value);
+		AllocatorNodeType* node = _allocator.Allocate(1);
+		NAlgo::MoveElement(&node->Value, &val);
 		return node;
 	}
 
 	bool RemoveFromHeadImpl()
 	{
-		AllocatorNodeType* node = Allocator.GetHead();
+		AllocatorNodeType* node = _allocator.GetHead();
 		if(!node)
 		{
 			return false;
 		}
 
 		NAlgo::DestructElement(&node->Value);
-		Allocator.Deallocate(node);
+		_allocator.Deallocate(node);
 
 		return true;
 	}
 
-	bool RemoveFromHeadImpl(ElementType& OutValue)
+	bool RemoveFromHeadImpl(ElementType& outVal)
 	{
-		AllocatorNodeType* node = Allocator.GetHead();
+		AllocatorNodeType* node = _allocator.GetHead();
 		if(!node)
 		{
 			return false;
 		}
 
-		NAlgo::MoveElement(&OutValue, &node->Value);
-		Allocator.Deallocate(node);
+		NAlgo::MoveElement(&outVal, &node->Value);
+		_allocator.Deallocate(node);
 
 		return true;
 	}
 
 	void EmptyImpl()
 	{
-		AllocatorNodeType* currentNode = Allocator.GetHead();
+		AllocatorNodeType* currentNode = _allocator.GetHead();
 		if(currentNode)
 		{
 			while(currentNode != nullptr)
@@ -125,35 +131,32 @@ private: // Helper methods
 				currentNode = currentNode->Next;
 			}
 
-			Allocator.Release();
+			_allocator.Release();
 		}
 	}
 
-	void CopyFrom(const TQueue& Other)
+	void CopyFrom(const TQueue& other)
 	{
 		EmptyImpl();
 
-		AllocatorNodeType* currentNode = Other.Allocator.GetHead();
+		AllocatorNodeType* currentNode = other._allocator.GetHead();
 		while(currentNode != nullptr)
 		{
-			AllocatorNodeType* newNode = Allocator.Allocate(1);
+			AllocatorNodeType* newNode = _allocator.Allocate(1);
 			NAlgo::CopyElement(&newNode->Value, &currentNode->Value);
 		}
 	}
 
-	void MoveFrom(TQueue&& Other)
+	void MoveFrom(TQueue&& other)
 	{
 		EmptyImpl();
 
-		Allocator.SetHead(Other.Allocator.GetHead());
-		Allocator.SetTail(Other.Allocator.GetTail());
+		_allocator.SetHead(other._allocator.GetHead());
+		_allocator.SetTail(other._allocator.GetTail());
 
-		Other.Allocator.SetHead(nullptr);
-		Other.Allocator.SetTail(nullptr);
+		other._allocator.SetHead(nullptr);
+		other._allocator.SetTail(nullptr);
 	}
 
-private: // Fields
-
-	AllocatorType Allocator;
-
+	AllocatorType _allocator = {};
 };
