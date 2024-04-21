@@ -55,9 +55,6 @@
 #include "Shared/SharedClass.h"
 #include "Shared/SharedUtils.h"
 
-// Log
-#include "Log/Logger.h"
-
 // Utils
 #include "Algo/Memory.h"
 #include "Algo/Sort.h"
