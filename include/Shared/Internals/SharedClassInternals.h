@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "Core/Types.h"
 #include "Core/Type/TypeTraits.h"
 
 #include "Shared/SharedObject.h"
@@ -50,16 +49,17 @@ namespace NSharedInternals
 	
 	// Is shared class
 	template<typename ChildType, typename TEnableIf<TIsSharedClassType<ChildType>::Value>::Type* = nullptr>
-	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(CReferencerBase* Referencer) 
+	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(CReferencerBase* referencer) 
 	{ 
-		auto resultPtr = TSharedPtr<ChildType>(*Referencer);
-		resultPtr->Init_Private(TSharedPtr<typename ChildType::ClassType>(Referencer)); 
+		auto resultPtr = TSharedPtr<ChildType>(*referencer);
+		resultPtr->Init_Private(TSharedPtr<typename ChildType::ClassType>(referencer)); 
 		return resultPtr;
 	}
 	
 	// Is not shared class
 	template<typename ChildType, typename TEnableIf<!TIsSharedClassType<ChildType>::Value>::Type* = nullptr>
-	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(CReferencerBase* Referencer) 
-	{ return TSharedPtr<ChildType>(*Referencer); }
-	
+	FORCEINLINE_DEBUGGABLE TSharedPtr<ChildType> InitAsSharedClass(CReferencerBase* referencer)
+	{
+		return TSharedPtr<ChildType>(*referencer);
+	}
 }

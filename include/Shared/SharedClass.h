@@ -3,58 +3,54 @@
 #pragma once
 
 #include "Shared/SharedObject.h"
-#include "Shared/Internals/SharedClassInternals.h"
 
 template<typename T>
 class TSharedClass
 {
-public: // Typedefs
+	// Typedefs
+	/////////////////////////////////
 
 	typedef T ClassType;
+
+	// Constructors
+	/////////////////////////////////
+
+	FORCEINLINE TSharedClass() : _isSharedInitialized(false) {}
 	
-public: // Constructors
+	// Getters
+	/////////////////////////////////
 
-	FORCEINLINE TSharedClass()
-		: bIsSharedInitialized(false)
-	{}
-	
-public: // Getters
+	FORCEINLINE bool IsSharedInitialized() const { return _isSharedInitialized; }
 
-	FORCEINLINE bool IsSharedInitialized() const { return bIsSharedInitialized; }
-
-public: // External method
+	// External method
+	/////////////////////////////////
 
 	// Gets pointer as shared_ptr
 	FORCEINLINE TSharedPtr<ClassType> AsShared()
 	{
-		CHECK_RET(WeakThis.IsValid(), nullptr);
-		return WeakThis.Pin();
+		CHECK_RET(_weakThis.IsValid(), nullptr);
+		return _weakThis.Pin();
 	}
 	
 	// Gets pointer as shared_ptr with provided type
 	template<typename ChildType>
 	FORCEINLINE TSharedPtr<ChildType> AsShared()
 	{
-		CHECK_RET(WeakThis.IsValid(), nullptr);
-		return (TSharedPtr<ChildType>)WeakThis.Pin();
+		CHECK_RET(_weakThis.IsValid(), nullptr);
+		return _weakThis.Pin();
 	}
 
-public: // Private methods
+private:
 
 	// Do not call this method DIRECTLY!
-	FORCEINLINE void Init_Private(const TSharedPtr<ClassType>& InPtr)
+	FORCEINLINE void Init_Private(const TSharedPtr<ClassType>& ptr)
 	{
-		CHECK_RET(!bIsSharedInitialized);
+		CHECK_RET(!_isSharedInitialized);
 		
-		WeakThis = InPtr;
-		bIsSharedInitialized = true;
+		_weakThis = ptr;
+		_isSharedInitialized = true;
 	}
 
-private: // Fields
-
-	mutable TWeakPtr<ClassType> WeakThis;
-
-private: // Primitive fields
-
-	bool bIsSharedInitialized;
+	mutable TWeakPtr<ClassType> _weakThis;
+	bool _isSharedInitialized;
 };

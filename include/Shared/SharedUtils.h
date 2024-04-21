@@ -2,18 +2,18 @@
 
 #pragma once
 
-#include "Shared/SharedClass.h"
+#include "Internals/SharedClassInternals.h"
 #include "Shared/SharedObject.h"
 
 template<typename T, typename... ArgTypes>
-static TSharedPtr<T> MakeShared(ArgTypes&&... Args)
+static TSharedPtr<T> MakeShared(ArgTypes&&... args)
 {
-	return NSharedInternals::InitAsSharedClass<T>(NSharedInternals::NewCustomReferencer(new T(Forward<ArgTypes>(Args)...)));
+	return NSharedInternals::InitAsSharedClass<T>(NSharedInternals::NewCustomReferencer(new T(Forward<ArgTypes>(args)...)));
 }
 
 template<typename T, typename R = T>
-static TSharedPtr<R> MakeShareable(T* Instance)
+static TSharedPtr<R> MakeShareable(T* instance)
 {
 	static_assert(TIsDerivedFrom<R,T>::Value, "Unrelated instance type to return type");
-	return NSharedInternals::InitAsSharedClass<R>(NSharedInternals::NewCustomReferencer(Instance));
+	return NSharedInternals::InitAsSharedClass<R>(NSharedInternals::NewCustomReferencer(instance));
 }

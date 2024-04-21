@@ -8,72 +8,87 @@
 template<typename T>
 class TSharedPtr
 {
+	template<typename OtherT> friend class TSharedPtr;
+	template<typename OtherT> friend class TWeakPtr;
 
-public: // Typedefs
+public:
+
+	// Typedefs
+	/////////////////////////////////
 
 	typedef T ObjectType;
-	typedef TSharedPtr<T> SharedType;
 
-public: // Constructor
+	// Constructor
+	/////////////////////////////////
 
 	FORCEINLINE TSharedPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE TSharedPtr(NSharedInternals::CReferencerBase& Referencer) : ReferencerProxy(&Referencer) { ReferencerProxy.AddShared(); }
+	FORCEINLINE TSharedPtr(NSharedInternals::CReferencerBase& ref) : _referencerProxy(&ref) { _referencerProxy.AddShared(); }
 
-public: // Copy/Move constructors [SharedPtr]
+	// Copy/Move constructors [SharedPtr]
+	/////////////////////////////////
 	
-	FORCEINLINE TSharedPtr(const SharedType& Other) { ReplaceBy(Other); }
-	FORCEINLINE TSharedPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
+	FORCEINLINE TSharedPtr(const TSharedPtr& other) { ReplaceBy(other); }
+	FORCEINLINE TSharedPtr(TSharedPtr&& other) { ReplaceBy(Forward<TSharedPtr>(other)); }
 	
-public: // Destructor
+	// Destructor
+	/////////////////////////////////
 
 	FORCEINLINE ~TSharedPtr() { Reset(); }
 	
-public: // Cast operators
+	// Cast operators
+	/////////////////////////////////
 
 	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
-	FORCEINLINE operator TSharedPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TSharedPtr<OtherT>(*ReferencerProxy) : nullptr; }
+	FORCEINLINE operator TSharedPtr<OtherT>() const { return _referencerProxy.IsValid() ? TSharedPtr<OtherT>(*_referencerProxy) : nullptr; }
 	
 	template<typename OtherT, typename TEnableIf<TIsBaseOf<OtherT, T>::Value>::Type* = nullptr>
-	FORCEINLINE explicit operator TSharedPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TSharedPtr<OtherT>(*ReferencerProxy) : nullptr; }
+	FORCEINLINE explicit operator TSharedPtr<OtherT>() const { return _referencerProxy.IsValid() ? TSharedPtr<OtherT>(*_referencerProxy) : nullptr; }
 
-public: // Comparison operators [SharedPtr]
+	// Comparison operators [SharedPtr]
+	/////////////////////////////////
 
-	FORCEINLINE bool operator==(const SharedType& Other) const { return ReferencerProxy == Other.ReferencerProxy; }
-	FORCEINLINE bool operator!=(const SharedType& Other) const { return !operator==(Other); }
+	FORCEINLINE bool operator==(const TSharedPtr& other) const { return _referencerProxy == other._referencerProxy; }
+	FORCEINLINE bool operator!=(const TSharedPtr& other) const { return !operator==(other); }
 
-public: // Assignment operators
+	// Assignment operators
+	/////////////////////////////////
 
 	FORCEINLINE TSharedPtr& operator=(NSharedInternals::SNullType*) { Reset(); return *this; }
 
-public: // Assignment operators [SharedPtr]
+	// Assignment operators [SharedPtr]
+	/////////////////////////////////
 
-	FORCEINLINE TSharedPtr& operator=(const SharedType& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
-	FORCEINLINE TSharedPtr& operator=(SharedType&& Other) { if(&Other != this) ReplaceBy(Forward<SharedType>(Other)); return *this; }
+	FORCEINLINE TSharedPtr& operator=(const TSharedPtr& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
+	FORCEINLINE TSharedPtr& operator=(TSharedPtr&& Other) { if(&Other != this) ReplaceBy(Forward<TSharedPtr>(Other)); return *this; }
 
-public: // Pointer operators
+	// Pointer operators
+	/////////////////////////////////
 
 	FORCEINLINE ObjectType* operator->() const { return Get(); }
 	FORCEINLINE ObjectType& operator*() const { return *Get(); }
 
-public: // Validation
+	// Validation
+	/////////////////////////////////
 
-	FORCEINLINE bool IsValid() const	{ return ReferencerProxy.IsSafeToDereference(); }
-	FORCEINLINE bool IsUnique() const { return ReferencerProxy.IsUnique(); }
+	FORCEINLINE bool IsValid() const { return _referencerProxy.IsSafeToDereference(); }
+	FORCEINLINE bool IsUnique() const { return _referencerProxy.IsUnique(); }
 
-public: // Getters
+	// Getters
+	/////////////////////////////////
 
-	FORCEINLINE ObjectType* Get() const { return ReferencerProxy.IsValid() ? ReferencerProxy->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() const { return _referencerProxy.IsValid() ? _referencerProxy->GetObject<ObjectType>() : nullptr; }
 	FORCEINLINE ObjectType& GetRef() const { return *Get(); }
-	
-public: // Other
 
-	FORCEINLINE void Reset() { ReferencerProxy.RemoveShared(); ReferencerProxy.Set(nullptr); }
+	// Other
+	/////////////////////////////////
 
-private: // Helper methods -> Replacing
+	FORCEINLINE void Reset() { _referencerProxy.RemoveShared(); _referencerProxy.Set(nullptr); }
+
+private:
 
 	// const PtrType&
 	// * Copy
-	FORCEINLINE_DEBUGGABLE void ReplaceBy(const SharedType& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(const TSharedPtr& other)
 	{
 		// How it should work ? (Copy implementation)
 		
@@ -82,14 +97,14 @@ private: // Helper methods -> Replacing
 		// ** 2) Add shared reference to other
 		// ** 3) Replace referencer
 	
-		ReferencerProxy.RemoveShared(); // 1
-		Other.ReferencerProxy.AddShared(); // 2
-		ReferencerProxy = Other.ReferencerProxy; // 3
+		_referencerProxy.RemoveShared(); // 1
+		other._referencerProxy.AddShared(); // 2
+		_referencerProxy = other._referencerProxy; // 3
 	}
 	
 	// PtrType&&
 	// * Move
-	FORCEINLINE_DEBUGGABLE void ReplaceBy(SharedType&& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(TSharedPtr&& other)
 	{
 		// How it should work ? (move implementation)
 		
@@ -98,115 +113,121 @@ private: // Helper methods -> Replacing
 		// ** 2) Replace referencer
 		// ** 3) Clear other referencer
 		
-		ReferencerProxy.RemoveShared(); // 1
-		ReferencerProxy = Other.ReferencerProxy; // 2
+		_referencerProxy.RemoveShared(); // 1
+		_referencerProxy = other._referencerProxy; // 2
 		
-		Other.ReferencerProxy.Set(nullptr); // 3
+		other._referencerProxy.Set(nullptr); // 3
 	}
 	
-private: // Fields
-
-	mutable NSharedInternals::SReferencerProxy ReferencerProxy;
-
-private: // Friends
-
-	template<typename OtherT> friend class TSharedPtr;
-	template<typename OtherT> friend class TWeakPtr;
+	mutable NSharedInternals::SReferencerProxy _referencerProxy;
 };
 
 // Equivalent of std's weak_ptr
 template<typename T>
 class TWeakPtr
 {
+	template<typename OtherT> friend class TSharedPtr;
+	template<typename OtherT> friend class TWeakPtr;
 
-public: // Typedefs
+public:
+
+	// Typedefs
+	/////////////////////////////////
 
 	typedef T ObjectType;
-	typedef TWeakPtr<T> WeakType;
-	typedef TSharedPtr<T> SharedType;
 
-public: // Constructors
+	// Constructors
+	/////////////////////////////////
 
 	FORCEINLINE TWeakPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE TWeakPtr(NSharedInternals::CReferencerBase& Referencer) : ReferencerProxy(&Referencer) { ReferencerProxy.AddWeak();}
+	FORCEINLINE TWeakPtr(NSharedInternals::CReferencerBase& ref) : _referencerProxy(&ref) { _referencerProxy.AddWeak();}
 
-public: // Copy/Move constructors [WeakPtr]
+	// Copy/Move constructors [WeakPtr]
+	/////////////////////////////////
 
-	FORCEINLINE TWeakPtr(const WeakType& Other) { ReplaceBy(Other); }
-	FORCEINLINE TWeakPtr(WeakType&& Other) noexcept { ReplaceBy(Forward<WeakType>(Other)); }
+	FORCEINLINE TWeakPtr(const TWeakPtr& other) { ReplaceBy(other); }
+	FORCEINLINE TWeakPtr(TWeakPtr&& other) noexcept { ReplaceBy(Forward<TWeakPtr>(other)); }
 
-public: // Copy/Move constructors [SharedPtr]
+	// Copy/Move constructors [SharedPtr]
+	/////////////////////////////////
 
-	FORCEINLINE explicit TWeakPtr(const SharedType& Other) { ReplaceBy(Other); }
-	FORCEINLINE explicit TWeakPtr(SharedType&& Other) noexcept { ReplaceBy(Forward<SharedType>(Other)); }
+	FORCEINLINE explicit TWeakPtr(const TSharedPtr<T>& other) { ReplaceBy(other); }
+	FORCEINLINE explicit TWeakPtr(TSharedPtr<T>&& other) noexcept { ReplaceBy(Forward<TSharedPtr<T>>(other)); }
 
-public: // Destructor
+	// Destructor
+	/////////////////////////////////
 
 	FORCEINLINE ~TWeakPtr() { Reset(); }
 
-public: // Cast operators
+	// Cast operators
+	/////////////////////////////////
 
 	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
-	FORCEINLINE operator TWeakPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TWeakPtr<OtherT>(*ReferencerProxy) : nullptr; }
+	FORCEINLINE operator TWeakPtr<OtherT>() const { return _referencerProxy.IsValid() ? TWeakPtr<OtherT>(*_referencerProxy) : nullptr; }
 	
 	template<typename OtherT, typename TEnableIf<TIsBaseOf<OtherT, T>::Value>::Type* = nullptr>
-	FORCEINLINE explicit operator TWeakPtr<OtherT>() const { return ReferencerProxy.IsValid() ? TWeakPtr<OtherT>(*ReferencerProxy) : nullptr; }
+	FORCEINLINE explicit operator TWeakPtr<OtherT>() const { return _referencerProxy.IsValid() ? TWeakPtr<OtherT>(*_referencerProxy) : nullptr; }
 
-public: // Comparison operators [WeakPtr]
+	// Comparison operators [WeakPtr]
+	/////////////////////////////////
 
-	FORCEINLINE bool operator==(const WeakType& Other) const	{ return ReferencerProxy == Other.ReferencerProxy; }
-	FORCEINLINE bool operator!=(const WeakType& Other) const	{ return !operator==(Other); }
+	FORCEINLINE bool operator==(const TWeakPtr& other) const	{ return _referencerProxy == other._referencerProxy; }
+	FORCEINLINE bool operator!=(const TWeakPtr& other) const	{ return !operator==(other); }
 	
-public: // Comparison operators [SharedPtr]
+	// Comparison operators [SharedPtr]
+	/////////////////////////////////
 	
-	FORCEINLINE bool operator==(const SharedType& Other) const	{ return ReferencerProxy == Other.ReferencerProxy; }
-	FORCEINLINE bool operator!=(const SharedType& Other) const	{ return !operator==(Other); }
+	FORCEINLINE bool operator==(const TSharedPtr<T>& other) const	{ return _referencerProxy == other._referencerProxy; }
+	FORCEINLINE bool operator!=(const TSharedPtr<T>& other) const	{ return !operator==(other); }
 	
-public: // Assignment operators
+	// Assignment operators
+	/////////////////////////////////
 
-	FORCEINLINE TWeakPtr& operator=(const NSharedInternals::SNullType*) { Reset(); }
+	FORCEINLINE TWeakPtr& operator=(const NSharedInternals::SNullType*) { Reset(); return *this; }
 	
-public: // Assignment operators [WeakPtr]
+	// Assignment operators [WeakPtr]
+	/////////////////////////////////
 
-	FORCEINLINE TWeakPtr& operator=(const WeakType& Other) { if (&Other != this) ReplaceBy(Other); return *this; };
-	FORCEINLINE TWeakPtr& operator=(WeakType&& Other) { if (&Other != this) ReplaceBy(Forward<WeakType>(Other)); return *this; };
+	FORCEINLINE TWeakPtr& operator=(const TWeakPtr& other) { if (&other != this) ReplaceBy(other); return *this; }
+	FORCEINLINE TWeakPtr& operator=(TWeakPtr&& other) { if (&other != this) ReplaceBy(Forward<TWeakPtr>(other)); return *this; }
 	
-public: // Assignment operators [SharedPtr]
+	// Assignment operators [SharedPtr]
+	/////////////////////////////////
 
-	FORCEINLINE TWeakPtr& operator=(const SharedType& Other) { ReplaceBy(Other); return *this; };
-	FORCEINLINE TWeakPtr& operator=(SharedType&& Other) { ReplaceBy(Forward<SharedType>(Other)); return *this; };
+	FORCEINLINE TWeakPtr& operator=(const TSharedPtr<T>& other) { ReplaceBy(other); return *this; }
+	FORCEINLINE TWeakPtr& operator=(TSharedPtr<T>&& other) { ReplaceBy(Forward<TSharedPtr<T>>(other)); return *this; }
 	
-public: // Pointer operators
-		// * Our weak pointer supports dereferencing without shared_ptr
+	// Pointer operators
+	/////////////////////////////////
+	// * Our weak pointer supports dereferencing without shared_ptr
 
 	FORCEINLINE ObjectType* operator->() const { return Get(); }
 	FORCEINLINE ObjectType& operator*() const { return *Get(); }
 	
-public: // Validity
+	// Validity
+	/////////////////////////////////
 
-	FORCEINLINE bool IsValid() const	{ return ReferencerProxy.IsSafeToDereference(); }
+	FORCEINLINE bool IsValid() const { return _referencerProxy.IsSafeToDereference(); }
 
-public: // Getters
+	// Getters
+	/////////////////////////////////
 
-	FORCEINLINE ObjectType* Get() const { return ReferencerProxy.IsValid() ? ReferencerProxy->GetObject<ObjectType>() : nullptr; }
+	FORCEINLINE ObjectType* Get() const { return _referencerProxy.IsValid() ? _referencerProxy->GetObject<ObjectType>() : nullptr; }
 	FORCEINLINE ObjectType& GetRef() const { return *Get(); }
 	
-public: // Other
+	// Other
+	/////////////////////////////////
 
-	FORCEINLINE void Reset() { ReferencerProxy.RemoveWeak(); ReferencerProxy.Set(nullptr); }
+	FORCEINLINE void Reset() { _referencerProxy.RemoveWeak(); _referencerProxy.Set(nullptr); }
 
-	FORCEINLINE SharedType Pin() const
-	{
-		if (!IsValid()) return SharedType();
-		return SharedType(ReferencerProxy);
-	}
+	FORCEINLINE TSharedPtr<T> Pin() const { return IsValid() ? TSharedPtr<T>(_referencerProxy) : TSharedPtr<T>(); }
 
-private: // Helper methods -> Replacing
+private:
 
 	// const PtrType&
 	// * Copy
 	template<typename PtrType>
-	FORCEINLINE_DEBUGGABLE void ReplaceBy(const PtrType& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(const PtrType& other)
 	{
 		// How it should work ? (Copy implementation)
 		
@@ -220,15 +241,15 @@ private: // Helper methods -> Replacing
 		// ** 2) Add weak reference to other
 		// ** 3) Replace referencer
 	
-		ReferencerProxy.RemoveWeak(); // 1
-		Other.ReferencerProxy.AddWeak(); // 2
-		ReferencerProxy = Other.ReferencerProxy; // 3
+		_referencerProxy.RemoveWeak(); // 1
+		other._referencerProxy.AddWeak(); // 2
+		_referencerProxy = other._referencerProxy; // 3
 	}
 	
 	// PtrType&&
 	// * Move
 	template<typename PtrType>
-	FORCEINLINE_DEBUGGABLE void ReplaceBy(PtrType&& Other)
+	FORCEINLINE_DEBUGGABLE void ReplaceBy(PtrType&& other)
 	{
 		// How it should work ? (move implementation)
 		
@@ -246,24 +267,17 @@ private: // Helper methods -> Replacing
 		// ** 3) Clear other referencer
 		
 		// * Only SharedPtr
-		if(TIsSame<typename TRemoveReference<PtrType>::Type, SharedType>::Value)
+		if(TIsSame<typename TRemoveReference<PtrType>::Type, TSharedPtr<T>>::Value)
 		{
-			Other.ReferencerProxy.AddWeak(); // -2
-			Other.ReferencerProxy.RemoveShared(); // -1
+			other._referencerProxy.AddWeak(); // -2
+			other._referencerProxy.RemoveShared(); // -1
 		}
 		
-		ReferencerProxy.RemoveWeak(); // 1
-		ReferencerProxy = Other.ReferencerProxy; // 2
+		_referencerProxy.RemoveWeak(); // 1
+		_referencerProxy = other._referencerProxy; // 2
 		
-		Other.ReferencerProxy.Set(nullptr); // 3
+		other._referencerProxy.Set(nullptr); // 3
 	}
 
-private: // Fields
-
-	mutable NSharedInternals::SReferencerProxy ReferencerProxy;
-
-private: // Friend class
-
-	template<typename OtherT> friend class TSharedPtr;
-	template<typename OtherT> friend class TWeakPtr;
+	mutable NSharedInternals::SReferencerProxy _referencerProxy;
 };
