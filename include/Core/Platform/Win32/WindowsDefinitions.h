@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Core/Build/BuildDefinitions.h"
 #include "Core/Build/Configurations.h"
 #include "Core/Build/PreprocessorHelpers.h"
 
@@ -34,7 +35,12 @@
 
 #define FORCEINLINE __forceinline
 #define FORCENOINLINE __declspec(noinline)
-#define FORCEINLINE_DEBUGGABLE __inline
+
+#if BUILD_DEBUG
+	#define FORCEINLINE_DEBUGGABLE __inline
+#else
+	#define FORCEINLINE_DEBUGGABLE FORCEINLINE
+#endif
 
 #define DEBUG_BREAK() __debugbreak()
 

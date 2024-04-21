@@ -42,7 +42,7 @@
 	#define CHECKF_IMPL(expression)												\
 		((!!(expression)) || []()												\
 		{ 																		\
-			NValidationInternals::LogFailed(#expression, __FILE__, __LINE__);		\
+			NValidationInternals::LogFailed(#expression, __FILE__, __LINE__);	\
 			DEBUG_BREAK();														\
 			NValidationInternals::Crash();										\
 			return false; 														\

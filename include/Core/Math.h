@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
 // Definitions
 ///////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ struct SMath
 	FORCEINLINE static T LogE(T Value) { return log(Value); }
 
 	template<typename T>
-	FORCEINLINE static T Log2(T Value) { return log2(Value); }	
+	FORCEINLINE static T Log2(T Value) { return log2(Value); }
 
 	template<typename T>
 	FORCEINLINE static T LogX(T Base, T Value) { return LogE(Value) / LogE(Base); }

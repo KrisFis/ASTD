@@ -6,31 +6,39 @@
 // * Supported: Debug, Release
 // * Example: BUILD_RELEASE
 
-#if defined(_DEBUG)
-	#define BUILD_DEBUG 1
-#else
-	#define BUILD_RELEASE 1
+#ifndef BUILD_RELEASE
+	#define BUILD_RELEASE 0
+#endif
+
+#ifndef BUILD_DEBUG
+	#define BUILD_DEBUG 0
+#endif
+
+#if BUILD_RELEASE == BUILD_DEBUG
+	#error "Please specify 'BUILD_RELEASE=1' or 'BUILD_DEBUG=1'"
 #endif
 
 // Compiler
 // * Supported: MSVC, GNUC, GNUC_CLANG, GNUC_INTEL, GNUC_GCC
-// ** In case GNUC is defined, then one of GNUC type should be also
-// * Example: COMPILER_GNUC && COMPILER_GNUC_CLANG
+// * Example: COMPILER_GNUC_CLANG
 
-#if defined(_MSC_VER)
+#define COMPILER_MSVC 0
+#define COMPILER_CLANG 0
+#define COMPILER_INTEL 0
+#define COMPILER_GCC 0
+
+#if defined(_MSVC_VER)
+	#undef COMPILER_MSVC
 	#define COMPILER_MSVC 1
+#elif defined(__llvm__) && defined(__clang__)
+	#undef COMPILER_CLANG
+	#define COMPILER_CLANG 1
+#elif defined(__INTEL_COMPILER)
+	#undef COMPILER_INTEL
+	#define COMPILER_INTEL 1
 #elif defined(__GNUC__)
-		#define COMPILER_GNUC 1
-	#if defined(__clang__)
-		#define COMPILAR_GNUC_CLANG 1
-	#elif defined(__INTEL_COMPILER)
-		#define COMPILER_GNUC_INTEL 1
-	#elif !defined(__llvm__)
-		// Should be GCC
-		#define COMPILER_GNUC_GCC 1
-	#else
-		#error "Unsupported compiler of GNU C"
-	#endif
+	#undef COMPILER_GCC
+	#define COMPILER_GCC 1
 #else
 	#error "Unsupported compiler"
 #endif
@@ -39,22 +47,15 @@
 // * Supported: 64, 32
 // * Example: ARCHITECTURE_64
 
-#if defined(_MSC_VER)
-	#if defined(_WIN64)
-		#define ARCHITECTURE_64 1
-	#elif defined(_WIN32)
-		#define ARCHITECTURE_32 1
-	#else
-		#error "Unsupported architecture of MSVC"
-	#endif
-#elif defined(__GNUC__)
-	#if defined(__i386__)
-		#define ARCHITECTURE_32 1
-	#elif defined(__x86_64__) || defined(__aarch64__)
-		#define ARCHITECTURE_64 1
-	#else
-		#error "Unsupported architecture of GNU C" 
-	#endif
+#define ARCHITECTURE_32 0
+#define ARCHITECTURE_64 0
+
+#if defined(_WIN32) || defined(__i386__)
+	#undef ARCHITECTURE_32
+	#define ARCHITECTURE_32 1
+#elif defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__)
+	#undef ARCHITECTURE_64
+	#define ARCHITECTURE_64 1
 #else
 	#error "Unsupported architecture"
 #endif
@@ -63,17 +64,22 @@
 // * Supported: Windows, Android, Linux, APPLE
 // * Example: PLATFORM_WINDOWS
 
-#if defined(_WIN32)
+#define PLATFORM_WINDOWS 0
+#define PLATFORM_LINUX 0
+#define PLATFORM_ANDROID 0
+#define PLATFORM_MAC 0
+
+#if defined(_WIN32) || defined(_WIN64)
+	#undef PLATFORM_WINDOWS
 	#define PLATFORM_WINDOWS 1
+#elif defined(__linux__) && defined(__ANDROID__)
+	#undef PLATFORM_ANDROID
+	#define PLATFORM_ANDROID 1
 #elif defined(__linux__)
-	#if defined(__ANDROID__)
-		#define PLATFORM_ANDROID 1
-	#else
-		#define PLATFORM_LINUX 1
-	#endif
+	#undef PLATFORM_LINUX
+	#define PLATFORM_LINUX 1
 #elif defined(__APPLE__) && defined(__MACH__)
-	// "TargetConditionals.h" contains Targets
-	#define PLATFORM_APPLE 1
+	#define PLATFORM_MAC 1
 #else
 	#error "Unsupported platform"
 #endif

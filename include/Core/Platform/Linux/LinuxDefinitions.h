@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Core/Build/BuildDefinitions.h"
 #include "Core/Build/PreprocessorHelpers.h"
 
 // PLATFORM
@@ -18,14 +19,20 @@
 #define DEPRECATED __attribute__ ((__deprecated__))
 #define NODISCARD [[__nodiscard__]]
 
-#define FORCEINLINE __attribute__((always_inline))
+#define FORCEINLINE inline __attribute__((always_inline))
+
 #define FORCENOINLINE __attribute__((noinline))
-#define FORCEINLINE_DEBUGGABLE inline
+
+#if BUILD_DEBUG
+	#define FORCEINLINE_DEBUGGABLE inline
+#else
+	#define FORCEINLINE_DEBUGGABLE FORCEINLINE
+#endif
 
 #if __has_builtin(__builtin_debugtrap)
 	#define DEBUG_BREAK() __builtin_debugtrap()
 #else
-	#define DEBUG_BREAK() ASSEMBLY("int3")
+	#define DEBUG_BREAK() __asm__ volatile("int3")
 #endif
 
 #define DLL_EXPORT
