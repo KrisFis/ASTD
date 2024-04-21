@@ -19,7 +19,6 @@
 #include "Core/Platform/PlatformCString.h"
 
 // Core | Types
-#include "Core/Type/TypeHash.h"
 #include "Core/Type/TypeTraits.h"
 #include "Core/Type/TypeMethods.h"
 #include "Core/Type/TypeTraitsMacros.h"
@@ -57,7 +56,6 @@
 
 // Utils
 #include "Algo/Memory.h"
-#include "Algo/Sort.h"
 
 // Validation
 #include "Validation/Check.h"

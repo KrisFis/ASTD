@@ -72,9 +72,9 @@ namespace NValidationInternals
 }
 
 template<typename T, typename TEnableIf<NValidationInternals::TValidFinder<T>::HasBaseValid>::Type* = nullptr>
-FORCEINLINE static constexpr bool IsValid(const T& Object)
+FORCEINLINE static constexpr bool IsValid(const T& obj)
 {
-	return NValidationInternals::TValidProvider<typename NValidationInternals::TValidFinder<T>::DesiredType>::Validate(Object);
+	return NValidationInternals::TValidProvider<typename NValidationInternals::TValidFinder<T>::DesiredType>::Validate(obj);
 }
 
 template<typename T, typename TEnableIf<!NValidationInternals::TValidFinder<T>::ValidProvided>::Type* = nullptr>
