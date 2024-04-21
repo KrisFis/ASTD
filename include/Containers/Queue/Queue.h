@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Algo/Memory.h"
+#include "Core/Memory.h"
 #include "Containers/Queue/Allocator/QueueAllocator.h"
 
 template<typename InElementType, typename InAllocatorType = TQueueAllocator<InElementType>>
@@ -72,7 +72,7 @@ private:
 		AllocatorNodeType* node = _allocator.GetHead();
 		if(node)
 		{
-			NAlgo::CopyElement(&outVal, &node->Value);
+			SMemory::CopyElement(&outVal, &node->Value);
 		}
 
 		return node != nullptr;
@@ -81,14 +81,14 @@ private:
 	AllocatorNodeType* AddImpl(const ElementType& val)
 	{
 		AllocatorNodeType* node = _allocator.Allocate(1);
-		NAlgo::MoveElement(&node->Value, &val);
+		SMemory::MoveElement(&node->Value, &val);
 		return node;
 	}
 
 	AllocatorNodeType* AddImpl(ElementType&& val)
 	{
 		AllocatorNodeType* node = _allocator.Allocate(1);
-		NAlgo::MoveElement(&node->Value, &val);
+		SMemory::MoveElement(&node->Value, &val);
 		return node;
 	}
 
@@ -100,7 +100,7 @@ private:
 			return false;
 		}
 
-		NAlgo::DestructElement(&node->Value);
+		SMemory::DestructElement(&node->Value);
 		_allocator.Deallocate(node);
 
 		return true;
@@ -114,7 +114,7 @@ private:
 			return false;
 		}
 
-		NAlgo::MoveElement(&outVal, &node->Value);
+		SMemory::MoveElement(&outVal, &node->Value);
 		_allocator.Deallocate(node);
 
 		return true;
@@ -127,7 +127,7 @@ private:
 		{
 			while(currentNode != nullptr)
 			{
-				NAlgo::DestructElement(&currentNode->Value);
+				SMemory::DestructElement(&currentNode->Value);
 				currentNode = currentNode->Next;
 			}
 
@@ -143,7 +143,7 @@ private:
 		while(currentNode != nullptr)
 		{
 			AllocatorNodeType* newNode = _allocator.Allocate(1);
-			NAlgo::CopyElement(&newNode->Value, &currentNode->Value);
+			SMemory::CopyElement(&newNode->Value, &currentNode->Value);
 		}
 	}
 

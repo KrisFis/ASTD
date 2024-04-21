@@ -6,6 +6,8 @@
 // * Should include all features and functionality of ASTD
 /////////////////////////////////////////
 
+// Look at "Configurations.h" to see defines to that affects features provided
+
 // Core | Build
 #include "Core/Build/BuildDefinitions.h"
 #include "Core/Build/PreprocessorHelpers.h"
@@ -55,7 +57,7 @@
 #include "Shared/SharedUtils.h"
 
 // Utils
-#include "Algo/Memory.h"
+#include "Core/Memory.h"
 
 // Validation
 #include "Validation/Check.h"

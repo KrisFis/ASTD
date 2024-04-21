@@ -7,15 +7,15 @@
 
 struct SCString : public SPlatformCString
 {
-	// Gets length of string
+	// Gets length of a string
 	template<typename CharType>
-	static uint32 GetLength(const CharType* Value)
+	static uint32 GetLength(const CharType* str)
 	{
-		const CharType* current = Value;
+		const CharType* current = str;
 		while(*current != CHAR_TERM)
 			++current;
 
-		return static_cast<uint32>(current - Value);
+		return static_cast<uint32>(current - str);
 	}
 
 	// When:
@@ -23,18 +23,18 @@ struct SCString : public SPlatformCString
 	// * Rhs bigger -> 1
 	// * Equals -> 0
 	template<typename CharType>
-	static int32 CompareLenght(const CharType* Lhs, const CharType* Rhs)
+	static int32 CompareLenght(const CharType* lhs, const CharType* rhs)
 	{
-		while(*Lhs != CHAR_TERM)
+		while(*lhs != CHAR_TERM)
 		{
-			if(*Rhs == CHAR_TERM)
+			if(*rhs == CHAR_TERM)
 				return -1;
 
-			++Lhs;
-			++Rhs;
+			++lhs;
+			++rhs;
 		}
 
-		return *Rhs == CHAR_TERM ? 0 : 1;
+		return *rhs == CHAR_TERM ? 0 : 1;
 	}
 
 	// When:
@@ -42,103 +42,103 @@ struct SCString : public SPlatformCString
 	// * TestLen bigger -> 1
 	// * Equals -> 0
 	template<typename CharType>
-	static int32 CompareLenght(const CharType* Value, uint32 TestLen)
+	static int32 CompareLenght(const CharType* val, uint32 testLen)
 	{
-		while(*Value != CHAR_TERM)
+		while(*val != CHAR_TERM)
 		{
-			if(TestLen == 0)
+			if(testLen == 0)
 				return -1;
 
-			++Value;
-			--TestLen;
+			++val;
+			--testLen;
 		}
 
-		return TestLen == 0 ? 0 : 1;
+		return testLen == 0 ? 0 : 1;
 	}
 
 	// Compares contents of two strings
 	template<typename CharType>
-	static int32 Compare(const CharType* Lhs, const CharType* Rhs)
+	static int32 Compare(const CharType* lhs, const CharType* rhs)
 	{
-		while(*Lhs != CHAR_TERM)
+		while(*lhs != CHAR_TERM)
 		{
-			if(*Lhs != *Rhs)
+			if(*lhs != *rhs)
 				break;
 
-			++Lhs;
-			++Rhs;
+			++lhs;
+			++rhs;
 		}
 
-		return *Lhs - *Rhs;
+		return *lhs - *rhs;
 	}
 
 	template<typename CharType>
-	static CharType* ToUpper(CharType* Value)
+	static CharType* ToUpper(CharType* str)
 	{
-		CharType* current = Value;
+		CharType* current = str;
 		while(*current != CHAR_TERM)
 		{
 			*current = ToUpperChar(*current);
 			++current;
 		}
 
-		return Value;
+		return str;
 	}
 
 	template<typename CharType>
-	static CharType* ToLower(CharType* Value)
+	static CharType* ToLower(CharType* str)
 	{
-		CharType* current = Value;
+		CharType* current = str;
 		while(*current != CHAR_TERM)
 		{
 			*current = ToLowerChar(*current);
 			++current;
 		}
 
-		return Value;
+		return str;
 	}
 
 	// Copies contents of one string to the other
 	// * String memory should not overlap
 	template<typename CharType>
-	static CharType* Copy(CharType* Destination, const CharType* Source)
+	static CharType* Copy(CharType* dest, const CharType* src)
 	{
 		SMemory::Copy(
-			Destination,
-			Source,
-			sizeof(CharType) * GetLength(Source)
+			dest,
+			src,
+			sizeof(CharType) * GetLength(src)
 		);
 
-		return Destination;
+		return dest;
 	}
 
 	// Copies contents of one string to the other
 	// * String memory can overlap
 	template<typename CharType>
-	static CharType* Move(CharType* Destination, const CharType* Source)
+	static CharType* Move(CharType* dest, const CharType* src)
 	{
 		SMemory::Move(
-			Destination,
-			Source,
-			sizeof(CharType) * GetLength(Source)
+			dest,
+			src,
+			sizeof(CharType) * GetLength(src)
 		);
 
-		return Destination;
+		return dest;
 	}
 
-	// Finds the first occurrence of the substring "Sub" in the string "Main"
+	// Finds the first occurrence of the substring "subStr" in the string "str"
 	template<typename CharType>
-	static const CharType* FindSubstring(const CharType* Main, const CharType* Sub)
+	static const CharType* FindSubstring(const CharType* str, const CharType* subStr)
 	{
-		const uint32 subLen = GetLength(Sub);
-		if(CompareLenght(Main, subLen) <= 0)
+		const uint32 subLen = GetLength(subStr);
+		if(CompareLenght(str, subLen) <= 0)
 		{
-			while (*(Main + subLen) != CHAR_TERM)
+			while (*(str + subLen) != CHAR_TERM)
 			{
-				if (SMemory::Compare(Main, Sub, subLen) == 0)
-					return Main;
+				if (SMemory::Compare(str, subStr, subLen) == 0)
+					return str;
 
-				++Main;
+				++str;
 			}
 		}
 
@@ -146,17 +146,17 @@ struct SCString : public SPlatformCString
 	}
 
 	template<typename CharType>
-	static const CharType* FindSubstringReversed(const CharType* Main, const CharType* Sub)
+	static const CharType* FindSubstringReversed(const CharType* str, const CharType* subStr)
 	{
-		const uint32 mainLen = GetLength(Main);
-		const uint32 subLen = GetLength(Sub);
-		
+		const uint32 mainLen = GetLength(str);
+		const uint32 subLen = GetLength(subStr);
+
 		if(mainLen >= subLen)
 		{
-			const CharType* current = Main + (mainLen - subLen);
-			while(current >= Main)
+			const CharType* current = str + (mainLen - subLen);
+			while(current >= str)
 			{
-				if (SMemory::Compare(Main, Sub, subLen) == 0)
+				if (SMemory::Compare(str, subStr, subLen) == 0)
 					return current;
 
 				--current;

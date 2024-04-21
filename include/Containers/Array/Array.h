@@ -5,7 +5,7 @@
 #include "Core/Types.h"
 #include "Core/Type/TypeTraits.h"
 #include "Core/Math.h"
-#include "Algo/Memory.h"
+#include "Core/Memory.h"
 
 #include "Containers/Array/Allocator/ArrayAllocator.h"
 #include "Containers/InitializerList/InitializerList.h"
@@ -487,7 +487,7 @@ private: // Helper methods
 
 			Count += InCount;
 			RealocateIfNeededImpl();
-			NAlgo::CopyElement(Allocator.GetData() + oldCount, InData, InCount);
+			SMemory::CopyElement(Allocator.GetData() + oldCount, InData, InCount);
 		}
 	}
 
@@ -500,7 +500,7 @@ private: // Helper methods
 			Count += InCount;
 			RealocateIfNeededImpl();
 
-			NAlgo::MoveElement(Allocator.GetData() + oldCount, InData);
+			SMemory::MoveElement(Allocator.GetData() + oldCount, InData);
 		}
 		else
 		{
@@ -562,7 +562,7 @@ private: // Helper methods
 	{
 		for(SizeType i = 0; i < InCount; ++i)
 		{
-			NAlgo::DestructElement(Element);
+			SMemory::DestructElement(Element);
 			++Element;
 		}
 	}
