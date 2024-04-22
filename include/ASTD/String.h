@@ -1,0 +1,507 @@
+// Copyright Alternity Arts. All Rights Reserved
+
+#pragma once
+
+#include "ASTD/Core/Build.h"
+
+#include "ASTD/Array.h"
+#include "ASTD/CString.h"
+#include "ASTD/Check.h"
+
+struct SString
+{
+	// Types
+	/////////////////////////////////
+
+	typedef tchar CharType;
+	typedef TArray<CharType> DataType;
+	typedef typename DataType::SizeType SizeType;
+
+	typedef CharType* StringIteratorType;
+	typedef const CharType* ConstStringIteratorType;
+
+	// Constructors
+	/////////////////////////////////
+
+	FORCEINLINE SString() { FillToEmptyImpl(); }
+	FORCEINLINE SString(const SString& other) { FillToEmptyImpl(other); }
+	FORCEINLINE SString(SString&& other) { FillToEmptyImpl(Move(other)); }
+	FORCEINLINE SString(const CharType* text) { FillToEmptyImpl(text); }
+	FORCEINLINE SString(CharType character) { FillToEmptyImpl(character); }
+
+	// Static fields
+	/////////////////////////////////
+
+	static const SString& GetEmpty()
+	{
+		static SString emptyString = SString();
+		return emptyString;
+	}
+
+	// Compare operators
+	/////////////////////////////////
+
+	FORCEINLINE bool operator==(const SString& other) const { return _data == other._data; }
+	FORCEINLINE bool operator!=(const SString& other) const { return !operator==(other); }
+
+	// Assign operators
+	/////////////////////////////////
+
+	FORCEINLINE SString& operator=(const SString& other) { EmptyImpl(true); FillToEmptyImpl(other); return *this; }
+	FORCEINLINE SString& operator=(SString&& other) { EmptyImpl(true); FillToEmptyImpl(Move(other)); return *this; }
+
+	FORCEINLINE SString& operator+=(const SString& other) { AppendImpl(other); return *this; }
+	FORCEINLINE SString& operator+=(SString&& other) { AppendImpl(Move(other)); return *this; }
+
+	// Arithmetic operators
+	/////////////////////////////////
+
+	FORCEINLINE SString operator+(const SString& other) const { SString tmpStr(*this); return tmpStr.Append_GetRef(other); }
+	FORCEINLINE SString operator+(SString&& other) const { SString tmpStr(*this); return tmpStr.Append_GetRef(Move(other)); }
+
+	// Get operators
+	/////////////////////////////////
+
+	FORCEINLINE const CharType* operator*() const { return _data.GetData(); }
+	FORCEINLINE CharType* operator*() { return _data.GetData(); }
+
+	FORCEINLINE CharType operator[](SizeType idx) const { return _data[idx]; }
+
+	// Property getters
+	/////////////////////////////////
+
+	FORCEINLINE const DataType& GetData() const { return _data; }
+
+	FORCEINLINE const CharType* GetChars() const { return _data.GetData(); }
+	FORCEINLINE CharType* GetChars() { return _data.GetData(); }
+
+	FORCEINLINE SizeType GetLength() const { return _data.GetCount() > 1 ? _data.GetCount() - 1 : 0; }
+
+	FORCEINLINE bool IsValidIndex(SizeType idx) const { return idx >= 0 && idx < GetLastCharIndex(); }
+	FORCEINLINE bool IsEmpty() const { return GetLength() == 0; }
+
+	// Conversions
+	/////////////////////////////////
+
+	FORCEINLINE int32 ToInt32() const { return SCString::ToInt32(_data.GetData()); }
+	FORCEINLINE int64 ToInt64() const { return SCString::ToInt64(_data.GetData()); }
+	FORCEINLINE double ToDouble() const { return SCString::ToDouble(_data.GetData()); }
+
+	static SString FromInt32(int32 val)
+	{
+		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT32];
+		return SString(SCString::FromInt32(val, buffer, SCString::MAX_BUFFER_SIZE_INT32));
+	}
+
+	static SString FromInt64(int64 val)
+	{
+		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT64];
+		return SString(SCString::FromInt64(val, buffer, SCString::MAX_BUFFER_SIZE_INT64));
+	}
+
+	static SString FromDouble(double val, uint8 digits)
+	{
+		static CharType buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
+		return SString(SCString::FromDouble(val, digits, buffer, SCString::MAX_BUFFER_SIZE_DOUBLE));
+	}
+
+	// Iterations
+	/////////////////////////////////
+
+	FORCEINLINE StringIteratorType begin() { return _data.GetCount() > 1 ? &_data[0] : nullptr; }
+	FORCEINLINE ConstStringIteratorType begin() const { return _data.GetCount() > 1 ? &_data[0] : nullptr; }
+
+	FORCEINLINE StringIteratorType end() { return _data.GetCount() > 1 ? &_data[GetLastCharIndex()] : nullptr; }
+	FORCEINLINE ConstStringIteratorType end() const { return _data.GetCount() > 1 ? &_data[GetLastCharIndex()] : nullptr; }
+
+	// Compares
+	/////////////////////////////////
+
+	FORCEINLINE int32 Compare(const SString& other, bool caseSensitive = true) const { return ComparePrivate(*this, other, caseSensitive); }
+	FORCEINLINE bool EqualsTo(const SString& other, bool caseSensitive = true) const { return ComparePrivate(*this, other, caseSensitive) == 0; }
+
+	// Checks
+	/////////////////////////////////
+
+	FORCEINLINE bool IsWhitespace() const
+	{
+		return ContainsOnlyWhitespacesPrivate(*this);
+	}
+
+	FORCEINLINE bool StartsWith(const SString& val, bool caseSensitive = true) const
+	{
+		return IsAtIndexPrivate(*this, val, 0, caseSensitive);
+	}
+
+	FORCEINLINE bool EndsWith(const SString& val, bool caseSensitive = true) const
+	{
+		return IsAtIndexPrivate(*this, val, GetLastCharIndex() - val.GetLastCharIndex(), caseSensitive);
+	}
+
+	FORCEINLINE bool Contains(const SString& val, bool caseSensitive = true, bool fromStart = true) const
+	{
+		return FindOccurencePrivate(*this, val, caseSensitive, fromStart) != INDEX_NONE;
+	}
+
+	FORCEINLINE SizeType Find(const SString& val, bool caseSensitive = true, bool fromStart = true) const
+	{
+		return FindOccurencePrivate(*this, val, caseSensitive, fromStart);
+	}
+
+	// Append
+	/////////////////////////////////
+
+	FORCEINLINE void Append(const SString& other) { AppendImpl(other); }
+	FORCEINLINE void Append(SString&& other) { AppendImpl(Move(other)); }
+	FORCEINLINE void Append(CharType other) { AppendImpl(other); }
+
+	FORCEINLINE SString& Append_GetRef(const SString& other) { AppendImpl(other); return *this; }
+	FORCEINLINE SString& Append_GetRef(SString&& other) { AppendImpl(Move(other)); return *this; }
+
+	// Const manipulation
+	/////////////////////////////////
+
+	bool Split(const SString& val, SString* outLeft, SString* outRight, bool caseSensitive = true, bool fromStart = true) const
+	{
+		const CharType* foundPtr = FindSubstringPrivate(*this, val, caseSensitive, fromStart);
+		if(!foundPtr)
+			return false;
+
+		const SizeType asIndex = PTR_DIFF_TYPED(SizeType, foundPtr, _data.GetData());
+
+		if(outLeft)
+		{
+			outLeft->_data = DataType(_data.GetData(), asIndex + 1);
+			outLeft->_data[asIndex] = CHAR_TERM;
+		}
+
+		if(outRight)
+		{
+			outRight->_data = DataType(foundPtr + 1, _data.GetCount() - asIndex);
+		}
+
+		return true;
+	}
+
+	TArray<SString> SplitToArray(const SString& delimiter, bool discardEmpty = true, SizeType num = INDEX_NONE, bool caseSensitive = true) const
+	{
+		TArray<SString> result;
+
+		SplitBySubstringPrivate(*this, delimiter, discardEmpty, caseSensitive, _data.GetCount(),
+			[&result, &num](const CharType* ptr, SizeType count) -> bool
+			{
+				SString& newStr = result.AddUnitialized_GetRef();
+				newStr._data = DataType(ptr, count);
+				newStr._data.Add(CHAR_TERM);
+				return (--num == 0);
+			}
+		);
+
+		return result;
+	}
+
+	// Manipulation
+	/////////////////////////////////
+
+	SString Replace(const SString& from, const SString& to, SizeType num = INDEX_NONE, bool caseSensitive = true) const
+	{
+		SString newString(*this);
+		newString.ReplaceInline(from, to, num, caseSensitive);
+		return newString;
+	}
+
+	// -1 = All
+	void ReplaceInline(const SString& from, const SString& to, SizeType num = INDEX_NONE, bool caseSensitive = true)
+	{
+		DataType newData(_data.GetCount(), true);
+		SplitBySubstringPrivate(*this, from, false, caseSensitive, (num == -1) ? _data.GetCount() : num,
+			[&newData, &to, &num](const CharType* ptr, SizeType count) -> bool
+			{
+				const bool isLast = (*(ptr + count + 1) == CHAR_TERM);
+
+				if(count > 0)
+				{
+					newData.Append(ptr, count);
+				}
+
+				if(!isLast)
+				{
+					if(to._data.GetCount() > 1)
+					{
+						newData.Append(to._data.GetData(), to._data.GetCount() - 1);
+					}
+				}
+
+				if(isLast)
+				{
+					newData.Add(CHAR_TERM);
+
+					// is redundant, but if implementation changes this might save a day
+					return true;
+				}
+
+				return false;
+			}
+		);
+
+		if(newData.GetCount() > 0)
+		{
+			_data.Replace(newData);
+		}
+	}
+
+	SString ToUpper() const
+	{
+		SString newString(*this);
+		newString.ToUpperInline();
+		return newString;
+	}
+
+	FORCEINLINE void ToUpperInline() { SCString::ToUpper(_data.GetData()); }
+
+	SString ToLower() const
+	{
+		SString newString(*this);
+		newString.ToLowerInline();
+		return newString;
+	}
+
+	FORCEINLINE void ToLowerInline() { SCString::ToLower(_data.GetData()); }
+
+	SString ChopRight(SizeType idx) const
+	{
+		SString newString(*this);
+		newString.ChopRightInline(idx);
+		return newString;
+	}
+
+	void ChopRightInline(SizeType idx)
+	{
+		if(!IsValidIndex(idx))
+		{
+			return;
+		}
+
+		_data.Shrink(idx + 1);
+		_data[idx] = CHAR_TERM;
+	}
+
+	SString ChopLeft(SizeType idx) const
+	{
+		SString newString(*this);
+		newString.ChopLeftInline(idx);
+		return newString;
+	}
+
+	void ChopLeftInline(SizeType idx)
+	{
+		if(!IsValidIndex(idx))
+		{
+			return;
+		}
+
+		DataType newData(_data.GetCount() - idx);
+		for(SizeType i = 0; i < newData.GetCount(); ++i)
+		{
+			newData[i] = _data[idx + i];
+		}
+
+		_data = newData;
+	}
+
+	SString ChopRange(SizeType firstIdx, SizeType secondIdx) const
+	{
+		SString newString(*this);
+		newString.ChopRangeInline(firstIdx, secondIdx);
+		return newString;
+	}
+
+	void ChopRangeInline(SizeType firstIdx, SizeType secondIdx)
+	{
+		if( !IsValidIndex(firstIdx) || !IsValidIndex(secondIdx))
+		{
+			return;
+		}
+
+		SizeType* biggerVal, *smallerVal;
+		if(firstIdx > secondIdx)
+		{
+			biggerVal = &firstIdx;
+			smallerVal = &secondIdx;
+		}
+		else
+		{
+			biggerVal = &secondIdx;
+			smallerVal = &firstIdx;
+		}
+
+		ChopRightInline(*biggerVal);
+		ChopLeftInline(*smallerVal);
+	}
+
+	// Reset
+	/////////////////////////////////
+
+	FORCEINLINE void Reset() { EmptyImpl(true); }
+	FORCEINLINE void Empty(bool releaseResources = true) { EmptyImpl(releaseResources); }
+
+	// Other
+	/////////////////////////////////
+
+	FORCEINLINE void ShrinkToFit() { _data.ShrinkToFit(); }
+
+private:
+
+	FORCEINLINE void AppendImpl(const SString& other) { AppendImpl(other._data); }
+	FORCEINLINE void AppendImpl(SString&& other) { AppendImpl(other._data); other.Empty(); }
+	FORCEINLINE void AppendImpl(CharType other) { _data.Add(other); _data.Swap(_data.GetCount() - 1, _data.GetCount() - 2); }
+
+	void AppendImpl(const DataType& data)
+	{
+		_data.RemoveAt(_data.GetCount() - 1); // Remove termination character
+		_data.Append(data.GetData(), data.GetCount());
+	}
+	
+	FORCEINLINE void FillToEmptyImpl() { _data.Add(CHAR_TERM); }
+	FORCEINLINE void FillToEmptyImpl(CharType Character) { _data.Append({Character, CHAR_TERM});}
+	FORCEINLINE void FillToEmptyImpl(const SString& Other) { _data = Other._data; }
+	FORCEINLINE void FillToEmptyImpl(SString&& Other) { _data = Other._data; Other.Reset(); }
+
+	void FillToEmptyImpl(const CharType* text) 
+	{
+		if(text)
+			_data = DataType(text, SCString::GetLength(text) + 1);
+		else
+			_data = DataType({CHAR_TERM});
+	}
+
+	FORCEINLINE void EmptyImpl(bool releaseResources) { _data.Empty(releaseResources); }
+	FORCEINLINE SizeType GetLastCharIndex() const { return _data.GetCount() - 2; }
+
+	static bool IsAtIndexPrivate(const SString& str, const SString& val, SizeType idx, bool caseSensitive)
+	{
+		if(idx < 0 || str.GetLength() < idx + val.GetLength())
+			return false;
+
+		for(SizeType i = idx; i < idx + val.GetLastCharIndex(); ++i)
+		{
+			CharType lhs = str._data[i];
+			CharType rhs = val._data[i];
+
+			if(!caseSensitive)
+			{
+				lhs = SCString::ToLowerChar(lhs);
+				rhs = SCString::ToLowerChar(rhs);
+			}
+
+			if(lhs != rhs)
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	static SizeType FindOccurencePrivate(const SString& str, const SString& subStr, bool caseSensitive, bool fromStart)
+	{
+		if(const CharType* foundPtr = FindSubstringPrivate(str, subStr, caseSensitive, fromStart))
+		{
+			return PTR_DIFF_TYPED(SizeType, foundPtr, str._data.GetData());
+		}
+		return INDEX_NONE;
+	}
+
+	template<typename FuncType>
+	static void SplitBySubstringPrivate(
+		const SString& str, const SString& substr, 
+		bool ignoreEmpty, bool caseSensitive,
+		SizeType maxSplits,
+		FuncType&& functor)
+	{
+		// There has to be at least two splits
+		// * Otherwise its not "split" but "cut"
+		CHECKF(maxSplits > 1);
+
+		const SizeType mainLen = str.GetLength();
+		const SizeType subLen = substr.GetLength();
+
+		if(mainLen > 0 && mainLen > subLen)
+		{
+			const TArray<CharType> mainStr = caseSensitive ? str._data : str.ToLower()._data;
+			const TArray<CharType> subStr = caseSensitive ? substr._data : substr.ToLower()._data;
+
+			const CharType* init = mainStr.GetData();
+			const CharType* subChars = subStr.GetData();
+
+			while(const CharType* current = SCString::FindSubstring(init, subChars))
+			{
+				if (!ignoreEmpty || current-init)
+				{
+					const SizeType currIdx = PTR_DIFF_TYPED(SizeType, init, mainStr.GetData());
+					const SizeType count = PTR_DIFF_TYPED(SizeType, current, init);
+
+					if(functor(mainStr.GetData() + currIdx, count))
+						return;
+				}
+
+				init = current + subLen;
+
+				if(--maxSplits == 0)
+				{
+					break;
+				}
+			}
+
+			if (!ignoreEmpty || *init != CHAR_TERM)
+			{
+				const SizeType currIdx = PTR_DIFF_TYPED(SizeType, init, mainStr.GetData());
+				const SizeType count = mainStr.GetCount() - currIdx;
+
+				functor(mainStr.GetData() + currIdx, count);
+			}
+		}
+	}
+
+	static bool ContainsOnlyWhitespacesPrivate(const SString& val)
+	{
+		if(val.GetLength() > 0)
+		{
+			const CharType* data = val._data.GetData();
+			while(*data != CHAR_TERM)
+			{
+				if(!SCString::IsWhitespaceChar(*data))
+					return false;
+
+				++data;
+			}
+		}
+
+		return true;
+	}
+
+	static int32 ComparePrivate(const SString& lhs, const SString& rhs, bool caseSensitive) 
+	{
+		return caseSensitive ?
+			SCString::Compare(lhs._data.GetData(), rhs._data.GetData()) :
+			SCString::Compare(lhs.ToLower()._data.GetData(), rhs.ToLower()._data.GetData());
+	}
+
+	static const CharType* FindSubstringPrivate(const SString& str, const SString& substr, bool caseSensitive, bool fromStart)
+	{
+		if(caseSensitive)
+		{
+			return fromStart ? 
+				SCString::FindSubstring(str._data.GetData(), substr._data.GetData()) :
+				SCString::FindSubstringReversed(str._data.GetData(), substr._data.GetData());
+		}
+		else
+		{
+			return fromStart ? 
+				SCString::FindSubstring(str.ToLower()._data.GetData(), substr.ToLower()._data.GetData()) :
+				SCString::FindSubstringReversed(str.ToLower()._data.GetData(), substr.ToLower()._data.GetData());
+		}
+	}
+
+	DataType _data = {};
+};
