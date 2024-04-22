@@ -29,7 +29,7 @@
 #define COMPILER_INTEL 0
 #define COMPILER_GCC 0
 
-#if defined(_MSVC_VER)
+#if defined(_MSC_VER)
 	#undef COMPILER_MSVC
 	#define COMPILER_MSVC 1
 #elif defined(__llvm__) && defined(__clang__)

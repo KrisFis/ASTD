@@ -19,12 +19,12 @@ struct SWindowsPlatformCString
 	FORCEINLINE static bool IsNumberChar(wchar val) { return !IsCharAlphaW(val) && IsCharAlphaNumericW(val); }
 
 	// Checks whether the passed character is white-space.
-	FORCEINLINE static bool IsWhitespaceChar(char val) { return IsCharSpaceA(val); }
-	FORCEINLINE static bool IsWhitespaceChar(wchar val) { return IsCharSpaceW(val); }
+	FORCEINLINE static bool IsWhitespaceChar(char val) { return isspace(val); }
+	FORCEINLINE static bool IsWhitespaceChar(wchar val) { return iswspace(val); }
 
 	// Checks whether the passed character is printable
-	FORCEINLINE static bool IsPrintableChar(char val) { return IsCharPrintA(val); }
-	FORCEINLINE static bool IsPrintableChar(wchar val) { return IsCharPrintW(val); }
+	FORCEINLINE static bool IsPrintableChar(char val) { return isprint(val); }
+	FORCEINLINE static bool IsPrintableChar(wchar val) { return iswprint(val); }
 
 	// Checks whether the passed character is lowercase letter
 	FORCEINLINE static bool IsLowerChar(char val) { return IsCharLowerA(val); }
@@ -35,12 +35,12 @@ struct SWindowsPlatformCString
 	FORCEINLINE static bool IsUpperChar(wchar val) { return IsCharUpperW(val); }
 
 	// Converts uppercase letters to lowercase
-	FORCEINLINE static char ToLowerChar(char val) { return CharLowerA(val); }
-	FORCEINLINE static wchar ToLowerChar(wchar val) { return CharLowerW(val); }
+	FORCEINLINE static char ToLowerChar(char val) { return *CharLowerA(&val); }
+	FORCEINLINE static wchar ToLowerChar(wchar val) { return *CharLowerW(&val); }
 
 	// Converts lowercase letters to uppercase
-	FORCEINLINE static char ToUpperChar(char val) { return CharUpperA(val); }
-	FORCEINLINE static wchar ToUpperChar(wchar val) { return CharUpperW(val); }
+	FORCEINLINE static char ToUpperChar(char val) { return *CharUpperA(&val); }
+	FORCEINLINE static wchar ToUpperChar(wchar val) { return *CharUpperW(&val); }
 
 	// Converts the string pointed to, by the argument str to an integer
 	FORCEINLINE static int32 ToInt32(const char* val) { return atoi(val); }
