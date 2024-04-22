@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include <stdint.h>
+#include "Core/Platform/Win32/WindowsDefinitions.h"
 
 // Integers
 ////////////////////////////////////////////////

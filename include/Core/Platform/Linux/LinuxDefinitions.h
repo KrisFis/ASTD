@@ -12,6 +12,9 @@
 #define PLATFORM_STRUCT(name) SLinuxPlatform ## name
 #define PLATFORM_CLASS(name) CLinuxPlatform ## name
 
+// COMPILATION & BUILD
+////////////////////////////////////////////////////////////////////////
+
 #define DO_PRAGMA(command) _Pragma(#command)
 
 #define ASSEMBLY(code) __asm__(code)

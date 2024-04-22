@@ -2,17 +2,15 @@
 
 #pragma once
 
-#include "Core/Platform/Base/BaseTime.h"
-
 #include <time.h>
 
-struct SLinuxPlatformTime : public SBasePlatformTime
+struct SLinuxPlatformTime
 {
 	static double GetSecondsSinceEpoch()
 	{
 		timespec ts;
 		clock_gettime(CLOCK_MONOTONIC, &ts);
 
-		return (double)ts.tv_sec + (double)ts.tv_nsec / NS_PER_SECOND;
+		return (double)ts.tv_sec + (double)ts.tv_nsec / 1.e9;
 	}
 };

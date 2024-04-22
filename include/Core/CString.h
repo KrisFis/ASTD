@@ -9,6 +9,17 @@
 
 struct SCString : public PLATFORM_STRUCT(CString)
 {
+	static constexpr uint8 MAX_BUFFER_SIZE_INT32 = 33;
+	static constexpr uint8 MAX_BUFFER_SIZE_INT64 = 65;
+	static constexpr uint16 MAX_BUFFER_SIZE_DOUBLE = 309+40; // _CVTBUFSIZE
+
+	// Checks whether the passed character is wide character
+	template<typename CharType>
+	FORCEINLINE static bool IsWideChar(CharType)
+	{
+		return TIsSame<CharType, wchar>::Value;
+	}
+
 	// Gets length of a string
 	template<typename CharType>
 	static uint32 GetLength(const CharType* str)

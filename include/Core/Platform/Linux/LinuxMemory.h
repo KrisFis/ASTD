@@ -5,11 +5,11 @@
 #include <cstdlib>
 #include <memory.h>
 
-#include "Core/Platform/Base/BaseMemory.h"
+#include "Core/Platform/Linux/LinuxDefinitions.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://linux.die.net/man/2/mmap
-struct SLinuxPlatformMemory : public SBasePlatformMemory
+struct SLinuxPlatformMemory
 {
 	// Allocates new memory
 	FORCEINLINE static void* Allocate(int64 size)
@@ -43,9 +43,6 @@ struct SLinuxPlatformMemory : public SBasePlatformMemory
 
 	// Gets allocated memory as specific type
 	FORCEINLINE static double GetAllocatedBytes() { return _allocatedBytes; }
-	FORCEINLINE static double GetAllocatedKilobytes() { return _allocatedBytes * KB_PER_BYTE; }
-	FORCEINLINE static double GetAllocatedMegabytes() { return _allocatedBytes * MB_PER_BYTE; }
-	FORCEINLINE static double GetAllocatedGigabytes() { return _allocatedBytes * GB_PER_BYTE; }
 
 private:
 

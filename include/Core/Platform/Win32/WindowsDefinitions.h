@@ -26,6 +26,9 @@
 #define PLATFORM_STRUCT(name) SWindowsPlatform ## name
 #define PLATFORM_CLASS(name) CWindowsPlatform ## name
 
+// COMPILATION & BUILD
+////////////////////////////////////////////////////////////////////////
+
 #define DO_PRAGMA(command) __pragma(command)
 
 #define ASSEMBLY(code) __asm(code)

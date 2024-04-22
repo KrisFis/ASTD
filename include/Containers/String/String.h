@@ -87,22 +87,22 @@ struct SString
 	FORCEINLINE int64 ToInt64() const { return SCString::ToInt64(_data.GetData()); }
 	FORCEINLINE double ToDouble() const { return SCString::ToDouble(_data.GetData()); }
 
-	static SString FromInt32(int32 val) 
-	{ 
+	static SString FromInt32(int32 val)
+	{
 		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT32];
-		return SString(SCString::FromInt32(val, buffer)); 
+		return SString(SCString::FromInt32(val, buffer, SCString::MAX_BUFFER_SIZE_INT32));
 	}
 
 	static SString FromInt64(int64 val)
 	{
 		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT64];
-		return SString(SCString::FromInt64(val, buffer));
+		return SString(SCString::FromInt64(val, buffer, SCString::MAX_BUFFER_SIZE_INT64));
 	}
 
 	static SString FromDouble(double val, uint8 digits)
 	{
 		static CharType buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
-		return SString(SCString::FromDouble(val, digits, buffer));
+		return SString(SCString::FromDouble(val, digits, buffer, SCString::MAX_BUFFER_SIZE_DOUBLE));
 	}
 
 	// Iterations

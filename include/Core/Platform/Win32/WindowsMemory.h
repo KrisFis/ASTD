@@ -2,7 +2,9 @@
 
 #pragma once
 
+#include "Core/Platform/Win32/WindowsDefinitions.h"
 #include "Core/Platform/Base/BaseMemory.h"
+#include "Core/Platform/Linux/LinuxTypes.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc
@@ -40,9 +42,6 @@ struct SWindowsPlatformMemory : public SBasePlatformMemory
 
 	// Gets allocated memory as specific type
 	FORCEINLINE static double GetAllocatedBytes() { return (double)_allocatedBytes; }
-	FORCEINLINE static double GetAllocatedKilobytes() { return (double)_allocatedBytes * KB_PER_BYTE; }
-	FORCEINLINE static double GetAllocatedMegabytes() { return (double)_allocatedBytes * MB_PER_BYTE; }
-	FORCEINLINE static double GetAllocatedGigabytes() { return (double)_allocatedBytes * GB_PER_BYTE; }
 
 private:
 
