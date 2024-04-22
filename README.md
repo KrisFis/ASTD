@@ -9,8 +9,6 @@ Initial purpose of this library was to learn how to implement stl-like library i
 |:-|:-:|:-:|
 | Windows | YES | PLATFORM_WINDOWS |
 | Linux | YES | PLATFORM_LINUX |
-| Android | NO | PLATFORM_ANDROID |
-| Apple | NO | PLATFORM_APPLE |
 
 | **Supported Architectures** | **Tested** | **Macro** |
 |:-|:-:|:-:|
@@ -24,18 +22,18 @@ Initial purpose of this library was to learn how to implement stl-like library i
 | GNUC_INTEL | NO | COMPILER_GNUC && COMPILER_GNUC_INTEL |
 | GNUC_GCC | YES | COMPILER_GNUC && COMPILER_GNUC_GCC |
 
-## Unique Features:
+## Features:
 
-| **Description** | **Example** |
-|:-|:-:|
-| STL-like containers without need of std 	| TArray, TSharedPtr 								|
-| Lightweight Mathematic library			| SMath::Abs, SMath::Lerp 							|
-| Asynchronous callback object	 			| TAsync				 							|
-| Human readable build macros 				| BUILD_RELEASE/PLATFORM_WINDOWS/ARCHITECTURE_32	|
+| **Description**                     | **Example** |
+|:------------------------------------|:-:|
+| STL-like containers 	               | TArray, TSharedPtr 								|
+| Lightweight Mathematic library			   | SMath::Abs, SMath::Lerp 							|
+| Asynchronous callback object	 			   | TAsync				 							|
+| Human readable build macros 				    | BUILD_RELEASE/PLATFORM_WINDOWS/ARCHITECTURE_32	|
 | A lot of handy and extra features 		| TSharedClass, TAsync 								|
 | Object oriented helper functions	 		| SString::Split		 							|
-| Character encoding with tchar 			| tchar* = TEXT("myText") 							|
-| Debug breaks in code			 			| if (ensure(condition)) 							|
+| Character encoding with tchar 			   | tchar* = TEXT("myText") 							|
+| Debug breaks in code			 			         | if (ensure(condition)) 							|
 
 ## STL-like features:
 
@@ -53,3 +51,21 @@ Initial purpose of this library was to learn how to implement stl-like library i
 | Sequence container						| TArray 							| vector			|
 | FIFO container 							| TQueue 							| queue				|
 | Optional value container					| TOptional 						| optional			|
+
+## Q&A
+### But it's in global namespace ! :(
+Library is not intended to be encapsulated in its own namespace. While it is not intended, it doesn't mean its impossible to achieve.
+You can just use provided PCH that should include all necessary headers and encapsulate include itself:
+```
+namespace ASTD
+{
+    #include "ASTD/ASTD.h"
+}
+
+int main()
+{
+    ASTD::SString myStr = TEXT("Hello World!");
+    std::cout << myStr << std::endl;
+    return EXIT_SUCCESS;
+}
+```
