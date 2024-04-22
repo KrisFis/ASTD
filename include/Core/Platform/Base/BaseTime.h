@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "Core/Platform/PlatformTypes.h"
-
 struct SBasePlatformTime
 {
 	static constexpr long double NS_PER_SECOND = 1.e9; // nanoseconds

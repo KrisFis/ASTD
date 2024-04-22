@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "Core/Platform/PlatformTypes.h"
-
 #include <ctype.h>
 #include <wctype.h>
 

@@ -2,39 +2,29 @@
 
 #pragma once
 
+#include "Core/Platform/PlatformDefinitions.h"
 #include "Core/Type/TypeTraits.h"
-#include "Core/Platform/PlatformMemory.h"
 
-#if ASTD_OVERRIDE_NEW_DELETE
-FORCEINLINE void* operator new(TSize size)
-{
-	return SPlatformMemory::Allocate((uint32)size);
-}
+#include PLATFORM_HEADER(Memory)
 
-FORCEINLINE void operator delete(void* ptr, TSize size)
-{
-	return SPlatformMemory::Deallocate(ptr, (uint32)size);
-}
-#endif
-
-struct SMemory : public SPlatformMemory
+struct SMemory : public PLATFORM_STRUCT(Memory)
 {
 	template<typename T>
 	FORCEINLINE static T* AllocateElement(int64 num = 1)
 	{
-		return (T*)SPlatformMemory::Allocate(num * sizeof(T));
+		return (T*)Allocate(num * sizeof(T));
 	}
 
 	template<typename T>
 	FORCEINLINE static T* AllocateElementZeroed(int64 num = 1)
 	{
-		return (T*)SPlatformMemory::AllocateZeroed(num * sizeof(T));
+		return (T*)AllocateZeroed(num * sizeof(T));
 	}
 
 	template<typename T>
 	FORCEINLINE static void DeallocateElement(T* ptr, int64 num = 1)
 	{
-		return SPlatformMemory::Deallocate(ptr, num * sizeof(T));
+		return Deallocate(ptr, num * sizeof(T));
 	}
 
 	template<typename T, typename... ArgTypes>
@@ -59,7 +49,7 @@ struct SMemory : public SPlatformMemory
 		}
 		else
 		{
-			SPlatformMemory::Copy(
+			Copy(
 				To,
 				From,
 				sizeof(T) * num
@@ -88,7 +78,7 @@ struct SMemory : public SPlatformMemory
 		}
 		else
 		{
-			SPlatformMemory::Copy(
+			Copy(
 				ptr,
 				val,
 				sizeof(T)
@@ -112,3 +102,15 @@ struct SMemory : public SPlatformMemory
 		}
 	}
 };
+
+#if ASTD_OVERRIDE_NEW_DELETE
+FORCEINLINE void* operator new(TSize size)
+{
+	return SMemory::Allocate((uint32)size);
+}
+
+FORCEINLINE void operator delete(void* ptr, TSize size)
+{
+	return SMemory::Deallocate(ptr, (uint32)size);
+}
+#endif

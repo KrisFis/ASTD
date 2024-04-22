@@ -2,6 +2,7 @@
 
 #pragma once
 
-#include "Core/Platform/PlatformTime.h"
+#include "Core/Platform/PlatformDefinitions.h"
 
-typedef SPlatformTime STime;
+#include PLATFORM_HEADER(Time)
+typedef PLATFORM_STRUCT(Time) STime;

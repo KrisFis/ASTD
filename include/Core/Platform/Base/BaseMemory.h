@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "Core/Platform/PlatformTypes.h"
-
 struct SBasePlatformMemory
 {
 	static constexpr long double BITS_PER_BYTE = 8; // bits

@@ -1,9 +1,12 @@
 // Copyright Alternity Arts. All Rights Reserved
 
+// ReSharper disable CppUnusedIncludeDirective
 #pragma once
 
+#include "Core/Platform/PlatformDefinitions.h"
 #include "Core/Build/Configurations.h"
-#include "Core/Platform/PlatformTypes.h"
+
+#include PLATFORM_HEADER(Types)
 
 // Text definition
 

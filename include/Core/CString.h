@@ -2,10 +2,12 @@
 
 #pragma once
 
-#include "Core/Platform/PlatformCString.h"
+#include "Core/Platform/PlatformDefinitions.h"
+#include PLATFORM_HEADER(CString)
+
 #include "Core/Memory.h"
 
-struct SCString : public SPlatformCString
+struct SCString : public PLATFORM_STRUCT(CString)
 {
 	// Gets length of a string
 	template<typename CharType>
