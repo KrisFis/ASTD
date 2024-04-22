@@ -1,6 +1,6 @@
 # Alternity STD
 
-**STL & libm like HEADER-ONLY library** with a low of extras written specifically for Alternity Arts projects.
+**STL & libm like HEADER-ONLY library** with a lot of extras written specifically for Alternity Arts projects.
 Initial purpose of this library was to learn how to implement stl-like library in practice, while it still stands its now more like generic library used for any project of mine
 
 #### Disclaimer: Is still WIP and for ease of use there tends to be typedefs from std:: and library utilizes std in some places. Is intended to be replaced by custom implementation
