@@ -67,6 +67,26 @@ struct SString
 
 	FORCEINLINE CharType operator[](SizeType idx) const { return _data[idx]; }
 
+	// Stream operators
+	/////////////////////////////////
+
+	friend std::basic_ostream<CharType>& operator<<(std::basic_ostream<CharType>& os, const SString& other)
+	{
+		os << other._data.GetData();
+		return os;
+	}
+
+	friend std::basic_istream<CharType>& operator>>(std::basic_istream<CharType>& is, SString& other)
+	{
+		other._data.Resize(SCString::LARGE_BUFFER_SIZE);
+		is.getline(other._data.GetData(), other._data.GetCount());
+		other._data.Resize(is.gcount());
+
+		other._data[other._data.GetCount() - 1] = CHAR_TERM;
+
+		return is;
+	}
+
 	// Property getters
 	/////////////////////////////////
 

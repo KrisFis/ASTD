@@ -118,12 +118,12 @@ struct SMemory : public PLATFORM_STRUCT(Memory)
 };
 
 #if ASTD_OVERRIDE_NEW_DELETE
-FORCEINLINE void* operator new(TSize size)
+inline void* operator new(TSize size)
 {
 	return SMemory::Allocate((uint32)size);
 }
 
-FORCEINLINE void operator delete(void* ptr, TSize size)
+inline void operator delete(void* ptr, TSize size) noexcept
 {
 	return SMemory::Deallocate(ptr, (uint32)size);
 }

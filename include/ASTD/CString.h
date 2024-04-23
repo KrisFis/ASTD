@@ -9,8 +9,10 @@
 
 struct SCString : public PLATFORM_STRUCT(CString)
 {
-	static constexpr uint8 MAX_BUFFER_SIZE_INT32 = 33;
-	static constexpr uint8 MAX_BUFFER_SIZE_INT64 = 65;
+	static constexpr uint16 SMALL_BUFFER_SIZE = 1024;
+	static constexpr uint16 LARGE_BUFFER_SIZE = 4096;
+	static constexpr uint16 MAX_BUFFER_SIZE_INT32 = 33;
+	static constexpr uint16 MAX_BUFFER_SIZE_INT64 = 65;
 	static constexpr uint16 MAX_BUFFER_SIZE_DOUBLE = 309+40; // _CVTBUFSIZE
 
 	// Checks whether the passed character is wide character
