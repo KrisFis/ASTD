@@ -4,7 +4,6 @@
 
 #include "ASTD/Core/Build.h"
 
-#include "ASTD/Check.h"
 #include "ASTD/CString.h"
 
 enum class EArchiveType : uint8
