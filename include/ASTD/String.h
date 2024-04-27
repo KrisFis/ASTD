@@ -23,11 +23,16 @@ struct SString
 	// Constructors
 	/////////////////////////////////
 
-	FORCEINLINE SString() { FillToEmptyImpl(); }
-	FORCEINLINE SString(const SString& other) { FillToEmptyImpl(other); }
-	FORCEINLINE SString(SString&& other) { FillToEmptyImpl(Move(other)); }
+	FORCEINLINE SString() { FillToEmptyImpl({}); }
+
+	FORCEINLINE SString(const SString& other) { FillToEmptyImpl(other.GetData()); }
+	FORCEINLINE SString(SString&& other) { FillToEmptyImpl(Move(other.GetData())); }
+
+	FORCEINLINE SString(const DataType& data) { FillToEmptyImpl(data); }
+	FORCEINLINE SString(DataType&& data) { FillToEmptyImpl(Move(data)); }
+
+	FORCEINLINE SString(CharType character) { FillToEmptyImpl({character}); }
 	FORCEINLINE SString(const CharType* text) { FillToEmptyImpl(text); }
-	FORCEINLINE SString(CharType character) { FillToEmptyImpl(character); }
 
 	// Static fields
 	/////////////////////////////////
@@ -47,17 +52,17 @@ struct SString
 	// Assign operators
 	/////////////////////////////////
 
-	FORCEINLINE SString& operator=(const SString& other) { EmptyImpl(true); FillToEmptyImpl(other); return *this; }
-	FORCEINLINE SString& operator=(SString&& other) { EmptyImpl(true); FillToEmptyImpl(Move(other)); return *this; }
-
-	FORCEINLINE SString& operator+=(const SString& other) { AppendImpl(other); return *this; }
-	FORCEINLINE SString& operator+=(SString&& other) { AppendImpl(Move(other)); return *this; }
+	FORCEINLINE SString& operator=(const SString& other) { EmptyImpl(true); FillToEmptyImpl(other.GetData()); return *this; }
+	FORCEINLINE SString& operator=(SString&& other) { EmptyImpl(true); FillToEmptyImpl(Move(other.GetData())); return *this; }
 
 	// Arithmetic operators
 	/////////////////////////////////
 
 	FORCEINLINE SString operator+(const SString& other) const { SString tmpStr(*this); return tmpStr.Append_GetRef(other); }
 	FORCEINLINE SString operator+(SString&& other) const { SString tmpStr(*this); return tmpStr.Append_GetRef(Move(other)); }
+
+	FORCEINLINE SString& operator+=(const SString& other) { AppendImpl(other); return *this; }
+	FORCEINLINE SString& operator+=(SString&& other) { AppendImpl(Move(other)); return *this; }
 
 	// Get operators
 	/////////////////////////////////
@@ -371,7 +376,6 @@ struct SString
 	FORCEINLINE void ShrinkToFit() { _data.ShrinkToFit(); }
 
 private:
-
 	FORCEINLINE void AppendImpl(const SString& other) { AppendImpl(other._data); }
 	FORCEINLINE void AppendImpl(SString&& other) { AppendImpl(other._data); other.Empty(); }
 	FORCEINLINE void AppendImpl(CharType other) { _data.Add(other); _data.Swap(_data.GetCount() - 1, _data.GetCount() - 2); }
@@ -381,18 +385,25 @@ private:
 		_data.RemoveAt(_data.GetCount() - 1); // Remove termination character
 		_data.Append(data.GetData(), data.GetCount());
 	}
-	
-	FORCEINLINE void FillToEmptyImpl() { _data.Add(CHAR_TERM); }
-	FORCEINLINE void FillToEmptyImpl(CharType Character) { _data.Append({Character, CHAR_TERM});}
-	FORCEINLINE void FillToEmptyImpl(const SString& Other) { _data = Other._data; }
-	FORCEINLINE void FillToEmptyImpl(SString&& Other) { _data = Other._data; Other.Reset(); }
 
-	void FillToEmptyImpl(const CharType* text) 
+	FORCEINLINE void FillToEmptyImpl(const DataType& data) { _data = data; SanitizeData(); }
+	FORCEINLINE void FillToEmptyImpl(DataType&& data) { _data = Move(data); SanitizeData(); }
+	void FillToEmptyImpl(const CharType* text)
 	{
 		if(text)
+		{
 			_data = DataType(text, SCString::GetLength(text) + 1);
-		else
-			_data = DataType({CHAR_TERM});
+		}
+
+		SanitizeData();
+	}
+
+	void SanitizeData()
+	{
+		if (_data.IsEmpty() || (*_data.GetLast() != CHAR_TERM))
+		{
+			_data.Add(CHAR_TERM);
+		}
 	}
 
 	FORCEINLINE void EmptyImpl(bool releaseResources) { _data.Empty(releaseResources); }
@@ -511,13 +522,13 @@ private:
 	{
 		if(caseSensitive)
 		{
-			return fromStart ? 
+			return fromStart ?
 				SCString::FindSubstring(str._data.GetData(), substr._data.GetData()) :
 				SCString::FindSubstringReversed(str._data.GetData(), substr._data.GetData());
 		}
 		else
 		{
-			return fromStart ? 
+			return fromStart ?
 				SCString::FindSubstring(str.ToLower()._data.GetData(), substr.ToLower()._data.GetData()) :
 				SCString::FindSubstringReversed(str.ToLower()._data.GetData(), substr.ToLower()._data.GetData());
 		}
