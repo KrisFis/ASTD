@@ -22,7 +22,7 @@ public:
 
 	FORCEINLINE ElementType* GetData() const { return _allocator.GetData(); }
 	FORCEINLINE void SetData(ElementType* data) { _allocator.SetData(data); }
-	FORCEINLINE SizeType GetCount() const { return _allocator.GetCount(); }
+	FORCEINLINE SizeType GetCount() const { return _allocator.GetSize(); }
 	FORCEINLINE void GetCount(SizeType count) { _allocator.SetCount(count); }
 
 	// Manipulation

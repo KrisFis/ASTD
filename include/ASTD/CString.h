@@ -17,7 +17,7 @@ struct SCString : public PLATFORM_STRUCT(CString)
 
 	// Checks whether the passed character is wide character
 	template<typename CharType>
-	FORCEINLINE static bool IsWideChar(CharType)
+	FORCEINLINE static constexpr bool IsWideChar(CharType)
 	{
 		return TIsSame<CharType, wchar>::Value;
 	}

@@ -87,7 +87,7 @@ namespace NSharedInternals
 			, _object(InObject)
 			, _deleter(InDeleter)
 		{}
-		
+
 		virtual ~TCustomReferencer() override
 		{
 			if (_object)
@@ -96,48 +96,48 @@ namespace NSharedInternals
 				Deleter(_object);
 			}
 		}
-		
+
 	protected: // FReferencer overrides
-	
-		FORCEINLINE virtual void* GetObjectImpl() const override 
-		{ 
+
+		FORCEINLINE virtual void* GetObjectImpl() const override
+		{
 			return _object;
 		}
-		
-		FORCEINLINE virtual void DeconstructObjectImpl() override 
+
+		FORCEINLINE virtual void DeconstructObjectImpl() override
 		{
 			if(_object)
 			{
 				CHECK_RET(_deleter);
-			
+
 				Deleter(_object);
 				_object = nullptr;
 			}
 		}
-		
+
 	private: // Fields
-	
+
 		ObjectType* _object;
 		DeleterType _deleter;
 	};
-	
+
 	template<typename ObjectType>
 	FORCEINLINE static CReferencerBase* NewCustomReferencer(ObjectType* obj)
 	{
 		return new TCustomReferencer<ObjectType>(obj, [](ObjectType* obj) { delete obj; });
 	}
-	
+
 	template<typename ObjectType, typename DeleterType>
 	FORCEINLINE static CReferencerBase* NewCustomReferencerWithDeleter(ObjectType* obj, DeleterType* delObj)
 	{
 		return new TCustomReferencer<ObjectType>(obj, delObj);
 	}
-	
+
 	FORCEINLINE static void DeleteReferencer(CReferencerBase* referencer)
 	{
 		delete referencer;
 	}
-	
+
 	// Contains helper methods for referencer
 	// * Should be used internally
 	// * Handles even deconstruction of referencer
@@ -149,7 +149,7 @@ namespace NSharedInternals
 		FORCEINLINE SReferencerProxy(CReferencerBase* InReferencer)
 			: _inner(InReferencer)
 		{}
-	
+
 		// Compare operators
 		/////////////////////////////////
 
@@ -161,51 +161,51 @@ namespace NSharedInternals
 
 		FORCEINLINE CReferencerBase* operator->() { return Get(); }
 		FORCEINLINE const CReferencerBase* operator->() const { return Get(); }
-		
+
 		FORCEINLINE CReferencerBase& operator*() { return *Get(); }
 		FORCEINLINE const CReferencerBase& operator*() const { return *Get(); }
-	
+
 		// Checkers
 		/////////////////////////////////
-	
+
 		FORCEINLINE bool IsValid() const { return _inner != nullptr; }
 		FORCEINLINE bool IsUnique() const { return _inner != nullptr && _inner->GetSharedNum() == 1; }
 		FORCEINLINE bool IsSafeToDereference() const { return _inner != nullptr && _inner->GetSharedNum() > 0; }
-	
+
 		// Getters
 		/////////////////////////////////
-	
+
 		FORCEINLINE CReferencerBase* Get() const { return _inner; }
-	
+
 		// Setters
 		/////////////////////////////////
-	
+
 		FORCEINLINE void Set(CReferencerBase* referencer) { _inner = referencer; }
-	
+
 		// Helper methods [Add]
 		/////////////////////////////////
-	
+
 		FORCEINLINE void AddShared()
 		{
 			if(!IsValid()) return;
-			
+
 			_inner->AddShared();
 		}
-	
+
 		FORCEINLINE void AddWeak()
 		{
 			if(!IsValid()) return;
-			
+
 			_inner->AddWeak();
 		}
-	
+
 		// Helper methods [Remove]
 		/////////////////////////////////
-	
+
 		FORCEINLINE void RemoveShared()
 		{
 			if(!IsValid()) return;
-			
+
 			_inner->RemoveShared();
 			if(!_inner->HasAnyReference())
 			{
@@ -213,11 +213,11 @@ namespace NSharedInternals
 				_inner = nullptr;
 			}
 		}
-		
+
 		FORCEINLINE void RemoveWeak()
 		{
 			if(!IsValid()) return;
-			
+
 			_inner->RemoveWeak();
 			if (!_inner->HasAnyReference())
 			{

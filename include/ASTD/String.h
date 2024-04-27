@@ -84,10 +84,10 @@ struct SString
 	friend std::basic_istream<CharType>& operator>>(std::basic_istream<CharType>& is, SString& other)
 	{
 		other._data.Resize(SCString::LARGE_BUFFER_SIZE);
-		is.getline(other._data.GetData(), other._data.GetCount());
+		is.getline(other._data.GetData(), other._data.GetNum());
 		other._data.Resize(is.gcount());
 
-		other._data[other._data.GetCount() - 1] = CHAR_TERM;
+		other._data[other._data.GetNum() - 1] = CHAR_TERM;
 
 		return is;
 	}
@@ -100,7 +100,7 @@ struct SString
 	FORCEINLINE const CharType* GetChars() const { return _data.GetData(); }
 	FORCEINLINE CharType* GetChars() { return _data.GetData(); }
 
-	FORCEINLINE SizeType GetLength() const { return _data.GetCount() > 1 ? _data.GetCount() - 1 : 0; }
+	FORCEINLINE SizeType GetLength() const { return _data.GetNum() > 1 ? _data.GetNum() - 1 : 0; }
 
 	FORCEINLINE bool IsValidIndex(SizeType idx) const { return idx >= 0 && idx < GetLastCharIndex(); }
 	FORCEINLINE bool IsEmpty() const { return GetLength() == 0; }
@@ -114,30 +114,30 @@ struct SString
 
 	static SString FromInt32(int32 val)
 	{
-		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT32];
+		thread_local CharType buffer[SCString::MAX_BUFFER_SIZE_INT32];
 		return SString(SCString::FromInt32(val, buffer, SCString::MAX_BUFFER_SIZE_INT32));
 	}
 
 	static SString FromInt64(int64 val)
 	{
-		static CharType buffer[SCString::MAX_BUFFER_SIZE_INT64];
+		thread_local CharType buffer[SCString::MAX_BUFFER_SIZE_INT64];
 		return SString(SCString::FromInt64(val, buffer, SCString::MAX_BUFFER_SIZE_INT64));
 	}
 
 	static SString FromDouble(double val, uint8 digits)
 	{
-		static CharType buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
+		thread_local CharType buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
 		return SString(SCString::FromDouble(val, digits, buffer, SCString::MAX_BUFFER_SIZE_DOUBLE));
 	}
 
 	// Iterations
 	/////////////////////////////////
 
-	FORCEINLINE StringIteratorType begin() { return _data.GetCount() > 1 ? &_data[0] : nullptr; }
-	FORCEINLINE ConstStringIteratorType begin() const { return _data.GetCount() > 1 ? &_data[0] : nullptr; }
+	FORCEINLINE StringIteratorType begin() { return _data.GetNum() > 1 ? &_data[0] : nullptr; }
+	FORCEINLINE ConstStringIteratorType begin() const { return _data.GetNum() > 1 ? &_data[0] : nullptr; }
 
-	FORCEINLINE StringIteratorType end() { return _data.GetCount() > 1 ? &_data[GetLastCharIndex()] : nullptr; }
-	FORCEINLINE ConstStringIteratorType end() const { return _data.GetCount() > 1 ? &_data[GetLastCharIndex()] : nullptr; }
+	FORCEINLINE StringIteratorType end() { return _data.GetNum() > 1 ? &_data[GetLastCharIndex()] : nullptr; }
+	FORCEINLINE ConstStringIteratorType end() const { return _data.GetNum() > 1 ? &_data[GetLastCharIndex()] : nullptr; }
 
 	// Compares
 	/////////////////////////////////
@@ -202,7 +202,7 @@ struct SString
 
 		if(outRight)
 		{
-			outRight->_data = DataType(foundPtr + 1, _data.GetCount() - asIndex);
+			outRight->_data = DataType(foundPtr + 1, _data.GetNum() - asIndex);
 		}
 
 		return true;
@@ -212,7 +212,7 @@ struct SString
 	{
 		TArray<SString> result;
 
-		SplitBySubstringPrivate(*this, delimiter, discardEmpty, caseSensitive, _data.GetCount(),
+		SplitBySubstringPrivate(*this, delimiter, discardEmpty, caseSensitive, _data.GetNum(),
 			[&result, &num](const CharType* ptr, SizeType count) -> bool
 			{
 				SString& newStr = result.AddUnitialized_GetRef();
@@ -238,8 +238,8 @@ struct SString
 	// -1 = All
 	void ReplaceInline(const SString& from, const SString& to, SizeType num = INDEX_NONE, bool caseSensitive = true)
 	{
-		DataType newData(_data.GetCount(), true);
-		SplitBySubstringPrivate(*this, from, false, caseSensitive, (num == -1) ? _data.GetCount() : num,
+		DataType newData(_data.GetNum(), true);
+		SplitBySubstringPrivate(*this, from, false, caseSensitive, (num == -1) ? _data.GetNum() : num,
 			[&newData, &to, &num](const CharType* ptr, SizeType count) -> bool
 			{
 				const bool isLast = (*(ptr + count + 1) == CHAR_TERM);
@@ -251,9 +251,9 @@ struct SString
 
 				if(!isLast)
 				{
-					if(to._data.GetCount() > 1)
+					if(to._data.GetNum() > 1)
 					{
-						newData.Append(to._data.GetData(), to._data.GetCount() - 1);
+						newData.Append(to._data.GetData(), to._data.GetNum() - 1);
 					}
 				}
 
@@ -269,7 +269,7 @@ struct SString
 			}
 		);
 
-		if(newData.GetCount() > 0)
+		if(newData.GetNum() > 0)
 		{
 			_data.Replace(newData);
 		}
@@ -325,8 +325,8 @@ struct SString
 			return;
 		}
 
-		DataType newData(_data.GetCount() - idx);
-		for(SizeType i = 0; i < newData.GetCount(); ++i)
+		DataType newData(_data.GetNum() - idx);
+		for(SizeType i = 0; i < newData.GetNum(); ++i)
 		{
 			newData[i] = _data[idx + i];
 		}
@@ -378,12 +378,12 @@ struct SString
 private:
 	FORCEINLINE void AppendImpl(const SString& other) { AppendImpl(other._data); }
 	FORCEINLINE void AppendImpl(SString&& other) { AppendImpl(other._data); other.Empty(); }
-	FORCEINLINE void AppendImpl(CharType other) { _data.Add(other); _data.Swap(_data.GetCount() - 1, _data.GetCount() - 2); }
+	FORCEINLINE void AppendImpl(CharType other) { _data.Add(other); _data.Swap(_data.GetNum() - 1, _data.GetNum() - 2); }
 
 	void AppendImpl(const DataType& data)
 	{
-		_data.RemoveAt(_data.GetCount() - 1); // Remove termination character
-		_data.Append(data.GetData(), data.GetCount());
+		_data.RemoveAt(_data.GetNum() - 1); // Remove termination character
+		_data.Append(data.GetData(), data.GetNum());
 	}
 
 	FORCEINLINE void FillToEmptyImpl(const DataType& data) { _data = data; SanitizeData(); }
@@ -407,7 +407,7 @@ private:
 	}
 
 	FORCEINLINE void EmptyImpl(bool releaseResources) { _data.Empty(releaseResources); }
-	FORCEINLINE SizeType GetLastCharIndex() const { return _data.GetCount() - 2; }
+	FORCEINLINE SizeType GetLastCharIndex() const { return _data.GetNum() - 2; }
 
 	static bool IsAtIndexPrivate(const SString& str, const SString& val, SizeType idx, bool caseSensitive)
 	{
@@ -487,7 +487,7 @@ private:
 			if (!ignoreEmpty || *init != CHAR_TERM)
 			{
 				const SizeType currIdx = PTR_DIFF_TYPED(SizeType, init, mainStr.GetData());
-				const SizeType count = mainStr.GetCount() - currIdx;
+				const SizeType count = mainStr.GetNum() - currIdx;
 
 				functor(mainStr.GetData() + currIdx, count);
 			}
@@ -536,3 +536,18 @@ private:
 
 	DataType _data = {};
 };
+
+// Archive operator<< && operator>>
+////////////////////////////////////////////
+
+FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const SString& str)
+{
+	ar.Write(str.GetChars(), str.GetLength());
+	return ar;
+}
+
+FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, SString& str)
+{
+	ar.Read(str.GetChars(), str.GetLength());
+	return ar;
+}

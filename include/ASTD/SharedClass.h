@@ -18,7 +18,7 @@ class TSharedClass
 	/////////////////////////////////
 
 	FORCEINLINE TSharedClass() : _isSharedInitialized(false) {}
-	
+
 	// Getters
 	/////////////////////////////////
 
@@ -33,7 +33,7 @@ class TSharedClass
 		CHECK_RET(_weakThis.IsValid(), nullptr);
 		return _weakThis.Pin();
 	}
-	
+
 	// Gets pointer as shared_ptr with provided type
 	template<typename ChildType>
 	FORCEINLINE TSharedPtr<ChildType> AsShared()
@@ -48,7 +48,7 @@ private:
 	FORCEINLINE void Init_Private(const TSharedPtr<ClassType>& ptr)
 	{
 		CHECK_RET(!_isSharedInitialized);
-		
+
 		_weakThis = ptr;
 		_isSharedInitialized = true;
 	}

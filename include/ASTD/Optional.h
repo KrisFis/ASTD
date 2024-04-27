@@ -146,3 +146,28 @@ private:
 
 	ElementType* _data = nullptr;
 };
+
+// Archive operator<< && operator>>
+////////////////////////////////////////////
+
+template<typename T>
+FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const TOptional<T>& optional)
+{
+	if (optional.IsSet())
+	{
+		ar << optional.GetRef();
+	}
+
+	return ar;
+}
+
+template<typename T>
+FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, TOptional<T>& optional)
+{
+	if (optional.IsSet())
+	{
+		ar >> optional.GetRef();
+	}
+
+	return ar;
+}

@@ -41,6 +41,11 @@
 #include "ASTD/SharedClass.h"
 #include "ASTD/SharedUtils.h"
 
-// VALIDATIONS
+// EXTRAS -> CHECKS
 #include "ASTD/Check.h"
 #include "ASTD/IsValid.h"
+
+// EXTRAS -> ARCHIVE
+#include "ASTD/Archive.h"
+#include "ASTD/FileArchive.h"
+#include "ASTD/ArchiveUtils.h"

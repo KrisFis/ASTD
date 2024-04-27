@@ -37,8 +37,8 @@ public:
 	FORCEINLINE void SetData(ElementType* data) { _data = data; }
 
 	// Gets/Sets allocated count
-	FORCEINLINE SizeType GetCount() const { return _count; }
-	FORCEINLINE void SetCount(SizeType count) { _count = count; }
+	FORCEINLINE SizeType GetSize() const { return _size; }
+	FORCEINLINE void SetSize(SizeType count) { _size = count; }
 
 	// Manipulation
 	/////////////////////////////////
@@ -49,17 +49,17 @@ public:
 	// @return - array of new elements
 	ElementType* Allocate(SizeType num)
 	{
-		ElementType* newData = SMemory::AllocateElement<ElementType>(_count + num);
+		ElementType* newData = SMemory::AllocateElement<ElementType>(_size + num);
 		if(_data)
 		{
-			SMemory::Copy(newData, _data, sizeof(ElementType) * _count);
-			SMemory::Deallocate(_data, sizeof(ElementType) * _count);
+			SMemory::Copy(newData, _data, sizeof(ElementType) * _size);
+			SMemory::Deallocate(_data, sizeof(ElementType) * _size);
 		}
 
-		ElementType* elementPtr = newData + _count;
+		ElementType* elementPtr = newData + _size;
 
 		_data = newData;
-		_count += num;
+		_size += num;
 
 		return elementPtr;
 	}
@@ -69,15 +69,15 @@ public:
 	{
 		if(_data)
 		{
-			SMemory::DeallocateElement(_data, _count);
+			SMemory::DeallocateElement(_data, _size);
 
 			_data = nullptr;
-			_count = 0;
+			_size = 0;
 		}
 	}
 
 private:
 
 	ElementType* _data = nullptr;
-	SizeType _count = 0;
+	SizeType _size = 0;
 };

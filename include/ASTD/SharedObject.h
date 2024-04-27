@@ -28,21 +28,21 @@ public:
 
 	// Copy/Move constructors [SharedPtr]
 	/////////////////////////////////
-	
+
 	FORCEINLINE TSharedPtr(const TSharedPtr& other) { ReplaceBy(other); }
 	FORCEINLINE TSharedPtr(TSharedPtr&& other) { ReplaceBy(Forward<TSharedPtr>(other)); }
-	
+
 	// Destructor
 	/////////////////////////////////
 
 	FORCEINLINE ~TSharedPtr() { Reset(); }
-	
+
 	// Cast operators
 	/////////////////////////////////
 
 	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE operator TSharedPtr<OtherT>() const { return _referencerProxy.IsValid() ? TSharedPtr<OtherT>(*_referencerProxy) : nullptr; }
-	
+
 	template<typename OtherT, typename TEnableIf<TIsBaseOf<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE explicit operator TSharedPtr<OtherT>() const { return _referencerProxy.IsValid() ? TSharedPtr<OtherT>(*_referencerProxy) : nullptr; }
 
@@ -79,7 +79,7 @@ public:
 	/////////////////////////////////
 
 	FORCEINLINE ObjectType* Get() const { return _referencerProxy.IsValid() ? _referencerProxy->GetObject<ObjectType>() : nullptr; }
-	FORCEINLINE ObjectType& GetRef() const { return *Get(); }
+	FORCEINLINE ObjectType& GetRef() { return *Get(); }
 
 	// Other
 	/////////////////////////////////
@@ -93,36 +93,61 @@ private:
 	FORCEINLINE_DEBUGGABLE void ReplaceBy(const TSharedPtr& other)
 	{
 		// How it should work ? (Copy implementation)
-		
+
 		// * SharedPtr as argument:
 		// ** 1) Remove shared reference from current
 		// ** 2) Add shared reference to other
 		// ** 3) Replace referencer
-	
+
 		_referencerProxy.RemoveShared(); // 1
 		other._referencerProxy.AddShared(); // 2
 		_referencerProxy = other._referencerProxy; // 3
 	}
-	
+
 	// PtrType&&
 	// * Move
 	FORCEINLINE_DEBUGGABLE void ReplaceBy(TSharedPtr&& other)
 	{
 		// How it should work ? (move implementation)
-		
+
 		// * SharedPtr as argument:
 		// ** 1) Remove shared reference from current
 		// ** 2) Replace referencer
 		// ** 3) Clear other referencer
-		
+
 		_referencerProxy.RemoveShared(); // 1
 		_referencerProxy = other._referencerProxy; // 2
-		
+
 		other._referencerProxy.Set(nullptr); // 3
 	}
-	
-	mutable NSharedInternals::SReferencerProxy _referencerProxy;
+
+	mutable NSharedInternals::SReferencerProxy _referencerProxy = nullptr;
 };
+
+// Archive operator<< && operator>>
+////////////////////////////////////////////
+
+template<typename T>
+FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const TSharedPtr<T>& sharedPtr)
+{
+	if (sharedPtr.IsValid())
+	{
+		ar << sharedPtr.GetRef();
+	}
+
+	return ar;
+}
+
+template<typename T>
+FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, TSharedPtr<T>& sharedPtr)
+{
+	if (sharedPtr.IsValid())
+	{
+		ar >> sharedPtr.GetRef();
+	}
+
+	return ar;
+}
 
 // Equivalent of std's weak_ptr
 template<typename T>
@@ -166,7 +191,7 @@ public:
 
 	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE operator TWeakPtr<OtherT>() const { return _referencerProxy.IsValid() ? TWeakPtr<OtherT>(*_referencerProxy) : nullptr; }
-	
+
 	template<typename OtherT, typename TEnableIf<TIsBaseOf<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE explicit operator TWeakPtr<OtherT>() const { return _referencerProxy.IsValid() ? TWeakPtr<OtherT>(*_referencerProxy) : nullptr; }
 
@@ -175,37 +200,37 @@ public:
 
 	FORCEINLINE bool operator==(const TWeakPtr& other) const	{ return _referencerProxy == other._referencerProxy; }
 	FORCEINLINE bool operator!=(const TWeakPtr& other) const	{ return !operator==(other); }
-	
+
 	// Comparison operators [SharedPtr]
 	/////////////////////////////////
-	
+
 	FORCEINLINE bool operator==(const TSharedPtr<T>& other) const	{ return _referencerProxy == other._referencerProxy; }
 	FORCEINLINE bool operator!=(const TSharedPtr<T>& other) const	{ return !operator==(other); }
-	
+
 	// Assignment operators
 	/////////////////////////////////
 
 	FORCEINLINE TWeakPtr& operator=(const NSharedInternals::SNullType*) { Reset(); return *this; }
-	
+
 	// Assignment operators [WeakPtr]
 	/////////////////////////////////
 
 	FORCEINLINE TWeakPtr& operator=(const TWeakPtr& other) { if (&other != this) ReplaceBy(other); return *this; }
 	FORCEINLINE TWeakPtr& operator=(TWeakPtr&& other) { if (&other != this) ReplaceBy(Forward<TWeakPtr>(other)); return *this; }
-	
+
 	// Assignment operators [SharedPtr]
 	/////////////////////////////////
 
 	FORCEINLINE TWeakPtr& operator=(const TSharedPtr<T>& other) { ReplaceBy(other); return *this; }
 	FORCEINLINE TWeakPtr& operator=(TSharedPtr<T>&& other) { ReplaceBy(Forward<TSharedPtr<T>>(other)); return *this; }
-	
+
 	// Pointer operators
 	/////////////////////////////////
 	// * Our weak pointer supports dereferencing without shared_ptr
 
 	FORCEINLINE ObjectType* operator->() const { return Get(); }
 	FORCEINLINE ObjectType& operator*() const { return *Get(); }
-	
+
 	// Validity
 	/////////////////////////////////
 
@@ -216,7 +241,7 @@ public:
 
 	FORCEINLINE ObjectType* Get() const { return _referencerProxy.IsValid() ? _referencerProxy->GetObject<ObjectType>() : nullptr; }
 	FORCEINLINE ObjectType& GetRef() const { return *Get(); }
-	
+
 	// Other
 	/////////////////////////////////
 
@@ -232,34 +257,34 @@ private:
 	FORCEINLINE_DEBUGGABLE void ReplaceBy(const PtrType& other)
 	{
 		// How it should work ? (Copy implementation)
-		
+
 		// * WeakPtr as argument:
 		// ** 1) Remove weak reference from current
 		// ** 2) Add weak reference to other
 		// ** 3) Replace referencer
-		
+
 		// * SharedPtr as argument:
 		// ** 1) Remove weak reference from current
 		// ** 2) Add weak reference to other
 		// ** 3) Replace referencer
-	
+
 		_referencerProxy.RemoveWeak(); // 1
 		other._referencerProxy.AddWeak(); // 2
 		_referencerProxy = other._referencerProxy; // 3
 	}
-	
+
 	// PtrType&&
 	// * Move
 	template<typename PtrType>
 	FORCEINLINE_DEBUGGABLE void ReplaceBy(PtrType&& other)
 	{
 		// How it should work ? (move implementation)
-		
+
 		// * WeakPtr as argument:
 		// ** 1) Remove weak reference from current
 		// ** 2) Replace referencer
 		// ** 3) Clear other referencer
-		
+
 		// * SharedPtr as argument:
 		// ** We MUST CHECK that reference of other does not get destroyed (if valid before passing)
 		// ** -2) Add weak reference to other
@@ -267,19 +292,44 @@ private:
 		// ** 1) Remove weak reference from current
 		// ** 2) Replace referencer
 		// ** 3) Clear other referencer
-		
+
 		// * Only SharedPtr
 		if(TIsSame<typename TRemoveReference<PtrType>::Type, TSharedPtr<T>>::Value)
 		{
 			other._referencerProxy.AddWeak(); // -2
 			other._referencerProxy.RemoveShared(); // -1
 		}
-		
+
 		_referencerProxy.RemoveWeak(); // 1
 		_referencerProxy = other._referencerProxy; // 2
-		
+
 		other._referencerProxy.Set(nullptr); // 3
 	}
 
-	mutable NSharedInternals::SReferencerProxy _referencerProxy;
+	mutable NSharedInternals::SReferencerProxy _referencerProxy = nullptr;
 };
+
+// Archive operator<< && operator>>
+////////////////////////////////////////////
+
+template<typename T>
+FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const TWeakPtr<T>& weakPtr)
+{
+	if (weakPtr.IsValid())
+	{
+		ar << weakPtr.Pin().GetRef();
+	}
+
+	return ar;
+}
+
+template<typename T>
+FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, TWeakPtr<T>& weakPtr)
+{
+	if (weakPtr.IsValid())
+	{
+		ar >> weakPtr.Pin().GetRef();
+	}
+
+	return ar;
+}
