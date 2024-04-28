@@ -13,8 +13,8 @@
 #include "ASTD/Core/Configuration.h"
 
 // TYPE MANIPULATION/GENERATION/SFINAE
-#include "ASTD/TypeTraits.h"
 #include "ASTD/TypeMethods.h"
+#include "ASTD/TypeTraits.h"
 #include "ASTD/TypeTraitsMacros.h"
 
 // UTILITIES
@@ -24,21 +24,21 @@
 
 // CONTAINERS
 #include "ASTD/Array.h"
-#include "ASTD/Queue.h"
 #include "ASTD/Optional.h"
+#include "ASTD/Queue.h"
 
 // ALLOCATORS
-#include "ASTD/QueueAllocator.h"
 #include "ASTD/ArrayAllocator.h"
 #include "ASTD/FixedArrayAllocator.h"
+#include "ASTD/QueueAllocator.h"
 
 // STRINGS
-#include "ASTD/String.h"
 #include "ASTD/CString.h"
+#include "ASTD/String.h"
 
 // SMART POINTERS
-#include "ASTD/SharedObject.h"
 #include "ASTD/SharedClass.h"
+#include "ASTD/SharedObject.h"
 #include "ASTD/SharedUtils.h"
 
 // EXTRAS -> CHECKS
@@ -47,5 +47,5 @@
 
 // EXTRAS -> ARCHIVE
 #include "ASTD/Archive.h"
+#include "ASTD/BufferArchive.h"
 #include "ASTD/FileArchive.h"
-#include "ASTD/ArchiveUtils.h"

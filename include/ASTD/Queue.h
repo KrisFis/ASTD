@@ -7,16 +7,14 @@
 #include "ASTD/Memory.h"
 #include "ASTD/QueueAllocator.h"
 
-template<typename InElementType, typename InAllocatorType = TQueueAllocator<InElementType>>
+template<typename ElementT, typename AllocatorT = TQueueAllocator<ElementT>>
 class TQueue
 {
 public:
 	// Types
 	/////////////////////////////////
 
-	typedef InElementType ElementType;
-	typedef InAllocatorType AllocatorType;
-	typedef typename AllocatorType::NodeType AllocatorNodeType;
+	typedef typename AllocatorT::NodeType AllocatorNodeT;
 
 	// Constructors
 	/////////////////////////////////
@@ -47,19 +45,19 @@ public:
 	// Peek
 	/////////////////////////////////
 
-	FORCEINLINE bool Peek(ElementType& outVal) const { return PeekImpl(outVal); }
+	FORCEINLINE bool Peek(ElementT& outVal) const { return PeekImpl(outVal); }
 
 	// Enqueue
 	/////////////////////////////////
 
-	FORCEINLINE void Enqueue(const ElementType& val) { AddImpl(val); }
-	FORCEINLINE void Enqueue(ElementType&& val) { AddImpl(Move(val)); }
+	FORCEINLINE void Enqueue(const ElementT& val) { AddImpl(val); }
+	FORCEINLINE void Enqueue(ElementT&& val) { AddImpl(Move(val)); }
 
 	// Dequeue
 	/////////////////////////////////
 
 	FORCEINLINE bool Dequeue() { return RemoveFromHeadImpl(); }
-	FORCEINLINE bool Dequeue(ElementType& outVal) { return RemoveFromHeadImpl(outVal); }
+	FORCEINLINE bool Dequeue(ElementT& outVal) { return RemoveFromHeadImpl(outVal); }
 
 	// Empty
 	/////////////////////////////////
@@ -69,9 +67,9 @@ public:
 
 private:
 
-	bool PeekImpl(ElementType& outVal) const
+	bool PeekImpl(ElementT& outVal) const
 	{
-		AllocatorNodeType* node = _allocator.GetHead();
+		AllocatorNodeT* node = _allocator.GetHead();
 		if(node)
 		{
 			SMemory::CopyElement(&outVal, &node->Value);
@@ -80,23 +78,23 @@ private:
 		return node != nullptr;
 	}
 
-	AllocatorNodeType* AddImpl(const ElementType& val)
+	AllocatorNodeT* AddImpl(const ElementT& val)
 	{
-		AllocatorNodeType* node = _allocator.Allocate(1);
+		AllocatorNodeT* node = _allocator.Allocate(1);
 		SMemory::MoveElement(&node->Value, &val);
 		return node;
 	}
 
-	AllocatorNodeType* AddImpl(ElementType&& val)
+	AllocatorNodeT* AddImpl(ElementT&& val)
 	{
-		AllocatorNodeType* node = _allocator.Allocate(1);
+		AllocatorNodeT* node = _allocator.Allocate(1);
 		SMemory::MoveElement(&node->Value, &val);
 		return node;
 	}
 
 	bool RemoveFromHeadImpl()
 	{
-		AllocatorNodeType* node = _allocator.GetHead();
+		AllocatorNodeT* node = _allocator.GetHead();
 		if(!node)
 		{
 			return false;
@@ -108,9 +106,9 @@ private:
 		return true;
 	}
 
-	bool RemoveFromHeadImpl(ElementType& outVal)
+	bool RemoveFromHeadImpl(ElementT& outVal)
 	{
-		AllocatorNodeType* node = _allocator.GetHead();
+		AllocatorNodeT* node = _allocator.GetHead();
 		if(!node)
 		{
 			return false;
@@ -124,7 +122,7 @@ private:
 
 	void EmptyImpl()
 	{
-		AllocatorNodeType* currentNode = _allocator.GetHead();
+		AllocatorNodeT* currentNode = _allocator.GetHead();
 		if(currentNode)
 		{
 			while(currentNode != nullptr)
@@ -141,10 +139,10 @@ private:
 	{
 		EmptyImpl();
 
-		AllocatorNodeType* currentNode = other._allocator.GetHead();
+		AllocatorNodeT* currentNode = other._allocator.GetHead();
 		while(currentNode != nullptr)
 		{
-			AllocatorNodeType* newNode = _allocator.Allocate(1);
+			AllocatorNodeT* newNode = _allocator.Allocate(1);
 			SMemory::CopyElement(&newNode->Value, &currentNode->Value);
 		}
 	}
@@ -160,5 +158,18 @@ private:
 		other._allocator.SetTail(nullptr);
 	}
 
-	AllocatorType _allocator = {};
+	AllocatorT _allocator = {};
+};
+
+template<typename ElementT, typename AllocatorT>
+struct TContainerTypeTraits<TQueue<ElementT, AllocatorT>> : public TContainerTypeTraits<void>
+{
+	using ElementType = ElementT;
+	using AllocatorType = AllocatorT;
+
+	enum
+	{
+		IsContainer = true,
+		IsDynamic = true
+	};
 };

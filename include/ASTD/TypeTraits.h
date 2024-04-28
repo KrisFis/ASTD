@@ -5,10 +5,11 @@
 #include "ASTD/Core/Build.h"
 
 // INCLUDES ALL INTERNALS
-#include "ASTD/Internal/TypeTraitsCore.h"
 #include "ASTD/Internal/TypeTraitsConstruct.h"
-#include "ASTD/Internal/TypeTraitsIsType.h"
+#include "ASTD/Internal/TypeTraitsContainers.h"
+#include "ASTD/Internal/TypeTraitsCore.h"
 #include "ASTD/Internal/TypeTraitsInternals.h"
+#include "ASTD/Internal/TypeTraitsIsType.h"
 
 // [Size]
 // * Gets size type without need of std (same as std::size_t)

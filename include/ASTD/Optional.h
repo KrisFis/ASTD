@@ -4,9 +4,10 @@
 
 #include "ASTD/Core/Build.h"
 
-#include "ASTD/TypeTraits.h"
-#include "ASTD/TypeMethods.h"
+#include "ASTD/Archive.h"
 #include "ASTD/Memory.h"
+#include "ASTD/TypeMethods.h"
+#include "ASTD/TypeTraits.h"
 
 template<typename InElementType>
 class TOptional

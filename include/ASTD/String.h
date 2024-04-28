@@ -15,7 +15,7 @@ struct SString
 
 	typedef tchar CharType;
 	typedef TArray<CharType> DataType;
-	typedef typename DataType::SizeType SizeType;
+	typedef typename DataType::NumT SizeType;
 
 	typedef CharType* StringIteratorType;
 	typedef const CharType* ConstStringIteratorType;
@@ -542,12 +542,12 @@ private:
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const SString& str)
 {
-	ar.Write(str.GetChars(), str.GetLength());
+	ar.WriteRaw(str.GetChars(), str.GetLength());
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, SString& str)
 {
-	ar.Read(str.GetChars(), str.GetLength());
+	ar.ReadRaw(str.GetChars(), str.GetLength());
 	return ar;
 }

@@ -50,8 +50,7 @@ struct SArchive
 	/////////////////////////
 
 	virtual bool IsValid() const = 0;
-
-	virtual void Reset() = 0;
+	virtual void Flush() = 0;
 
 	// Position
 	/////////////////////////
@@ -60,15 +59,15 @@ struct SArchive
 	FORCEINLINE bool GetIsEnd() const { return GetPos() == GetEndPos(); }
 
 	// Gets number of bytes
-	FORCEINLINE uint16 GetNum() const { return GetEndPos(); }
-	FORCEINLINE bool IsEmpty() const { return GetNum() > 0; }
+	FORCEINLINE uint16 GetNumBytes() const { return GetEndPos(); }
+	FORCEINLINE bool IsEmpty() const { return GetNumBytes() == 0; }
 
 	template<typename T>
-	inline uint16 GetNumTyped() const
+	inline uint16 GetNum() const
 	{
 		if constexpr (sizeof(T) == sizeof(uint8))
 		{
-			return GetNum();
+			return GetNumBytes();
 		}
 		else
 		{
@@ -102,16 +101,34 @@ struct SArchive
 	/////////////////////////
 
 	///// Reads bytes and moves while doing so
-	virtual uint16 Read(void* ptr, uint16 num) = 0;
+	virtual uint16 ReadRaw(void* ptr, uint16 num) = 0;
 
 	template<typename T>
-	FORCEINLINE uint16 ReadTyped(T* ptr, uint16 num) { return Read(ptr, sizeof(T) * num); }
+	FORCEINLINE uint16 Read(T* ptr, uint16 num) { return ReadRaw(ptr, sizeof(T) * num); }
 
 	// Writes bytes and moves while doing so
-	virtual uint16 Write(const void* ptr, uint16 num) = 0;
+	virtual uint16 WriteRaw(const void* ptr, uint16 num) = 0;
 
 	template<typename T>
-	FORCEINLINE uint16 WriteTyped(const T* ptr, uint16 num) { return Write(ptr, sizeof(T) * num); }
+	FORCEINLINE uint16 Write(const T* ptr, uint16 num) { return WriteRaw(ptr, sizeof(T) * num); }
+
+	// Dump
+	// * Takes all data and copies to provided container
+	/////////////////////////
+
+	template<typename ContainerT, typename ContainerTT = TContainerTypeTraits<ContainerT>>
+	typename TEnableIf<ContainerTT::IsContainer, bool>::Type DumpToContainer(ContainerT& outContainer)
+	{
+		if (!AllowsRead()) return false;
+
+		const uint16 numBytes = GetNum<typename ContainerTT::ElementType>();
+		if (numBytes == 0) return false;
+
+		SetPos(0);
+		outContainer.Resize(numBytes);
+		*this >> outContainer;
+		return true;
+	}
 
 private:
 	EArchiveType _type = EArchiveType::Binary;
@@ -130,8 +147,8 @@ static SArchive& operator<<(SArchive& ar, SArchive& otherAr)
 		{
 			uint8* buffer = SMemory::AllocateElement<uint8>(remainingBytes);
 			{
-				otherAr.Read(buffer, remainingBytes);
-				ar.Write(buffer, remainingBytes);
+				otherAr.ReadRaw(buffer, remainingBytes);
+				ar.WriteRaw(buffer, remainingBytes);
 			}
 			SMemory::DeallocateElement(buffer);
 		}
@@ -146,18 +163,54 @@ FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, SArchive& other
 	return ar;
 }
 
+template<typename ContainerT, typename ContainerTT = TContainerTypeTraits<ContainerT>>
+inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type operator<<(SArchive& ar, const ContainerT& container)
+{
+	if constexpr (ContainerTT::InlineMemory)
+	{
+		ar.WriteRaw(container.Begin(), container.GetNum());
+	}
+	else
+	{
+		for (auto it = container.Begin(); it != container.End(); ++it)
+		{
+			ar << *it;
+		}
+	}
+
+	return ar;
+}
+
+template<typename ContainerT, typename ContainerTT = TContainerTypeTraits<ContainerT>>
+inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type operator>>(SArchive& ar, ContainerT& container)
+{
+	if constexpr (ContainerTT::InlineMemory)
+	{
+		ar.ReadRaw(container.Begin(), container.GetNum());
+	}
+	else
+	{
+		for (auto it = container.begin(); it != container.end(); ++it)
+		{
+			ar >> *it;
+		}
+	}
+
+	return ar;
+}
+
 static SArchive& operator<<(SArchive& ar, const int32 val)
 {
 	if (ar.IsBinary())
 	{
-		ar.WriteTyped(&val, 1);
+		ar.Write(&val, 1);
 	}
 	else if (ar.IsString())
 	{
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT32];
 		if (SCString::FromInt32(val, buffer, SCString::MAX_BUFFER_SIZE_INT32))
 		{
-			ar.Write(buffer, SCString::GetLength(buffer));
+			ar.WriteRaw(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -168,7 +221,7 @@ static SArchive& operator>>(SArchive& ar, int32& val)
 {
 	if (ar.IsBinary())
 	{
-		ar.ReadTyped(&val, 1);
+		ar.Read(&val, 1);
 	}
 	else if (ar.IsString())
 	{
@@ -176,7 +229,7 @@ static SArchive& operator>>(SArchive& ar, int32& val)
 		{
 			tchar c;
 			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_INT32 - 1 && ar.Read(&c, 1) == 1)
+			while (i < SCString::MAX_BUFFER_SIZE_INT32 - 1 && ar.ReadRaw(&c, 1) == 1)
 			{
 				if ((c >= '0' && c <= '9') || c == '-')
 				{
@@ -200,14 +253,14 @@ static SArchive& operator<<(SArchive& ar, const int64 val)
 {
 	if (ar.IsBinary())
 	{
-		ar.WriteTyped(&val, 1);
+		ar.Write(&val, 1);
 	}
 	else if (ar.IsString())
 	{
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT64];
 		if (SCString::FromInt64(val, buffer, SCString::MAX_BUFFER_SIZE_INT64))
 		{
-			ar.Write(buffer, SCString::GetLength(buffer));
+			ar.WriteRaw(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -218,7 +271,7 @@ static SArchive& operator>>(SArchive& ar, int64& val)
 {
 	if (ar.IsBinary())
 	{
-		ar.ReadTyped(&val, 1);
+		ar.Read(&val, 1);
 	}
 	else if (ar.IsString())
 	{
@@ -226,7 +279,7 @@ static SArchive& operator>>(SArchive& ar, int64& val)
 		{
 			tchar c;
 			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_INT64 - 1 && ar.Read(&c, 1) == 1)
+			while (i < SCString::MAX_BUFFER_SIZE_INT64 - 1 && ar.ReadRaw(&c, 1) == 1)
 			{
 				if ((c >= '0' && c <= '9') || c == '-')
 				{
@@ -250,14 +303,14 @@ static SArchive& operator<<(SArchive& ar, const double val)
 {
 	if (ar.IsBinary())
 	{
-		ar.WriteTyped(&val, 1);
+		ar.Write(&val, 1);
 	}
 	else if (ar.IsString())
 	{
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
 		if (SCString::FromDouble(val, 4, buffer, SCString::MAX_BUFFER_SIZE_DOUBLE))
 		{
-			ar.Write(buffer, SCString::GetLength(buffer));
+			ar.WriteRaw(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -268,7 +321,7 @@ static SArchive& operator>>(SArchive& ar, double& val)
 {
 	if (ar.IsBinary())
 	{
-		ar.ReadTyped(&val, 1);
+		ar.Read(&val, 1);
 	}
 	else if (ar.IsString())
 	{
@@ -276,7 +329,7 @@ static SArchive& operator>>(SArchive& ar, double& val)
 		{
 			tchar c;
 			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_DOUBLE - 1 && ar.Read(&c, 1) == 1)
+			while (i < SCString::MAX_BUFFER_SIZE_DOUBLE - 1 && ar.ReadRaw(&c, 1) == 1)
 			{
 				if ((c >= '0' && c <= '9') || c == '.' || c == '-')
 				{
@@ -298,24 +351,24 @@ static SArchive& operator>>(SArchive& ar, double& val)
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, tchar val)
 {
-	ar.Write(&val, 1);
+	ar.WriteRaw(&val, 1);
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, tchar& val)
 {
-	ar.Read(&val, 1);
+	ar.ReadRaw(&val, 1);
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const tchar* val)
 {
-	ar.Write(val, SCString::GetLength(val));
+	ar.WriteRaw(val, SCString::GetLength(val));
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, tchar* val)
 {
-	ar.Read(val, SCString::GetLength(val));
+	ar.ReadRaw(val, SCString::GetLength(val));
 	return ar;
 }

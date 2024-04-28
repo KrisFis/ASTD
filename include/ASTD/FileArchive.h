@@ -9,8 +9,8 @@
 // TODO: Remove direct posix calls
 struct SCFileArchive : public SArchive
 {
-	FORCEINLINE SCFileArchive(const tchar* filename, EArchiveMode _mode, bool overwrite)
-		: SArchive(EArchiveType::String, _mode)
+	FORCEINLINE SCFileArchive(EArchiveType type, EArchiveMode mode, const tchar* filename, bool overwrite)
+		: SArchive(type, mode)
 		, _filename(filename)
 		, _overwrite(overwrite)
 	{
@@ -22,9 +22,13 @@ struct SCFileArchive : public SArchive
 		CloseImpl();
 	}
 
-	// TArchive overrides
+	FORCEINLINE FILE* GetFile() const { return _file; }
+
+	// SArchive overrides
+	/////////////////////////////////
+
 	FORCEINLINE virtual bool IsValid() const override { return !!_file; }
-	FORCEINLINE virtual void Reset() override { CloseImpl(); OpenImpl(); }
+	FORCEINLINE virtual void Flush() override { fflush(_file); }
 	virtual uint16 GetEndPos() const override
 	{
 		const uint16 currOff = ftell(_file);
@@ -41,15 +45,14 @@ struct SCFileArchive : public SArchive
 	{
 		return fseek(_file, offset, SEEK_SET) == 0;
 	}
-	FORCEINLINE_DEBUGGABLE virtual uint16 Read(void* ptr, uint16 num) override
+	FORCEINLINE_DEBUGGABLE virtual uint16 ReadRaw(void* ptr, uint16 num) override
 	{
 		return fread(ptr, sizeof(tchar), num, _file);
 	}
-	FORCEINLINE_DEBUGGABLE virtual uint16 Write(const void* ptr, uint16 num) override
+	FORCEINLINE_DEBUGGABLE virtual uint16 WriteRaw(const void* ptr, uint16 num) override
 	{
 		return fwrite(ptr, sizeof(tchar), num, _file);
 	}
-	// ~TArchive overrides
 
 private:
 	void OpenImpl()

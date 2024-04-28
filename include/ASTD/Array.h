@@ -6,34 +6,30 @@
 
 #include "ASTD/Core/Build.h"
 
-#include "ASTD/Archive.h"
 #include "ASTD/TypeTraits.h"
 #include "ASTD/Math.h"
 #include "ASTD/Memory.h"
 
 #include "ASTD/ArrayAllocator.h"
 
-template<typename InElementType, typename InAllocator = TArrayAllocator<InElementType>>
+template<typename ElementT, typename AllocatorT = TArrayAllocator<ElementT>>
 class TArray
 {
 public:
 	// Types
 	/////////////////////////////////
 
-	typedef InElementType ElementType;
-	typedef InAllocator AllocatorType;
+	typedef ElementT* ArrayIteratorT;
+	typedef const ElementT* ConstArrayIteratorT;
 
-	typedef ElementType* ArrayIteratorType;
-	typedef const ElementType* ConstArrayIteratorType;
-
-	typedef typename AllocatorType::SizeType SizeType;
-	typedef std::initializer_list<ElementType> ElementListType;
+	typedef typename AllocatorT::SizeType NumT;
+	typedef std::initializer_list<ElementT> ElementListT;
 
 	// Asserts
 	/////////////////////////////////
 
-	static_assert(!TIsSame<ElementType, void>::Value && !TIsReference<ElementType>::Value, "Element type is not valid");
-	static_assert(!TIsSame<AllocatorType, void>::Value && TIsSignedType<SizeType>::Value, "Allocator type is not valid");
+	static_assert(!TIsSame<ElementT, void>::Value && !TIsReference<ElementT>::Value, "Element type is not valid");
+	static_assert(!TIsSame<AllocatorT, void>::Value && TIsSignedType<NumT>::Value, "Allocator type is not valid");
 
 	// Constructors
 	/////////////////////////////////
@@ -41,19 +37,19 @@ public:
 	FORCEINLINE TArray() : _allocator(), _num(0) {}
 	FORCEINLINE TArray(const TArray& other) : _allocator(), _num(0) { AppendImpl(other); }
 	FORCEINLINE TArray(TArray&& other) : _allocator(), _num(0) { ReplaceImpl(Move(other)); }
-	FORCEINLINE TArray(SizeType count, bool reserveOnly = false) : _allocator(), _num(0) { ResizeImpl(count, reserveOnly); }
-	FORCEINLINE TArray(const ElementListType& list)
+	FORCEINLINE TArray(NumT num, bool reserveOnly = false) : _allocator(), _num(0) { ResizeImpl(num, reserveOnly); }
+	FORCEINLINE TArray(const ElementListT& list)
 		: _allocator()
 		, _num(0)
 	{
 		AppendImpl(list.begin(), list.size());
 	}
 
-	FORCEINLINE TArray(const ElementType* data, SizeType count)
+	FORCEINLINE TArray(const ElementT* data, NumT num)
 		: _allocator()
 		, _num(0)
 	{
-		AppendImpl(data, count);
+		AppendImpl(data, num);
 	}
 
 	// Destructor
@@ -73,31 +69,31 @@ public:
 	FORCEINLINE TArray& operator=(const TArray& other) { EmptyImpl(true); AppendImpl(other); return *this; }
 	FORCEINLINE TArray& operator=(TArray&& other) { ReplaceImpl(Move(other)); return *this; }
 
-	FORCEINLINE TArray& operator=(const ElementListType& list) { EmptyImpl(true); AppendImpl(list.begin(), list.size()); return *this; }
+	FORCEINLINE TArray& operator=(const ElementListT& list) { EmptyImpl(true); AppendImpl(list.begin(), list.size()); return *this; }
 
 	// Get operators
 	/////////////////////////////////
 
-	FORCEINLINE ElementType& operator[](SizeType idx) { return *GetElementAtImpl(idx); }
-	FORCEINLINE const ElementType& operator[](SizeType idx) const { return *GetElementAtImpl(idx); }
+	FORCEINLINE ElementT& operator[](NumT idx) { return *GetElementAtImpl(idx); }
+	FORCEINLINE const ElementT& operator[](NumT idx) const { return *GetElementAtImpl(idx); }
 
 	// Property getters
 	/////////////////////////////////
 
-	FORCEINLINE const ElementType* GetData() const { return _allocator.GetData(); }
-	FORCEINLINE ElementType* GetData() { return _allocator.GetData(); }
+	FORCEINLINE const ElementT* GetData() const { return _allocator.GetData(); }
+	FORCEINLINE ElementT* GetData() { return _allocator.GetData(); }
 
-	FORCEINLINE SizeType GetNum() const { return _num; }
-	FORCEINLINE SizeType GetReservedNum() const { return _allocator.GetSize(); }
+	FORCEINLINE NumT GetNum() const { return _num; }
+	FORCEINLINE NumT GetReservedNum() const { return _allocator.GetSize(); }
 
 	// Validations
 	/////////////////////////////////
 
 	FORCEINLINE bool IsEmpty() const { return _num == 0; }
-	FORCEINLINE bool IsValidIndex(SizeType idx) const { return idx >= 0 && idx < _num; }
+	FORCEINLINE bool IsValidIndex(NumT idx) const { return idx >= 0 && idx < _num; }
 
-	FORCEINLINE SizeType GetFirstIndex() const { return 0; }
-	FORCEINLINE SizeType GetLastIndex() const { return _num > 0 ? _num - 1 : 0; }
+	FORCEINLINE NumT GetFirstIndex() const { return 0; }
+	FORCEINLINE NumT GetLastIndex() const { return _num > 0 ? _num - 1 : 0; }
 
 	// Append
 	/////////////////////////////////
@@ -105,11 +101,11 @@ public:
 	FORCEINLINE void Append(const TArray& other) { AppendImpl(other); }
 	FORCEINLINE void Append(TArray&& other) { AppendImpl(Move(other)); }
 
-	FORCEINLINE void Append(const ElementType& val, SizeType numToAdd) { AddImpl(val, numToAdd); }
-	FORCEINLINE void Append(const ElementListType& list) { AppendImpl(list.begin(), list.size()); }
-	FORCEINLINE void Append(const ElementType* data, SizeType count) { AppendImpl(data, count); } 
+	FORCEINLINE void Append(const ElementT& val, NumT numToAdd) { AddImpl(val, numToAdd); }
+	FORCEINLINE void Append(const ElementListT& list) { AppendImpl(list.begin(), list.size()); }
+	FORCEINLINE void Append(const ElementT* data, NumT num) { AppendImpl(data, num); } 
 
-	FORCEINLINE void AppendUnitialized(SizeType numToAdd) { if(numToAdd > 0) GrowImpl(_num + numToAdd); }
+	FORCEINLINE void AppendUnitialized(NumT numToAdd) { if(numToAdd > 0) GrowImpl(_num + numToAdd); }
 
 	// Replace
 	/////////////////////////////////
@@ -120,97 +116,97 @@ public:
 	// Add
 	/////////////////////////////////
 
-	FORCEINLINE SizeType Add(const ElementType& val)
+	FORCEINLINE NumT Add(const ElementT& val)
 	{
 		AppendImpl(&val, 1);
 		return _num - 1;
 	}
 
-	FORCEINLINE SizeType Add(ElementType&& val)
+	FORCEINLINE NumT Add(ElementT&& val)
 	{
 		AppendImpl(&val, 1, true);
 		return _num - 1;
 	}
 
-	FORCEINLINE SizeType AddUnitialized()
+	FORCEINLINE NumT AddUnitialized()
 	{
 		AddUnitializedImpl();
 		return _num - 1;
 	}
 
-	FORCEINLINE ElementType& Add_GetRef(const ElementType& val)
+	FORCEINLINE ElementT& Add_GetRef(const ElementT& val)
 	{
 		AppendImpl(&val, 1);
 		return *GetElementAtImpl(_num - 1);
 	}
 
-	FORCEINLINE ElementType& Add_GetRef(ElementType&& val)
+	FORCEINLINE ElementT& Add_GetRef(ElementT&& val)
 	{
 		AppendImpl(&val, 1, true);
 		return *GetElementAtImpl(_num - 1);
 	}
 
-	FORCEINLINE ElementType& AddUnitialized_GetRef()
+	FORCEINLINE ElementT& AddUnitialized_GetRef()
 	{
 		AddUnitializedImpl();
 		return *GetElementAtImpl(_num - 1);
 	}
 
-	FORCEINLINE void Push(const ElementType& val) { AddImpl(val); }
-	FORCEINLINE void Push(ElementType&& val) { AddImpl(Move(val)); }
+	FORCEINLINE void Push(const ElementT& val) { AddImpl(val); }
+	FORCEINLINE void Push(ElementT&& val) { AddImpl(Move(val)); }
 
 	// Remove
 	/////////////////////////////////
 	// * Swap is faster version of Remove
 	// * but does not preserve order
 
-	FORCEINLINE void Remove(const ElementType& val)
+	FORCEINLINE void Remove(const ElementT& val)
 	{
-		SizeType foundIndex = FindIndex(val);
+		NumT foundIndex = FindIndex(val);
 		if(foundIndex != INDEX_NONE)
 		{
 			RemoveImpl(foundIndex);
 		}
 	}
 
-	FORCEINLINE void RemoveSwap(const ElementType& val)
+	FORCEINLINE void RemoveSwap(const ElementT& val)
 	{
-		SizeType foundIndex = FindIndex(val);
+		NumT foundIndex = FindIndex(val);
 		if(foundIndex != INDEX_NONE)
 		{
 			RemoveSwapImpl(foundIndex);
 		}
 	}
 
-	FORCEINLINE void RemoveAt(SizeType idx)
+	FORCEINLINE void RemoveAt(NumT idx)
 	{
 		if(!IsValidIndex(idx)) return;
 		RemoveImpl(idx);
 	}
 
-	FORCEINLINE void RemoveAtSwap(SizeType idx)
+	FORCEINLINE void RemoveAtSwap(NumT idx)
 	{
 		if(!IsValidIndex(idx)) return;
 		RemoveSwapImpl(idx);
 	}
 
-	FORCEINLINE ElementType RemoveAt_GetCopy(SizeType idx)
+	FORCEINLINE ElementT RemoveAt_GetCopy(NumT idx)
 	{
 		if(!IsValidIndex(idx)) return {};
 
 		// Tries to use move constructor
-		ElementType copy(Move(*GetElementAtImpl(idx)));
+		ElementT copy(Move(*GetElementAtImpl(idx)));
 		RemoveImpl(idx);
 
 		return copy;
 	}
 
-	FORCEINLINE ElementType RemoveAtSwap_GetCopy(SizeType idx)
+	FORCEINLINE ElementT RemoveAtSwap_GetCopy(NumT idx)
 	{
 		if(!IsValidIndex(idx)) return {};
 
 		// Tries to use move constructor
-		ElementType copy(Move(*GetElementAtImpl(idx)));
+		ElementT copy(Move(*GetElementAtImpl(idx)));
 		RemoveSwapImpl(idx);
 
 		return copy;
@@ -227,14 +223,14 @@ public:
 	// Swap
 	/////////////////////////////////
 
-	FORCEINLINE void Swap(SizeType firstIdx, SizeType secondIdx)
+	FORCEINLINE void Swap(NumT firstIdx, NumT secondIdx)
 	{
 		if(!IsValidIndex(firstIdx) || !IsValidIndex(secondIdx)) return;
 
 		SwapImpl(firstIdx, secondIdx, 1);
 	}
 
-	FORCEINLINE void SwapRange(SizeType firstIdx, SizeType secondIdx, SizeType num = 1)
+	FORCEINLINE void SwapRange(NumT firstIdx, NumT secondIdx, NumT num = 1)
 	{
 		if(!IsValidIndex(firstIdx) || !IsValidIndex(secondIdx)) return;
 		else if(firstIdx + num > _num || secondIdx + num > _num) return;
@@ -245,21 +241,21 @@ public:
 	// Get
 	/////////////////////////////////
 
-	FORCEINLINE const ElementType* GetAt(SizeType idx) const { return IsValidIndex(idx) ? GetElementAtImpl(idx) : nullptr; }
-	FORCEINLINE ElementType* GetAt(SizeType idx) { return IsValidIndex(idx) ? GetElementAtImpl(idx) : nullptr; }
+	FORCEINLINE const ElementT* GetAt(NumT idx) const { return IsValidIndex(idx) ? GetElementAtImpl(idx) : nullptr; }
+	FORCEINLINE ElementT* GetAt(NumT idx) { return IsValidIndex(idx) ? GetElementAtImpl(idx) : nullptr; }
 
-	FORCEINLINE const ElementType* GetFirst() const { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
-	FORCEINLINE ElementType* GetFirst() { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE const ElementT* GetFirst() const { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ElementT* GetFirst() { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
 
-	FORCEINLINE const ElementType* GetLast() const { return _num > 0 ? GetElementAtImpl(_num - 1) : nullptr; }
-	FORCEINLINE ElementType* GetLast() { return _num > 0 ? GetElementAtImpl(_num - 1) : nullptr; }
+	FORCEINLINE const ElementT* GetLast() const { return _num > 0 ? GetElementAtImpl(_num - 1) : nullptr; }
+	FORCEINLINE ElementT* GetLast() { return _num > 0 ? GetElementAtImpl(_num - 1) : nullptr; }
 
 	// Find Index
 	/////////////////////////////////
 
-	SizeType FindIndex(const ElementType& val) const
+	NumT FindIndex(const ElementT& val) const
 	{
-		for(SizeType i = 0; i < _num; ++i)
+		for(NumT i = 0; i < _num; ++i)
 		{
 			if(CompareElementsPrivate(GetElementAtImpl(i), &val))
 			{
@@ -271,11 +267,11 @@ public:
 	}
 
 	template<typename Functor>
-	SizeType FindIndexByFunc(Functor&& func) const
+	NumT FindIndexByFunc(Functor&& func) const
 	{
-		for(SizeType i = 0; i < _num; ++i)
+		for(NumT i = 0; i < _num; ++i)
 		{
-			if(func((const ElementType&)*GetElementAtImpl(i)))
+			if(func((const ElementT&)*GetElementAtImpl(i)))
 			{
 				return i;
 			}
@@ -285,9 +281,9 @@ public:
 	}
 
 	template<typename KeyType>
-	SizeType FindIndexByKey(KeyType key) const
+	NumT FindIndexByKey(KeyType key) const
 	{
-		for(SizeType i = 0; i < _num; ++i)
+		for(NumT i = 0; i < _num; ++i)
 		{
 			if(*GetElementAtImpl(i) == key)
 			{
@@ -302,37 +298,37 @@ public:
 	/////////////////////////////////
 
 	template<typename Functor>
-	const ElementType* FindByFunc(Functor&& func) const
+	const ElementT* FindByFunc(Functor&& func) const
 	{
-		const SizeType foundIdx = FindIndexByFunc(Move(func));
+		const NumT foundIdx = FindIndexByFunc(Move(func));
 		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 	template<typename Functor>
-	ElementType* FindByFunc(Functor&& func)
+	ElementT* FindByFunc(Functor&& func)
 	{
-		const SizeType foundIdx = FindIndexByFunc(Move(func));
+		const NumT foundIdx = FindIndexByFunc(Move(func));
 		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 	template<typename KeyType>
-	const ElementType* FindByKey(KeyType key) const
+	const ElementT* FindByKey(KeyType key) const
 	{
-		const SizeType foundIdx = FindByKey(key);
+		const NumT foundIdx = FindByKey(key);
 		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 	template<typename KeyType>
-	ElementType* FindByKey(KeyType key)
+	ElementT* FindByKey(KeyType key)
 	{
-		const SizeType foundIdx = FindByKey(key);
+		const NumT foundIdx = FindByKey(key);
 		return foundIdx != INDEX_NONE ? GetElementAtImpl(foundIdx) : nullptr;
 	}
 
 	// Contains
 	/////////////////////////////////
 
-	FORCEINLINE bool Contains(const ElementType& val) const { return FindIndex(val) != INDEX_NONE; }
+	FORCEINLINE bool Contains(const ElementT& val) const { return FindIndex(val) != INDEX_NONE; }
 
 	template<typename Functor>
 	FORCEINLINE bool ContainsByFunc(Functor&& func) const { return FindByFunc(Move(func)) != INDEX_NONE; }
@@ -344,38 +340,45 @@ public:
 	/////////////////////////////////
 
 	FORCEINLINE void ShrinkToFit() { if(_num < _allocator.GetSize()) ShrinkImpl(_num); }
-	FORCEINLINE void Shrink(SizeType num) { if(num < _num) ShrinkImpl(num); }
-	FORCEINLINE void Grow(SizeType num) { if(num > _num) GrowImpl(num); }
+	FORCEINLINE void Shrink(NumT num) { if(num < _num) ShrinkImpl(num); }
+	FORCEINLINE void Grow(NumT num) { if(num > _num) GrowImpl(num); }
 
-	FORCEINLINE void Resize(SizeType num) { ResizeImpl(num, false); }
-	FORCEINLINE void Reserve(SizeType num) { if(num > _num) ReserveImpl(num); }
+	FORCEINLINE void Resize(NumT num) { ResizeImpl(num, false); }
+	FORCEINLINE void Reserve(NumT num) { if(num > _num) ReserveImpl(num); }
 
 	FORCEINLINE void Reset() { EmptyImpl(true); }
-	FORCEINLINE void Empty(bool releaseResources = true) { EmptyImpl(releaseResources); }
+	FORCEINLINE void Empty(NumT newNum = 0) { EmptyImpl(newNum); }
+	FORCEINLINE void Empty(bool keepResources) { EmptyImpl(keepResources ? _allocator.GetSize() : 0); }
 
 	// Iterators
 	/////////////////////////////////
 
-	FORCEINLINE ArrayIteratorType begin() { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
-	FORCEINLINE ConstArrayIteratorType begin() const { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ArrayIteratorT Begin() { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ArrayIteratorT begin() { return Begin(); }
 
-	FORCEINLINE ArrayIteratorType end() { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
-	FORCEINLINE ConstArrayIteratorType end() const { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
+	FORCEINLINE ConstArrayIteratorT Begin() const { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ConstArrayIteratorT begin() const { return Begin(); }
+
+	FORCEINLINE ArrayIteratorT End() { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
+	FORCEINLINE ArrayIteratorT end() { return End(); }
+
+	FORCEINLINE ConstArrayIteratorT End() const { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
+	FORCEINLINE ConstArrayIteratorT end() const { return End(); }
 
 private:
 
-	FORCEINLINE ElementType* GetElementAtImpl(SizeType idx) const { return _allocator.GetData() + idx; }
+	FORCEINLINE ElementT* GetElementAtImpl(NumT idx) const { return _allocator.GetData() + idx; }
 
-	void AddUnitializedImpl(SizeType count = 1)
+	void AddUnitializedImpl(NumT num = 1)
 	{
-		if(count > 0)
+		if(num > 0)
 		{
-			_num += count;
-			RealocateIfNeededImpl();
+			_num += num;
+			ReallocateIfNeededImpl();
 		}
 	}
 
-	void RemoveSwapImpl(SizeType idx)
+	void RemoveSwapImpl(NumT idx)
 	{
 		DestructElementsPrivate(GetElementAtImpl(idx));
 
@@ -385,16 +388,16 @@ private:
 			SMemory::Move(
 				GetElementAtImpl(idx),
 				GetElementAtImpl(_num - 1),
-				sizeof(ElementType)
+				sizeof(ElementT)
 			);
 		}
 
 		--_num;
 
-		RealocateIfNeededImpl();
+		ReallocateIfNeededImpl();
 	}
 
-	void RemoveImpl(SizeType idx)
+	void RemoveImpl(NumT idx)
 	{
 		DestructElementsPrivate(GetElementAtImpl(idx));
 
@@ -407,24 +410,24 @@ private:
 			SMemory::Move(
 				GetElementAtImpl(idx),
 				GetElementAtImpl(idx + 1),
-				sizeof(ElementType) * (_num - idx - 1)
+				sizeof(ElementT) * (_num - idx - 1)
 			);
 		}
 
 		--_num;
 
-		RealocateIfNeededImpl();
+		ReallocateIfNeededImpl();
 	}
 
-	void SwapImpl(SizeType firstIdx, SizeType secondIdx, SizeType num)
+	void SwapImpl(NumT firstIdx, NumT secondIdx, NumT num)
 	{
-		// Copy to temporary storage at heep
-		AllocatorType tmp;
+		// Copy to temporary storage
+		AllocatorT tmp;
 		tmp.Allocate(num);
 		SMemory::Copy(
 			tmp.GetData(),
 			GetElementAtImpl(firstIdx),
-			sizeof(ElementType) * num
+			sizeof(ElementT) * num
 		);
 
 		// Do swap to first index
@@ -432,7 +435,7 @@ private:
 		SMemory::Copy(
 			GetElementAtImpl(firstIdx),
 			GetElementAtImpl(secondIdx),
-			sizeof(ElementType) * num
+			sizeof(ElementT) * num
 		);
 
 		// Do swap to second index
@@ -440,97 +443,109 @@ private:
 		SMemory::Copy(
 			GetElementAtImpl(secondIdx),
 			tmp.GetData(),
-			sizeof(ElementType) * num
+			sizeof(ElementT) * num
 		);
 	}
 
-	void ShrinkImpl(SizeType num)
+	void ShrinkImpl(NumT num)
 	{
-		if(num == 0)
+		if (_allocator.GetSize() == num)
 		{
-			EmptyImpl(true);
+			// No Shrink
+			return;
 		}
-		else
+
+		if (_num > num)
 		{
+			// Destruct what needs to be destructed
 			DestructElementsPrivate(GetElementAtImpl(num), _num - num);
-
-			// Copy to temporary allocator
-			AllocatorType tmp;
-			tmp.Allocate(num);
-			SMemory::Copy(
-				tmp.GetData(),
-				_allocator.GetData(),
-				sizeof(ElementType) * num
-			);
-
-			// Move data back to main allocator
-			_allocator.Release();
-			_allocator.Allocate(num);
-			SMemory::Copy(
-				_allocator.GetData(),
-				tmp.GetData(),
-				sizeof(ElementType) * num
-			);
-
-			tmp.SetData(nullptr);
-			tmp.SetSize(0);
-
 			_num = num;
 		}
+
+		// Copy to temporary allocator
+		AllocatorT tmp;
+		tmp.Allocate(num);
+		SMemory::Copy(
+			tmp.GetData(),
+			_allocator.GetData(),
+			sizeof(ElementT) * num
+		);
+
+		// Move data back to main allocator
+		_allocator.Release();
+		_allocator.Allocate(num);
+		SMemory::Copy(
+			_allocator.GetData(),
+			tmp.GetData(),
+			sizeof(ElementT) * num
+		);
+
+		tmp.SetData(nullptr);
+		tmp.SetSize(0);
 	}
 
-	void GrowImpl(SizeType num)
+	void GrowImpl(NumT num)
 	{
 		_num = num;
 		ReserveImpl(num);
 	}
 
-	void ReserveImpl(SizeType num)
+	void ReserveImpl(NumT num)
 	{
 		_allocator.Allocate(num - _allocator.GetSize());
 	}
 
-	void EmptyImpl(bool release)
+	void EmptyImpl(NumT newNum)
 	{
-		if(_num > 0)
+		if (_num > 0)
 		{
 			DestructElementsPrivate(_allocator.GetData(), _num);
+			_num = 0;
+		}
 
-			if(release)
+		if (newNum > _allocator.GetSize())
+		{
+			ReserveImpl(newNum);
+		}
+		else if (newNum < _allocator.GetSize())
+		{
+			if (newNum == 0)
 			{
 				_allocator.Release();
 			}
-
-			_num = 0; 
+			else
+			{
+				ShrinkImpl(newNum);
+			}
 		}
 	}
 
-	void AppendImpl(const ElementType* data, SizeType count)
+	void AppendImpl(const ElementT* data, NumT num)
 	{
-		if(count > 0)
+		if(num > 0)
 		{
-			const SizeType oldCount = _num;
+			const NumT oldCount = _num;
 
-			_num += count;
-			RealocateIfNeededImpl();
-			SMemory::CopyElement(_allocator.GetData() + oldCount, data, count);
+			_num += num;
+			ReallocateIfNeededImpl();
+			SMemory::CopyElement(_allocator.GetData() + oldCount, data, num);
 		}
 	}
 
-	void AppendImpl(ElementType* data, SizeType count, bool preferMove)
+	void AppendImpl(ElementT* data, NumT num, bool preferMove)
 	{
 		if(preferMove && _num == 1)
 		{
-			const SizeType oldCount = _num;
+			const NumT oldCount = _num;
 
-			_num += count;
-			RealocateIfNeededImpl();
+			_num += num;
+			ReallocateIfNeededImpl();
 
 			SMemory::MoveElement(_allocator.GetData() + oldCount, data);
 		}
 		else
 		{
-			AppendImpl(data, count);
+			AppendImpl(data, num);
 		}
 	}
 
@@ -559,7 +574,7 @@ private:
 		other._num = 0;
 	}
 
-	void ResizeImpl(SizeType num, bool reserveOnly)
+	void ResizeImpl(NumT num, bool reserveOnly)
 	{
 		if(num > _num)
 		{
@@ -574,62 +589,50 @@ private:
 		}
 	}
 
-	void RealocateIfNeededImpl()
+	void ReallocateIfNeededImpl()
 	{
-		const SizeType reserved = _allocator.GetSize();
-
+		const NumT reserved = _allocator.GetSize();
 		if(_num > reserved)
 		{
 			ReserveImpl(SMath::CeilToPowerOfTwo<uint64>(_num));
 		}
 	}
 
-	FORCEINLINE static void DestructElementsPrivate(ElementType* element, SizeType count = 1)
+	FORCEINLINE static void DestructElementsPrivate(ElementT* element, NumT num = 1)
 	{
-		for(SizeType i = 0; i < count; ++i)
+		for(NumT i = 0; i < num; ++i)
 		{
 			SMemory::DestructElement(element);
 			++element;
 		}
 	}
 
-	FORCEINLINE static bool CompareAllocatorsPrivate(const AllocatorType* lhs, const AllocatorType* rhs, SizeType count)
+	FORCEINLINE static bool CompareAllocatorsPrivate(const AllocatorT* lhs, const AllocatorT* rhs, NumT size)
 	{
-		return (lhs->GetSize() >= count && rhs->GetSize() >= count) ?
-			SMemory::Compare(lhs->GetData(), rhs->GetData(), sizeof(ElementType) * count) == 0 : false;
+		return (lhs->GetSize() >= size && rhs->GetSize() >= size) ?
+			SMemory::Compare(lhs->GetData(), rhs->GetData(), sizeof(ElementT) * size) == 0 : false;
 	}
 
-	FORCEINLINE static bool CompareElementsPrivate(const ElementType* lhs, const ElementType* rhs)
+	FORCEINLINE static bool CompareElementsPrivate(const ElementT* lhs, const ElementT* rhs)
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
-		return SMemory::Compare(lhs, rhs, sizeof(ElementType)) == 0;
+		return SMemory::Compare(lhs, rhs, sizeof(ElementT)) == 0;
 	}
 
-	AllocatorType _allocator = {};
-	SizeType _num = INDEX_NONE;
+	AllocatorT _allocator = {};
+	NumT _num = INDEX_NONE;
 };
 
-// Archive operator<< && operator>>
-////////////////////////////////////////////
-
-template<typename T>
-static SArchive& operator<<(SArchive& ar, const TArray<T>& array)
+template<typename ElementT, typename AllocatorT>
+struct TContainerTypeTraits<TArray<ElementT, AllocatorT>> : public TContainerTypeTraits<void>
 {
-	for (uint16 i = 0; i < array.GetNum(); ++i)
+	using ElementType = ElementT;
+	using AllocatorType = AllocatorT;
+
+	enum
 	{
-		ar << array[i];
-	}
-
-	return ar;
-}
-
-template<typename T>
-static SArchive& operator>>(SArchive& ar, TArray<T>& array)
-{
-	for (uint16 i = 0; i < array.GetNum(); ++i)
-	{
-		ar >> array[i];
-	}
-
-	return ar;
-}
+		IsContainer = true,
+		IsDynamic = true,
+		InlineMemory = TIsSame<AllocatorT, TArrayAllocator<ElementT>>::Value
+	};
+};
