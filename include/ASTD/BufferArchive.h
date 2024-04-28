@@ -27,7 +27,7 @@ struct TBufferArchive : public SArchive
 	// Data set/get
 	/////////////////////////////////
 
-	FORCEINLINE void SetData(BufferT<uint8>&& data) { _data = data; _pos = _data.GetNum() - 1; }
+	FORCEINLINE void SetData(BufferT<uint8>&& data) { _data = data; _offset = _data.GetNum(); }
 	FORCEINLINE const TArray<uint8>& GetData() const { return _data; }
 
 	// SArchive overrides
@@ -35,51 +35,51 @@ struct TBufferArchive : public SArchive
 
 	FORCEINLINE virtual bool IsValid() const override { return true; }
 	FORCEINLINE virtual void Flush() override { SetData(TArray<uint8>()); }
-	FORCEINLINE virtual uint16 GetEndPos() const override { return _data.GetNum(); }
-	FORCEINLINE virtual uint16 GetPos() const override { return _pos; }
-	virtual bool SetPos(uint16 offset) override
+	FORCEINLINE virtual SizeType GetMaxOffset() const override { return _data.GetNum(); }
+	FORCEINLINE virtual SizeType GetOffset() const override { return _offset; }
+	virtual bool SetOffset(SizeType offset) override
 	{
 		if (_data.IsValidIndex(offset))
 		{
-			_pos = offset;
+			_offset = offset;
 			return true;
 		}
 
 		return false;
 	}
-	virtual uint16 ReadRaw(void* ptr, uint16 num) override
+	virtual SizeType ReadBytes(void* ptr, SizeType num) override
 	{
 		if (!ptr || num == 0) return 0;
 		else if (!AllowsRead()) return 0;
 
-		const uint16 bytesToRead = SMath::Min<uint16>(num, _data.GetNum() - _pos);
+		const SizeType bytesToRead = SMath::Min<SizeType>(num, _data.GetNum() - _offset);
 		if (bytesToRead > 0)
 		{
-			SMemory::Copy(ptr, _data.begin() + _pos, bytesToRead);
-			_pos += bytesToRead;
+			SMemory::Copy(ptr, _data.Begin() + _offset, bytesToRead);
+			_offset += bytesToRead;
 		}
 		return bytesToRead;
 	}
-	virtual uint16 WriteRaw(const void* ptr, uint16 num) override
+	virtual SizeType WriteBytes(const void* ptr, SizeType num) override
 	{
 		if (!ptr || num == 0) return 0;
 		else if (!AllowsWrite()) return 0;
 
-		const int32 newNum = _pos + num;
+		const SizeType newNum = _offset + num;
 		if (newNum > _data.GetNum())
 		{
 			_data.Grow(newNum);
 		}
 
-		SMemory::Copy(_data.GetData() + _pos, ptr, num);
+		SMemory::Copy(_data.GetData() + _offset, ptr, num);
 
-		_pos += num;
+		_offset += num;
 		return num;
 	}
 
 private:
 	BufferT<uint8> _data;
-	int32 _pos = -1;
+	SizeType _offset = 0;
 };
 
 typedef TBufferArchive<TArray> SArrayArchive;

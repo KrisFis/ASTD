@@ -542,12 +542,12 @@ private:
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const SString& str)
 {
-	ar.WriteRaw(str.GetChars(), str.GetLength());
+	ar.WriteBytes(str.GetChars(), str.GetLength());
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, SString& str)
 {
-	ar.ReadRaw(str.GetChars(), str.GetLength());
+	ar.ReadBytes(str.GetChars(), str.GetLength());
 	return ar;
 }

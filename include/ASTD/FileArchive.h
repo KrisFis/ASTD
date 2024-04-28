@@ -29,29 +29,29 @@ struct SCFileArchive : public SArchive
 
 	FORCEINLINE virtual bool IsValid() const override { return !!_file; }
 	FORCEINLINE virtual void Flush() override { fflush(_file); }
-	virtual uint16 GetEndPos() const override
+	virtual SizeType GetMaxOffset() const override
 	{
-		const uint16 currOff = ftell(_file);
+		const SizeType currOff = ftell(_file);
 		fseek(_file, 0, SEEK_END);
-		const uint16 result = ftell(_file);
+		const SizeType result = ftell(_file);
 		fseek(_file, currOff, SEEK_SET);
 		return result;
 	}
-	FORCEINLINE_DEBUGGABLE virtual uint16 GetPos() const override
+	FORCEINLINE_DEBUGGABLE virtual SizeType GetOffset() const override
 	{
 		return ftell(_file);
 	}
-	FORCEINLINE_DEBUGGABLE virtual bool SetPos(uint16 offset) override
+	FORCEINLINE_DEBUGGABLE virtual bool SetOffset(SizeType offset) override
 	{
 		return fseek(_file, offset, SEEK_SET) == 0;
 	}
-	FORCEINLINE_DEBUGGABLE virtual uint16 ReadRaw(void* ptr, uint16 num) override
+	FORCEINLINE_DEBUGGABLE virtual SizeType ReadBytes(void* ptr, SizeType num) override
 	{
-		return fread(ptr, sizeof(tchar), num, _file);
+		return fread(ptr, sizeof(uint8), num, _file);
 	}
-	FORCEINLINE_DEBUGGABLE virtual uint16 WriteRaw(const void* ptr, uint16 num) override
+	FORCEINLINE_DEBUGGABLE virtual SizeType WriteBytes(const void* ptr, SizeType num) override
 	{
-		return fwrite(ptr, sizeof(tchar), num, _file);
+		return fwrite(ptr, sizeof(uint8), num, _file);
 	}
 
 private:

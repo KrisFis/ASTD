@@ -21,6 +21,11 @@ enum class EArchiveMode : uint8
 
 struct SArchive
 {
+	// Types
+	/////////////////////////
+
+	typedef int64 SizeType;
+
 	// Constructors
 	/////////////////////////
 
@@ -55,12 +60,12 @@ struct SArchive
 	// Position
 	/////////////////////////
 
-	FORCEINLINE bool GetIsBegin() const { return GetPos() == 0; }
-	FORCEINLINE bool GetIsEnd() const { return GetPos() == GetEndPos(); }
+	FORCEINLINE bool GetIsBegin() const { return GetOffset() == 0; }
+	FORCEINLINE bool GetIsEnd() const { return GetOffset() == GetMaxOffset(); }
 
 	// Gets number of bytes
-	FORCEINLINE uint16 GetNumBytes() const { return GetEndPos(); }
-	FORCEINLINE bool IsEmpty() const { return GetNumBytes() == 0; }
+	FORCEINLINE SizeType GetNumBytes() const { return GetMaxOffset(); }
+	FORCEINLINE bool IsEmpty() const { return GetMaxOffset() == 0; }
 
 	template<typename T>
 	inline uint16 GetNum() const
@@ -71,14 +76,14 @@ struct SArchive
 		}
 		else
 		{
-			const uint16 endPos = GetEndPos();
-			static constexpr const uint16 tSize = sizeof(T);
+			const uint16 allBytes = GetNumBytes();
+			static constexpr const uint16 tBytes = sizeof(T);
 
 			uint16 result = 0;
-			if (endPos > 0)
+			if (allBytes > 0)
 			{
-				const uint16 reminder = endPos % tSize;
-				result = (endPos - reminder) / tSize;
+				const uint16 reminder = allBytes % tBytes;
+				result = (allBytes - reminder) / tBytes;
 			}
 
 			return result;
@@ -86,45 +91,79 @@ struct SArchive
 	}
 
 	// Gets end position
-	virtual uint16 GetEndPos() const = 0;
-	FORCEINLINE uint16 GCount() const { return GetEndPos(); }
+	virtual SizeType GetMaxOffset() const = 0;
+	FORCEINLINE SizeType GCount() const { return GetMaxOffset(); }
 
 	// Gets current position (tell)
-	virtual uint16 GetPos() const = 0;
-	FORCEINLINE uint16 Tell() const { return GetPos(); }
+	virtual SizeType GetOffset() const = 0;
+	FORCEINLINE SizeType Tell() const { return GetOffset(); }
 
 	// Moves to position (seek)
-	virtual bool SetPos(uint16 offset) = 0;
-	FORCEINLINE bool Seek(uint16 offset) { return SetPos(offset); }
+	virtual bool SetOffset(SizeType offset) = 0;
+	FORCEINLINE bool Seek(SizeType offset) { return SetOffset(offset); }
 
 	// Read / Write
 	/////////////////////////
 
-	///// Reads bytes and moves while doing so
-	virtual uint16 ReadRaw(void* ptr, uint16 num) = 0;
+	// Reads bytes and moves while doing so
+	virtual SizeType ReadBytes(void* ptr, SizeType num) = 0;
 
 	template<typename T>
-	FORCEINLINE uint16 Read(T* ptr, uint16 num) { return ReadRaw(ptr, sizeof(T) * num); }
+	FORCEINLINE SizeType Read(T* ptr, SizeType num) { return ReadBytes(ptr, sizeof(T) * num); }
 
 	// Writes bytes and moves while doing so
-	virtual uint16 WriteRaw(const void* ptr, uint16 num) = 0;
+	virtual SizeType WriteBytes(const void* ptr, SizeType num) = 0;
 
 	template<typename T>
-	FORCEINLINE uint16 Write(const T* ptr, uint16 num) { return WriteRaw(ptr, sizeof(T) * num); }
+	FORCEINLINE SizeType Write(const T* ptr, SizeType num) { return WriteBytes(ptr, sizeof(T) * num); }
 
-	// Dump
+	// Packet
+	// * Packet is a bunch of bytes basically
+	/////////////////////////
+
+	// Func: (const void* packet, SizeType numOfBytes) -> bool
+	template<SizeType MaxPacketSize, typename FuncType>
+	bool ReadPacketsUntil(FuncType&& func)
+	{
+		uint8 packet[MaxPacketSize];
+		while(true)
+		{
+			const SizeType readBytes = ReadRaw(&packet, MaxPacketSize);
+			if (readBytes > 0)
+			{
+				if (func((const void*)&packet, readBytes)) break;
+			}
+
+			if (readBytes < MaxPacketSize)
+			{
+				break;
+			}
+		}
+
+		return true;
+	}
+
+	// Func: (const void* packet, SizeType numOfBytes) -> bool
+	template<SizeType MaxPacketSize, typename FuncType>
+	FORCEINLINE_DEBUGGABLE bool ReadPacketsUntil(SizeType startOffset, FuncType&& func)
+	{
+		if (!SetOffset(startOffset)) return false;
+		return ReadPacketsUntil<MaxPacketSize>(Forward(func));
+	}
+
+	// Container
 	// * Takes all data and copies to provided container
 	/////////////////////////
 
 	template<typename ContainerT, typename ContainerTT = TContainerTypeTraits<ContainerT>>
-	typename TEnableIf<ContainerTT::IsContainer, bool>::Type DumpToContainer(ContainerT& outContainer)
+	typename TEnableIf<ContainerTT::IsContainer, bool>::Type CopyToContainer(ContainerT& outContainer)
 	{
 		if (!AllowsRead()) return false;
 
-		const uint16 numBytes = GetNum<typename ContainerTT::ElementType>();
+		const uint16 numBytes = GetNumBytes();
 		if (numBytes == 0) return false;
 
-		SetPos(0);
+		SetOffset(0);
 		outContainer.Resize(numBytes);
 		*this >> outContainer;
 		return true;
@@ -142,13 +181,13 @@ static SArchive& operator<<(SArchive& ar, SArchive& otherAr)
 {
 	if (ar.GetMode() == otherAr.GetMode() && otherAr.AllowsRead())
 	{
-		const uint16 remainingBytes = (otherAr.GetEndPos() - otherAr.GetPos());
+		const uint16 remainingBytes = (otherAr.GetMaxOffset() - otherAr.GetOffset());
 		if (remainingBytes > 0)
 		{
 			uint8* buffer = SMemory::AllocateElement<uint8>(remainingBytes);
 			{
-				otherAr.ReadRaw(buffer, remainingBytes);
-				ar.WriteRaw(buffer, remainingBytes);
+				otherAr.ReadBytes(buffer, remainingBytes);
+				ar.WriteBytes(buffer, remainingBytes);
 			}
 			SMemory::DeallocateElement(buffer);
 		}
@@ -168,7 +207,7 @@ inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type oper
 {
 	if constexpr (ContainerTT::InlineMemory)
 	{
-		ar.WriteRaw(container.Begin(), container.GetNum());
+		ar.Write(container.Begin(), container.GetNum());
 	}
 	else
 	{
@@ -186,7 +225,7 @@ inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type oper
 {
 	if constexpr (ContainerTT::InlineMemory)
 	{
-		ar.ReadRaw(container.Begin(), container.GetNum());
+		ar.Read(container.Begin(), container.GetNum());
 	}
 	else
 	{
@@ -210,7 +249,7 @@ static SArchive& operator<<(SArchive& ar, const int32 val)
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT32];
 		if (SCString::FromInt32(val, buffer, SCString::MAX_BUFFER_SIZE_INT32))
 		{
-			ar.WriteRaw(buffer, SCString::GetLength(buffer));
+			ar.WriteBytes(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -229,7 +268,7 @@ static SArchive& operator>>(SArchive& ar, int32& val)
 		{
 			tchar c;
 			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_INT32 - 1 && ar.ReadRaw(&c, 1) == 1)
+			while (i < SCString::MAX_BUFFER_SIZE_INT32 - 1 && ar.ReadBytes(&c, 1) == 1)
 			{
 				if ((c >= '0' && c <= '9') || c == '-')
 				{
@@ -237,7 +276,7 @@ static SArchive& operator>>(SArchive& ar, int32& val)
 				}
 				else
 				{
-					ar.SetPos(ar.GetPos() - 1);
+					ar.SetOffset(ar.GetOffset() - 1);
 					break;
 				}
 			}
@@ -260,7 +299,7 @@ static SArchive& operator<<(SArchive& ar, const int64 val)
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT64];
 		if (SCString::FromInt64(val, buffer, SCString::MAX_BUFFER_SIZE_INT64))
 		{
-			ar.WriteRaw(buffer, SCString::GetLength(buffer));
+			ar.WriteBytes(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -279,7 +318,7 @@ static SArchive& operator>>(SArchive& ar, int64& val)
 		{
 			tchar c;
 			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_INT64 - 1 && ar.ReadRaw(&c, 1) == 1)
+			while (i < SCString::MAX_BUFFER_SIZE_INT64 - 1 && ar.ReadBytes(&c, 1) == 1)
 			{
 				if ((c >= '0' && c <= '9') || c == '-')
 				{
@@ -287,7 +326,7 @@ static SArchive& operator>>(SArchive& ar, int64& val)
 				}
 				else
 				{
-					ar.SetPos(ar.GetPos() - 1);
+					ar.SetOffset(ar.GetOffset() - 1);
 					break;
 				}
 			}
@@ -310,7 +349,7 @@ static SArchive& operator<<(SArchive& ar, const double val)
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
 		if (SCString::FromDouble(val, 4, buffer, SCString::MAX_BUFFER_SIZE_DOUBLE))
 		{
-			ar.WriteRaw(buffer, SCString::GetLength(buffer));
+			ar.WriteBytes(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -329,7 +368,7 @@ static SArchive& operator>>(SArchive& ar, double& val)
 		{
 			tchar c;
 			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_DOUBLE - 1 && ar.ReadRaw(&c, 1) == 1)
+			while (i < SCString::MAX_BUFFER_SIZE_DOUBLE - 1 && ar.ReadBytes(&c, 1) == 1)
 			{
 				if ((c >= '0' && c <= '9') || c == '.' || c == '-')
 				{
@@ -337,7 +376,7 @@ static SArchive& operator>>(SArchive& ar, double& val)
 				}
 				else
 				{
-					ar.SetPos(ar.GetPos() - 1);
+					ar.SetOffset(ar.GetOffset() - 1);
 					break;
 				}
 			}
@@ -351,24 +390,24 @@ static SArchive& operator>>(SArchive& ar, double& val)
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, tchar val)
 {
-	ar.WriteRaw(&val, 1);
+	ar.WriteBytes(&val, 1);
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, tchar& val)
 {
-	ar.ReadRaw(&val, 1);
+	ar.ReadBytes(&val, 1);
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const tchar* val)
 {
-	ar.WriteRaw(val, SCString::GetLength(val));
+	ar.WriteBytes(val, SCString::GetLength(val));
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, tchar* val)
 {
-	ar.ReadRaw(val, SCString::GetLength(val));
+	ar.ReadBytes(val, SCString::GetLength(val));
 	return ar;
 }
