@@ -7,7 +7,9 @@
 
 #include "ASTD/TypeTraits.h"
 
-struct SMemory : public PLATFORM_STRUCT(Memory)
+typedef PLATFORM_STRUCT(Memory) SPlatformMemory;
+
+struct SMemory : public SPlatformMemory
 {
 	static constexpr long double BITS_PER_BYTE = 8; // bits
 	static constexpr long double KiB_PER_BYTE = 1.e-3; // kibibytes
@@ -115,9 +117,26 @@ struct SMemory : public PLATFORM_STRUCT(Memory)
 			ptr->~T();
 		}
 	}
+
+#if ASTD_TRACK_MEMORY
+	// Gets allocated memory as specific type
+	FORCEINLINE static uint64 GetAllocatedBytes() { return GetAllocatedBytesImpl(); }
+
+	FORCEINLINE static void* Allocate(int64 size) { return (GetAllocatedBytesImpl() += size, SPlatformMemory::Allocate(size)); }
+	FORCEINLINE static void* AllocateZeroed(int64 size) { return (GetAllocatedBytesImpl() += size, SPlatformMemory::AllocateZeroed(size)); }
+	FORCEINLINE static void Deallocate(void* ptr, int64 size) { return (GetAllocatedBytesImpl() -= size, SPlatformMemory::Deallocate(ptr, size)); }
+
+private:
+
+	static uint64& GetAllocatedBytesImpl()
+	{
+		static uint64 bytes = 0;
+		return bytes;
+	}
+#endif
 };
 
-#if ASTD_OVERRIDE_NEW_DELETE
+#if ASTD_NEW_DELETE
 inline void* operator new(TSize size)
 {
 	return SMemory::Allocate((uint32)size);

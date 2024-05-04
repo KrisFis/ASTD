@@ -108,7 +108,7 @@
 #define ANSITEXT(text) text
 #define WIDETEXT(text) L ## text
 
-#if USE_UNICODE
+#if ASTD_USE_UNICODE
 	#define TEXT(text) WIDETEXT(text)
 	typedef wchar tchar;
 #else

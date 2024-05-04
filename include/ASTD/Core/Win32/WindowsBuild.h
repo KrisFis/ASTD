@@ -4,7 +4,7 @@
 
 // Windows setup
 
-#if USE_UNICODE
+#if ASTD_USE_UNICODE
 	#define UNICODE
 #endif
 

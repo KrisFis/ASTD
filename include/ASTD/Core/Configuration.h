@@ -3,16 +3,21 @@
 #pragma once
 
 // Whether we should use unicode
-#ifndef USE_UNICODE
-	#define USE_UNICODE PLATFORM_WINDOWS
+#ifndef ASTD_USE_UNICODE
+	#define ASTD_USE_UNICODE PLATFORM_WINDOWS
 #endif
 
 // Whether we should allow checks in build. See Check.h
-#ifndef DO_CHECKS
-	#define DO_CHECKS BUILD_DEBUG
+#ifndef ASTD_DO_CHECKS
+	#define ASTD_DO_CHECKS BUILD_DEBUG
 #endif
 
-// Whether ASTD can override new/delete. See Memory.h
-#ifndef ASTD_OVERRIDE_NEW_DELETE
-	#define ASTD_OVERRIDE_NEW_DELETE 1
+// Whether we want to track SMemory allocations, see Memory.h
+#ifndef ASTD_TRACK_MEMORY
+	#define ASTD_TRACK_MEMORY BUILD_DEBUG
+#endif
+
+// Whether we want "new" and "delete" to use ASTD memory alloc. See Memory.h
+#ifndef ASTD_NEW_DELETE
+	#define ASTD_NEW_DELETE 1
 #endif

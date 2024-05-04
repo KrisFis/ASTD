@@ -7,7 +7,9 @@
 
 #include "ASTD/Memory.h"
 
-struct SCString : public PLATFORM_STRUCT(CString)
+typedef PLATFORM_STRUCT(CString) SPlatformCString;
+
+struct SCString : public SPlatformCString
 {
 	static constexpr uint16 SMALL_BUFFER_SIZE = 1024;
 	static constexpr uint16 LARGE_BUFFER_SIZE = 4096;

@@ -20,7 +20,7 @@
 // UTILITIES
 #include "ASTD/Math.h"
 #include "ASTD/Memory.h"
-#include "ASTD/Time.h"
+#include "ASTD/Misc.h"
 
 // CONTAINERS
 #include "ASTD/Array.h"
@@ -47,5 +47,6 @@
 
 // EXTRAS -> ARCHIVE
 #include "ASTD/Archive.h"
-#include "ASTD/BufferArchive.h"
+#include "ASTD/ArrayArchive.h"
 #include "ASTD/FileArchive.h"
+#include "ASTD/PrintArchive.h"

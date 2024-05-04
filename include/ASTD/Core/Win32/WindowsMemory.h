@@ -9,25 +9,13 @@
 struct SWindowsPlatformMemory
 {
 	// Allocates new memory
-	FORCEINLINE static void* Allocate(int64 size)
-	{
-		_allocatedBytes += size;
-		return HeapAlloc(GetProcessHeap(), 0, size);
-	}
+	FORCEINLINE static void* Allocate(int64 size) { return HeapAlloc(GetProcessHeap(), 0, size); }
 
 	// Allocates new memory and sets every bit to zero
-	FORCEINLINE static void* AllocateZeroed(int64 size)
-	{
-		_allocatedBytes += size;
-		return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size);
-	}
+	FORCEINLINE static void* AllocateZeroed(int64 size) { return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size); }
 
 	// Deallocates memory
-	FORCEINLINE static void Deallocate(void* ptr, int64 size)
-	{
-		_allocatedBytes -= size;
-		HeapFree(GetProcessHeap(), 0, ptr);
-	}
+	FORCEINLINE static void Deallocate(void* ptr, int64 size) { HeapFree(GetProcessHeap(), 0, ptr); }
 
 	// Copies block of memory from destionation to source (does not handle overlapping)
 	FORCEINLINE static void* Copy(void* dest, const void* src, int64 size) { return CopyMemory(dest, src, size); }
@@ -37,13 +25,4 @@ struct SWindowsPlatformMemory
 
 	// Compares two blocks of memory
 	FORCEINLINE static int32 Compare(const void* lhs, const void* rhs, int64 num) { return RtlEqualMemory(lhs, rhs, num); }
-
-	// Gets allocated memory as specific type
-	FORCEINLINE static double GetAllocatedBytes() { return (double)_allocatedBytes; }
-
-private:
-
-	static uint64 _allocatedBytes;
 };
-
-uint64 SWindowsPlatformMemory::_allocatedBytes = 0;

@@ -4,7 +4,7 @@
 
 #include "ASTD/Core/Win32/WindowsBuild.h"
 
-struct SWindowsPlatformTime
+struct SWindowsPlatformMisc
 {
 	static double GetSecondsSinceEpoch()
 	{
@@ -13,4 +13,10 @@ struct SWindowsPlatformTime
 		wintime -=116444736000000000i64;  //1jan1601 to 1jan1970
 		return (double)(wintime / 10000000i64) + (double)(wintime % 10000000i64 * 100) / 1.e9;
 	}
+
+	// Reads from standard file by fileno. example: STDIN_FILENO
+	static uint64 ReadStd(int32 fileNo, void* buffer, int64 size) { return _read(fileNo, buffer, size); }
+
+	// Writes to standard file by fileno. example: STDOUT_FILENO
+	static uint64 WriteStd(int32 fileNo, const void* buffer, int64 size) { return _write(fileNo, buffer, size); }
 };

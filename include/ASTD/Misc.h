@@ -1,0 +1,47 @@
+// Copyright Alternity Arts. All Rights Reserved
+
+#pragma once
+
+#include "ASTD/Core/Build.h"
+#include "ASTD/CString.h"
+
+#include PLATFORM_HEADER(Misc)
+
+typedef PLATFORM_STRUCT(Misc) SPlatformMisc;
+
+struct SMisc : public SPlatformMisc
+{
+	static constexpr long double NS_PER_SECOND = 1.e9; // nanoseconds
+	static constexpr long double MICROS_PER_SECOND = 1.e6; // microseconds
+	static constexpr long double MS_PER_SECOND = 1.e3; // miliseconds
+	static constexpr long double HOURS_PER_SECOND = 2.7e-4; // hours
+	static constexpr long double DAYS_PER_SECOND = 1.1574074e-4; // days
+
+	static constexpr int32 STDIN_FILE_NO = 0;
+	static constexpr int32 STDOUT_FILE_NO = 1;
+	static constexpr int32 STDERR_FILE_NO = 2;
+
+	template<typename CharType>
+	FORCEINLINE static uint64 ReadFromStdin(CharType* str)
+	{
+		return SPlatformMisc::ReadStd(STDIN_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+	}
+
+	FORCEINLINE static uint64 ReadFromStdin(void* buffer, uint64 size) { return SPlatformMisc::ReadStd(STDIN_FILE_NO, buffer, size); }
+
+	template<typename CharType>
+	FORCEINLINE static uint64 WriteToStdout(const CharType* str)
+	{
+		return SPlatformMisc::WriteStd(STDOUT_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+	}
+
+	FORCEINLINE static uint64 WriteToStdout(const void* buffer, uint64 size) { return SPlatformMisc::WriteStd(STDOUT_FILE_NO, buffer, size); }
+
+	template<typename CharType>
+	FORCEINLINE static uint64 WriteToStderr(const CharType* str)
+	{
+		return SPlatformMisc::WriteStd(STDERR_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+	}
+
+	FORCEINLINE static uint64 WriteToStderr(const void* buffer, uint64 size) { return SPlatformMisc::WriteStd(STDERR_FILE_NO, buffer, size); }
+};

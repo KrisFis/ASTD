@@ -4,7 +4,7 @@
 
 #include "ASTD/Core/Build.h"
 
-#if DO_CHECKS
+#if ASTD_DO_CHECKS
 
 	#include <iostream>
 

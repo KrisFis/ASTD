@@ -6,7 +6,6 @@
 
 #include "Archive.h"
 
-// TODO: Remove direct posix calls
 struct SCFileArchive : public SArchive
 {
 	FORCEINLINE SCFileArchive(EArchiveType type, EArchiveMode mode, const tchar* filename, bool overwrite)
@@ -29,7 +28,7 @@ struct SCFileArchive : public SArchive
 
 	FORCEINLINE virtual bool IsValid() const override { return !!_file; }
 	FORCEINLINE virtual void Flush() override { fflush(_file); }
-	virtual SizeType GetMaxOffset() const override
+	virtual SizeType GetTotalBytes() const override
 	{
 		const SizeType currOff = ftell(_file);
 		fseek(_file, 0, SEEK_END);
@@ -37,21 +36,21 @@ struct SCFileArchive : public SArchive
 		fseek(_file, currOff, SEEK_SET);
 		return result;
 	}
-	FORCEINLINE_DEBUGGABLE virtual SizeType GetOffset() const override
+	FORCEINLINE_DEBUGGABLE virtual SizeType GetBytesOffset() const override
 	{
 		return ftell(_file);
 	}
-	FORCEINLINE_DEBUGGABLE virtual bool SetOffset(SizeType offset) override
+	FORCEINLINE_DEBUGGABLE virtual bool SetBytesOffset(SizeType offset) override
 	{
 		return fseek(_file, offset, SEEK_SET) == 0;
 	}
-	FORCEINLINE_DEBUGGABLE virtual SizeType ReadBytes(void* ptr, SizeType num) override
+	FORCEINLINE_DEBUGGABLE virtual SizeType ReadBytes(void* ptr, SizeType size) override
 	{
-		return fread(ptr, sizeof(uint8), num, _file);
+		return fread(ptr, sizeof(uint8), size, _file);
 	}
-	FORCEINLINE_DEBUGGABLE virtual SizeType WriteBytes(const void* ptr, SizeType num) override
+	FORCEINLINE_DEBUGGABLE virtual SizeType WriteBytes(const void* ptr, SizeType size) override
 	{
-		return fwrite(ptr, sizeof(uint8), num, _file);
+		return fwrite(ptr, sizeof(uint8), size, _file);
 	}
 
 private:

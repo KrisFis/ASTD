@@ -60,12 +60,12 @@ struct SArchive
 	// Position
 	/////////////////////////
 
-	FORCEINLINE bool GetIsBegin() const { return GetOffset() == 0; }
-	FORCEINLINE bool GetIsEnd() const { return GetOffset() == GetMaxOffset(); }
+	FORCEINLINE bool GetIsBegin() const { return GetBytesOffset() == 0; }
+	FORCEINLINE bool GetIsEnd() const { return GetBytesOffset() == GetTotalBytes(); }
 
 	// Gets number of bytes
-	FORCEINLINE SizeType GetNumBytes() const { return GetMaxOffset(); }
-	FORCEINLINE bool IsEmpty() const { return GetMaxOffset() == 0; }
+	FORCEINLINE SizeType GetNumBytes() const { return GetTotalBytes(); }
+	FORCEINLINE bool IsEmpty() const { return GetTotalBytes() == 0; }
 
 	template<typename T>
 	inline uint16 GetNum() const
@@ -91,28 +91,28 @@ struct SArchive
 	}
 
 	// Gets end position
-	virtual SizeType GetMaxOffset() const = 0;
-	FORCEINLINE SizeType GCount() const { return GetMaxOffset(); }
+	virtual SizeType GetTotalBytes() const = 0;
+	FORCEINLINE SizeType GCount() const { return GetTotalBytes(); }
 
 	// Gets current position (tell)
-	virtual SizeType GetOffset() const = 0;
-	FORCEINLINE SizeType Tell() const { return GetOffset(); }
+	virtual SizeType GetBytesOffset() const = 0;
+	FORCEINLINE SizeType Tell() const { return GetBytesOffset(); }
 
 	// Moves to position (seek)
-	virtual bool SetOffset(SizeType offset) = 0;
-	FORCEINLINE bool Seek(SizeType offset) { return SetOffset(offset); }
+	virtual bool SetBytesOffset(SizeType offset) = 0;
+	FORCEINLINE bool Seek(SizeType offset) { return SetBytesOffset(offset); }
 
 	// Read / Write
 	/////////////////////////
 
 	// Reads bytes and moves while doing so
-	virtual SizeType ReadBytes(void* ptr, SizeType num) = 0;
+	virtual SizeType ReadBytes(void* ptr, SizeType size) = 0;
 
 	template<typename T>
 	FORCEINLINE SizeType Read(T* ptr, SizeType num) { return ReadBytes(ptr, sizeof(T) * num); }
 
 	// Writes bytes and moves while doing so
-	virtual SizeType WriteBytes(const void* ptr, SizeType num) = 0;
+	virtual SizeType WriteBytes(const void* ptr, SizeType size) = 0;
 
 	template<typename T>
 	FORCEINLINE SizeType Write(const T* ptr, SizeType num) { return WriteBytes(ptr, sizeof(T) * num); }
@@ -147,7 +147,7 @@ struct SArchive
 	template<SizeType MaxPacketSize, typename FuncType>
 	FORCEINLINE_DEBUGGABLE bool ReadPacketsUntil(SizeType startOffset, FuncType&& func)
 	{
-		if (!SetOffset(startOffset)) return false;
+		if (!SetBytesOffset(startOffset)) return false;
 		return ReadPacketsUntil<MaxPacketSize>(Forward(func));
 	}
 
@@ -163,7 +163,7 @@ struct SArchive
 		const uint16 numBytes = GetNumBytes();
 		if (numBytes == 0) return false;
 
-		SetOffset(0);
+		SetBytesOffset(0);
 		outContainer.Resize(numBytes);
 		*this >> outContainer;
 		return true;
@@ -181,7 +181,7 @@ static SArchive& operator<<(SArchive& ar, SArchive& otherAr)
 {
 	if (ar.GetMode() == otherAr.GetMode() && otherAr.AllowsRead())
 	{
-		const uint16 remainingBytes = (otherAr.GetMaxOffset() - otherAr.GetOffset());
+		const uint16 remainingBytes = (otherAr.GetTotalBytes() - otherAr.GetBytesOffset());
 		if (remainingBytes > 0)
 		{
 			uint8* buffer = SMemory::AllocateElement<uint8>(remainingBytes);
@@ -276,7 +276,7 @@ static SArchive& operator>>(SArchive& ar, int32& val)
 				}
 				else
 				{
-					ar.SetOffset(ar.GetOffset() - 1);
+					ar.SetBytesOffset(ar.GetBytesOffset() - 1);
 					break;
 				}
 			}
@@ -326,7 +326,7 @@ static SArchive& operator>>(SArchive& ar, int64& val)
 				}
 				else
 				{
-					ar.SetOffset(ar.GetOffset() - 1);
+					ar.SetBytesOffset(ar.GetBytesOffset() - 1);
 					break;
 				}
 			}
@@ -376,7 +376,7 @@ static SArchive& operator>>(SArchive& ar, double& val)
 				}
 				else
 				{
-					ar.SetOffset(ar.GetOffset() - 1);
+					ar.SetBytesOffset(ar.GetBytesOffset() - 1);
 					break;
 				}
 			}
