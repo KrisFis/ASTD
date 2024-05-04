@@ -28,11 +28,11 @@ struct SString
 	FORCEINLINE SString(const SString& other) { FillToEmptyImpl(other.GetData()); }
 	FORCEINLINE SString(SString&& other) { FillToEmptyImpl(Move(other.GetData())); }
 
-	FORCEINLINE SString(const DataType& data) { FillToEmptyImpl(data); }
-	FORCEINLINE SString(DataType&& data) { FillToEmptyImpl(Move(data)); }
-
 	FORCEINLINE SString(CharType character) { FillToEmptyImpl({character}); }
 	FORCEINLINE SString(const CharType* text) { FillToEmptyImpl(text); }
+
+	FORCEINLINE explicit SString(const DataType& data) { FillToEmptyImpl(data); }
+	FORCEINLINE explicit SString(DataType&& data) { FillToEmptyImpl(Move(data)); }
 
 	// Static fields
 	/////////////////////////////////
@@ -522,12 +522,14 @@ private:
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const SString& str)
 {
-	ar.WriteBytes(str.GetChars(), str.GetLength());
+	ar.Write(str.GetChars(), str.GetLength());
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, SString& str)
 {
-	ar.ReadBytes(str.GetChars(), str.GetLength());
+	SString::DataType newData;
+	ar >> newData;
+	str = SString(Move(newData));
 	return ar;
 }

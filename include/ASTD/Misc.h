@@ -21,27 +21,32 @@ struct SMisc : public SPlatformMisc
 	static constexpr int32 STDOUT_FILE_NO = 1;
 	static constexpr int32 STDERR_FILE_NO = 2;
 
-	template<typename CharType>
-	FORCEINLINE static uint64 ReadFromStdin(CharType* str)
+	FORCEINLINE_DEBUGGABLE static int64 ReadFromStdin(void* buffer, int64 size)
 	{
-		return SPlatformMisc::ReadStd(STDIN_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+		return SPlatformMisc::ReadStd(STDIN_FILE_NO, buffer, size);
 	}
 
-	FORCEINLINE static uint64 ReadFromStdin(void* buffer, uint64 size) { return SPlatformMisc::ReadStd(STDIN_FILE_NO, buffer, size); }
-
-	template<typename CharType>
-	FORCEINLINE static uint64 WriteToStdout(const CharType* str)
+	FORCEINLINE_DEBUGGABLE static int64 WriteToStdout(const void* buffer, int64 size)
 	{
-		return SPlatformMisc::WriteStd(STDOUT_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+		return SPlatformMisc::WriteStd(STDOUT_FILE_NO, buffer, size);
 	}
 
-	FORCEINLINE static uint64 WriteToStdout(const void* buffer, uint64 size) { return SPlatformMisc::WriteStd(STDOUT_FILE_NO, buffer, size); }
-
-	template<typename CharType>
-	FORCEINLINE static uint64 WriteToStderr(const CharType* str)
+	FORCEINLINE_DEBUGGABLE static int64 WriteToStderr(const void* buffer, int64 size)
 	{
-		return SPlatformMisc::WriteStd(STDERR_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+		return SPlatformMisc::WriteStd(STDERR_FILE_NO, buffer, size);
 	}
 
-	FORCEINLINE static uint64 WriteToStderr(const void* buffer, uint64 size) { return SPlatformMisc::WriteStd(STDERR_FILE_NO, buffer, size); }
+	template<typename CharType>
+	FORCEINLINE_DEBUGGABLE static uint64 WriteToStdout(const CharType* str)
+	{
+		const uint64 writtenBytes = SPlatformMisc::WriteStd(STDOUT_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+		return writtenBytes >= sizeof(tchar) ? writtenBytes / sizeof(tchar) : 0;
+	}
+
+	template<typename CharType>
+	FORCEINLINE_DEBUGGABLE static uint64 WriteToStderr(const CharType* str)
+	{
+		const uint64 writtenBytes = SPlatformMisc::WriteStd(STDERR_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+		return writtenBytes >= sizeof(tchar) ? writtenBytes / sizeof(tchar) : 0;
+	}
 };

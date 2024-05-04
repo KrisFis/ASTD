@@ -49,4 +49,4 @@
 #include "ASTD/Archive.h"
 #include "ASTD/ArrayArchive.h"
 #include "ASTD/FileArchive.h"
-#include "ASTD/PrintArchive.h"
+#include "ASTD/StdoutArchive.h"

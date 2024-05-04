@@ -18,8 +18,8 @@ struct SLinuxPlatformMisc
 	}
 
 	// Reads from standard file by fileno. example: STDIN_FILENO
-	FORCEINLINE static uint64 ReadStd(int32 fileNo, void* buffer, int64 size) { return read(fileNo, buffer, size); }
+	FORCEINLINE static int64 ReadStd(int32 fileNo, void* buffer, int64 size) { return read(fileNo, buffer, size); }
 
 	// Writes to standard file by fileno. example: STDOUT_FILENO
-	FORCEINLINE static uint64 WriteStd(int32 fileNo, const void* buffer, int64 size) { return write(fileNo, buffer, size); }
+	FORCEINLINE static int64 WriteStd(int32 fileNo, const void* buffer, int64 size) { return write(fileNo, buffer, size); }
 };

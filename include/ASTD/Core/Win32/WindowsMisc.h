@@ -15,8 +15,8 @@ struct SWindowsPlatformMisc
 	}
 
 	// Reads from standard file by fileno. example: STDIN_FILENO
-	static uint64 ReadStd(int32 fileNo, void* buffer, int64 size) { return _read(fileNo, buffer, size); }
+	static int64 ReadStd(int32 fileNo, void* buffer, int64 size) { return _read(fileNo, buffer, size); }
 
 	// Writes to standard file by fileno. example: STDOUT_FILENO
-	static uint64 WriteStd(int32 fileNo, const void* buffer, int64 size) { return _write(fileNo, buffer, size); }
+	static int64 WriteStd(int32 fileNo, const void* buffer, int64 size) { return _write(fileNo, buffer, size); }
 };

@@ -60,34 +60,62 @@ struct SArchive
 	// Position
 	/////////////////////////
 
-	FORCEINLINE bool GetIsBegin() const { return GetBytesOffset() == 0; }
-	FORCEINLINE bool GetIsEnd() const { return GetBytesOffset() == GetTotalBytes(); }
+	FORCEINLINE bool GetIsBegin() const { return GetBytesOffset() <= 0; }
+	FORCEINLINE bool GetIsEnd() const { return GetBytesOffset() >= GetTotalBytes(); }
 
 	// Gets number of bytes
-	FORCEINLINE SizeType GetNumBytes() const { return GetTotalBytes(); }
-	FORCEINLINE bool IsEmpty() const { return GetTotalBytes() == 0; }
+	FORCEINLINE bool IsEmpty() const { return GetTotalBytes() <= 0; }
 
-	template<typename T>
-	inline uint16 GetNum() const
+	template<typename T = uint8>
+	FORCEINLINE_DEBUGGABLE SizeType GetTotal() const
 	{
 		if constexpr (sizeof(T) == sizeof(uint8))
 		{
-			return GetNumBytes();
+			return GetTotalBytes();
 		}
 		else
 		{
-			const uint16 allBytes = GetNumBytes();
-			static constexpr const uint16 tBytes = sizeof(T);
-
-			uint16 result = 0;
-			if (allBytes > 0)
-			{
-				const uint16 reminder = allBytes % tBytes;
-				result = (allBytes - reminder) / tBytes;
-			}
-
-			return result;
+			const SizeType bytes = GetTotalBytes();
+			return bytes >= sizeof(T) ? bytes / sizeof(T) : 0;
 		}
+	}
+
+	// Gets remaining offset in T size (aka. how many Ts till the end of the archive)
+	template<typename T = uint8>
+	FORCEINLINE_DEBUGGABLE SizeType GetRemainingOffset() const
+	{
+		if constexpr (sizeof(T) == sizeof(uint8))
+		{
+			return GetTotalBytes() - GetBytesOffset();
+		}
+		else
+		{
+			const SizeType offsetBytes = GetBytesOffset();
+			const SizeType offsetElements = offsetBytes >= sizeof(T) ? offsetBytes / sizeof(T) : 0;
+
+			return GetOffset<T>() - offsetElements;
+		}
+	}
+
+	template<typename T = uint8>
+	FORCEINLINE_DEBUGGABLE SizeType GetOffset() const
+	{
+		if constexpr (sizeof(T) == sizeof(uint8))
+		{
+			return GetBytesOffset();
+		}
+		else
+		{
+			const SizeType bytes = GetBytesOffset();
+			return bytes >= sizeof(T) ? bytes / sizeof(T) : 0;
+		}
+	}
+
+	// Sets offset for T size
+	template<typename T = uint8>
+	FORCEINLINE_DEBUGGABLE void SetOffset(SizeType num)
+	{
+		SetBytesOffset(num * sizeof(T));
 	}
 
 	// Gets end position
@@ -109,13 +137,21 @@ struct SArchive
 	virtual SizeType ReadBytes(void* ptr, SizeType size) = 0;
 
 	template<typename T>
-	FORCEINLINE SizeType Read(T* ptr, SizeType num) { return ReadBytes(ptr, sizeof(T) * num); }
+	FORCEINLINE_DEBUGGABLE SizeType Read(T* ptr, SizeType num)
+	{
+		const SizeType bytesRead = ReadBytes(ptr, sizeof(T) * num);
+		return bytesRead >= sizeof(T) ? bytesRead / sizeof(T) : 0;
+	}
 
 	// Writes bytes and moves while doing so
 	virtual SizeType WriteBytes(const void* ptr, SizeType size) = 0;
 
 	template<typename T>
-	FORCEINLINE SizeType Write(const T* ptr, SizeType num) { return WriteBytes(ptr, sizeof(T) * num); }
+	FORCEINLINE_DEBUGGABLE SizeType Write(const T* ptr, SizeType num)
+	{
+		const SizeType bytesWritten = WriteBytes(ptr, sizeof(T) * num);
+		return bytesWritten >= sizeof(T) ? bytesWritten / sizeof(T) : 0;
+	}
 
 	// Packet
 	// * Packet is a bunch of bytes basically
@@ -128,7 +164,7 @@ struct SArchive
 		uint8 packet[MaxPacketSize];
 		while(true)
 		{
-			const SizeType readBytes = ReadRaw(&packet, MaxPacketSize);
+			const SizeType readBytes = ReadBytes(&packet, MaxPacketSize);
 			if (readBytes > 0)
 			{
 				if (func((const void*)&packet, readBytes)) break;
@@ -160,13 +196,51 @@ struct SArchive
 	{
 		if (!AllowsRead()) return false;
 
-		const uint16 numBytes = GetNumBytes();
-		if (numBytes == 0) return false;
+		const SizeType oldOffset = GetBytesOffset();
 
 		SetBytesOffset(0);
-		outContainer.Resize(numBytes);
 		*this >> outContainer;
+		SetBytesOffset(oldOffset);
+
 		return true;
+	}
+
+	// Reads string with defined memory pool
+	/////////////////////////
+
+	template<typename ArchiveT, typename PredT>
+	const tchar* ReadPooledStringByPred(ArchiveT& ar, PredT&& predicate)
+	{
+		if (!AllowsRead()) return nullptr;
+		else if (!IsString()) return nullptr;
+
+		// pooled pointer
+		thread_local tchar buffer[SCString::LARGE_BUFFER_SIZE];
+
+		const SizeType oldOffset = ar.template GetOffset<tchar>();
+		const SizeType expectedReadNum = SMath::Min<SizeType>(SCString::LARGE_BUFFER_SIZE, GetTotal<tchar>());
+
+		if (expectedReadNum <= 0) return nullptr;
+
+		// Copy to buffer
+		const SizeType readNum = ar.Read(&buffer, expectedReadNum);
+
+		uint16 usedNum = 0;
+		while(usedNum < readNum)
+		{
+			const tchar& character = buffer[usedNum];
+			if (!predicate(character))
+			{
+				break;
+			}
+
+			++usedNum;
+		}
+
+		ar.template SetOffset<tchar>(oldOffset + usedNum);
+
+		buffer[usedNum] = CHAR_TERM;
+		return buffer;
 	}
 
 private:
@@ -229,6 +303,9 @@ inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type oper
 	}
 	else
 	{
+		auto remainingNum = ar.GetRemainingOffset<typename ContainerTT::ElementType>();
+		container.Resize(remainingNum);
+
 		for (auto it = container.begin(); it != container.end(); ++it)
 		{
 			ar >> *it;
@@ -249,7 +326,7 @@ static SArchive& operator<<(SArchive& ar, const int32 val)
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT32];
 		if (SCString::FromInt32(val, buffer, SCString::MAX_BUFFER_SIZE_INT32))
 		{
-			ar.WriteBytes(buffer, SCString::GetLength(buffer));
+			ar.Write(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -264,25 +341,15 @@ static SArchive& operator>>(SArchive& ar, int32& val)
 	}
 	else if (ar.IsString())
 	{
-		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT32];
-		{
-			tchar c;
-			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_INT32 - 1 && ar.ReadBytes(&c, 1) == 1)
+		const tchar* buffer = ar.ReadPooledStringByPred(
+			ar,
+			[](const tchar& character) -> bool
 			{
-				if ((c >= '0' && c <= '9') || c == '-')
-				{
-					buffer[i++] = c;
-				}
-				else
-				{
-					ar.SetBytesOffset(ar.GetBytesOffset() - 1);
-					break;
-				}
+				return (character >= TEXT('0') && character <= TEXT('9')) || character == TEXT('-');
 			}
-			buffer[i] = CHAR_TERM;
-			val = SCString::ToInt32(buffer);
-		}
+		);
+
+		val = buffer ? SCString::ToInt32(buffer) : 0;
 	}
 
 	return ar;
@@ -299,7 +366,7 @@ static SArchive& operator<<(SArchive& ar, const int64 val)
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT64];
 		if (SCString::FromInt64(val, buffer, SCString::MAX_BUFFER_SIZE_INT64))
 		{
-			ar.WriteBytes(buffer, SCString::GetLength(buffer));
+			ar.Write(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -314,25 +381,15 @@ static SArchive& operator>>(SArchive& ar, int64& val)
 	}
 	else if (ar.IsString())
 	{
-		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_INT64];
-		{
-			tchar c;
-			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_INT64 - 1 && ar.ReadBytes(&c, 1) == 1)
+		const tchar* buffer = ar.ReadPooledStringByPred(
+			ar,
+			[](const tchar& character) -> bool
 			{
-				if ((c >= '0' && c <= '9') || c == '-')
-				{
-					buffer[i++] = c;
-				}
-				else
-				{
-					ar.SetBytesOffset(ar.GetBytesOffset() - 1);
-					break;
-				}
+				return (character >= TEXT('0') && character <= TEXT('9')) || character == TEXT('-');
 			}
-			buffer[i] = CHAR_TERM;
-			val = SCString::ToInt64(buffer);
-		}
+		);
+
+		val = buffer ? SCString::ToInt64(buffer) : 0;
 	}
 
 	return ar;
@@ -349,7 +406,7 @@ static SArchive& operator<<(SArchive& ar, const double val)
 		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
 		if (SCString::FromDouble(val, 4, buffer, SCString::MAX_BUFFER_SIZE_DOUBLE))
 		{
-			ar.WriteBytes(buffer, SCString::GetLength(buffer));
+			ar.Write(buffer, SCString::GetLength(buffer));
 		}
 	}
 
@@ -364,25 +421,15 @@ static SArchive& operator>>(SArchive& ar, double& val)
 	}
 	else if (ar.IsString())
 	{
-		thread_local tchar buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
-		{
-			tchar c;
-			uint16 i = 0;
-			while (i < SCString::MAX_BUFFER_SIZE_DOUBLE - 1 && ar.ReadBytes(&c, 1) == 1)
+		const tchar* buffer = ar.ReadPooledStringByPred(
+			ar,
+			[](const tchar& character) -> bool
 			{
-				if ((c >= '0' && c <= '9') || c == '.' || c == '-')
-				{
-					buffer[i++] = c;
-				}
-				else
-				{
-					ar.SetBytesOffset(ar.GetBytesOffset() - 1);
-					break;
-				}
+				return (character >= TEXT('0') && character <= TEXT('9')) || character == TEXT('.') || character == TEXT('-');
 			}
-			buffer[i] = CHAR_TERM;
-			val = SCString::ToDouble(buffer);
-		}
+		);
+
+		val = buffer ? SCString::ToDouble(buffer) : 0.0;
 	}
 
 	return ar;
@@ -390,24 +437,24 @@ static SArchive& operator>>(SArchive& ar, double& val)
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, tchar val)
 {
-	ar.WriteBytes(&val, 1);
+	ar.Read(&val, 1);
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, tchar& val)
 {
-	ar.ReadBytes(&val, 1);
+	ar.Write(&val, 1);
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator<<(SArchive& ar, const tchar* val)
 {
-	ar.WriteBytes(val, SCString::GetLength(val));
+	ar.Write(val, SCString::GetLength(val));
 	return ar;
 }
 
 FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, tchar* val)
 {
-	ar.ReadBytes(val, SCString::GetLength(val));
+	ar.Read(val, SCString::GetLength(val));
 	return ar;
 }

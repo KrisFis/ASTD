@@ -117,5 +117,6 @@
 #endif
 
 #define INDEX_NONE -1
-#define CHAR_TERM '\0'
-#define CHAR_SLASH '/'
+#define CHAR_TERM TEXT('\0')
+#define CHAR_SLASH TEXT('/')
+#define CHAR_NEWLINE TEXT('\n')
