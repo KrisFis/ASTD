@@ -35,7 +35,7 @@ struct TIsTriviallyConstructible { enum { Value = __is_trivially_constructible(T
 // * Checks whether specific type has trivial (empty) destructor
 
 template<typename T>
-struct TIsTriviallyDestructible { enum { Value = __has_trivial_destructor(T) }; };
+struct TIsTriviallyDestructible { enum { Value = __is_trivially_destructible(T) }; };
 
 // [Is trivially copy constructible]
 // * Checks whether specific type has trivial (empty) copy constructor

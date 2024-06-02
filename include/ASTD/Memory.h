@@ -137,12 +137,12 @@ private:
 };
 
 #if ASTD_NEW_DELETE
-inline void* operator new(TSize size)
+void* operator new(TSize size)
 {
 	return SMemory::Allocate((uint32)size);
 }
 
-inline void operator delete(void* ptr, TSize size) noexcept
+void operator delete(void* ptr, TSize size) noexcept
 {
 	return SMemory::Deallocate(ptr, (uint32)size);
 }

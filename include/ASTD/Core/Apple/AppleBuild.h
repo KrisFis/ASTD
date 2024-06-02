@@ -2,14 +2,14 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <cstdint>
 
 // PLATFORM
 ////////////////////////////////////////////////////////////////////////
 
-#define PLATFORM_HEADER(name) <ASTD/Core/Linux/Linux##name.h>
-#define PLATFORM_STRUCT(name) SLinuxPlatform ## name
-#define PLATFORM_CLASS(name) CLinuxPlatform ## name
+#define PLATFORM_HEADER(name) <ASTD/Core/Apple/Apple##name.h>
+#define PLATFORM_STRUCT(name) SApplePlatform ## name
+#define PLATFORM_CLASS(name) CApplePlatform ## name
 
 // COMPILATION & BUILD
 ////////////////////////////////////////////////////////////////////////
@@ -19,16 +19,16 @@
 #define ASSEMBLY(code) __asm__(code)
 
 #define DEPRECATED __attribute__ ((__deprecated__))
-#define NODISCARD [[__nodiscard__]]
+#define NODISCARD [[nodiscard]]
 
 #define FORCEINLINE inline __attribute__((always_inline))
 
 #define FORCENOINLINE __attribute__((noinline))
 
 #if BUILD_DEBUG
-	#define FORCEINLINE_DEBUGGABLE inline
+#define FORCEINLINE_DEBUGGABLE inline
 #else
-	#define FORCEINLINE_DEBUGGABLE FORCEINLINE
+#define FORCEINLINE_DEBUGGABLE FORCEINLINE
 #endif
 
 #if COMPILER_CLANG
@@ -37,7 +37,7 @@
 	#define DEBUG_BREAK() __asm__ volatile("int3")
 #endif
 
-#define DLL_EXPORT
+#define DLL_EXPORT __attribute__((visibility("default")))
 #define DLL_IMPORT
 
 // DIAGNOSTICS
@@ -51,11 +51,11 @@
 #define DIAG_WARNING_NULL_DEREFERENCE "-Wnull-dereference"
 
 // OPTIMIZATIONS
-// * Uses options, make sure it does not colide with anything
+// * Uses options, make sure it does not collide with anything
 // * Otherwise update macros
 ////////////////////////////////////////////////////////////////////////
 
-#define OPTIMIZATIONS_DISABLE() DO_PRAGMA(GCC push_options) DO_PRAGMA(GCC optimize("O0")) 
+#define OPTIMIZATIONS_DISABLE() DO_PRAGMA(GCC push_options) DO_PRAGMA(GCC optimize("O0"))
 #define OPTIMIZATIONS_RESET() DO_PRAGMA(GCC pop_options)
 
 // Integers

@@ -3,13 +3,13 @@
 #pragma once
 
 #include <cstdio>
-#include <ctype.h>
+#include <cctype>
 #include <cwchar>
-#include <wctype.h>
+#include <cwctype>
 
-#include "ASTD/Core/Linux/LinuxBuild.h"
+#include "ASTD/Core/Apple/AppleBuild.h"
 
-struct SLinuxPlatformCString
+struct SApplePlatformCString
 {
 	// Checks whether the passed character is alphabetic
 	FORCEINLINE static bool IsAlphaChar(char val) { return isalpha(val); }

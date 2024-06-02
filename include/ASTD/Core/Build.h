@@ -2,6 +2,12 @@
 
 #pragma once
 
+// Cpp standard check
+
+#if __cplusplus < 202002L
+	#error "C++20 standard is required to compile the code"
+#endif
+
 // Build type
 // * Supported: Debug, Release
 // * Example: BUILD_RELEASE
@@ -70,6 +76,7 @@
 
 #define PLATFORM_WINDOWS 0
 #define PLATFORM_LINUX 0
+#define PLATFORM_APPLE 0
 
 #if defined(_WIN32) || defined(_WIN64)
 	#undef PLATFORM_WINDOWS
@@ -77,6 +84,9 @@
 #elif defined(__linux__)
 	#undef PLATFORM_LINUX
 	#define PLATFORM_LINUX 1
+#elif defined(__APPLE__)
+	#undef PLATFORM_APPLE
+	#define PLATFORM_APPLE 1
 #else
 	#error "Unsupported platform"
 #endif
@@ -91,6 +101,8 @@
 	#include "ASTD/Core/Win32/WindowsBuild.h"
 #elif PLATFORM_LINUX
 	#include "ASTD/Core/Linux/LinuxBuild.h"
+#elif PLATFORM_APPLE
+	#include "ASTD/Core/Apple/AppleBuild.h"
 #else
 	#error "Unsupported platform"
 #endif
