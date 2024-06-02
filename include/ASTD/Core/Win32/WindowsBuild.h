@@ -51,7 +51,7 @@
 
 #define DIAG_WARNINGS_PUSH() DO_PRAGMA( warning( push ) )
 #define DIAG_WARNINGS_POP() DO_PRAGMA( warning( pop ) )
-#define DIAG_WARNINGS_SUPRESS(value) DO_PRAGMA( warning( disable : value ) )
+#define DIAG_WARNINGS_SUPPRESS(value) DO_PRAGMA( warning( disable : value ) )
 
 #define DIAG_WARNING_UNUSED_VALUE 4101
 #define DIAG_WARNING_NULL_DEREFERENCE 6011

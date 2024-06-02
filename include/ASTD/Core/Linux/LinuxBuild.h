@@ -45,7 +45,7 @@
 
 #define DIAG_WARNINGS_PUSH() DO_PRAGMA(GCC diagnostic push)
 #define DIAG_WARNINGS_POP() DO_PRAGMA(GCC diagnostic pop)
-#define DIAG_WARNINGS_SUPRESS(value) DO_PRAGMA(GCC diagnostic ignored value)
+#define DIAG_WARNINGS_SUPPRESS(value) DO_PRAGMA(GCC diagnostic ignored value)
 
 #define DIAG_WARNING_UNUSED_VALUE "-Wunused-value"
 #define DIAG_WARNING_NULL_DEREFERENCE "-Wnull-dereference"
