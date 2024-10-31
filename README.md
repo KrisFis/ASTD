@@ -9,6 +9,7 @@ Initial purpose of this library was to learn how to implement stl-like library i
 |:-|:-:|:-:|
 | Windows | YES | PLATFORM_WINDOWS |
 | Linux | YES | PLATFORM_LINUX |
+| Apple | YES | PLATFORM_APPLE |
 
 | **Supported Architectures** | **Tested** | **Macro** |
 |:-|:-:|:-:|
