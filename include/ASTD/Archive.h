@@ -297,15 +297,14 @@ inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type oper
 template<typename ContainerT, typename ContainerTT = TContainerTypeTraits<ContainerT>>
 inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type operator>>(SArchive& ar, ContainerT& container)
 {
+	container.Resize(ar.GetRemainingOffset<typename ContainerTT::ElementType>());
+
 	if constexpr (ContainerTT::InlineMemory)
 	{
 		ar.Read(container.Begin(), container.GetNum());
 	}
 	else
 	{
-		auto remainingNum = ar.GetRemainingOffset<typename ContainerTT::ElementType>();
-		container.Resize(remainingNum);
-
 		for (auto it = container.begin(); it != container.end(); ++it)
 		{
 			ar >> *it;

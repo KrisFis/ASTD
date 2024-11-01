@@ -92,4 +92,4 @@ private:
 };
 
 typedef TStdoutArchive<SMisc::STDOUT_FILE_NO> SStdoutArchive;
-typedef TStdoutArchive<SMisc::STDOUT_FILE_NO> SStderrArchive;
+typedef TStdoutArchive<SMisc::STDERR_FILE_NO> SStderrArchive;
