@@ -16,8 +16,8 @@
 	#define TEXT(text) WIDETEXT(text)
 	typedef wchar tchar;
 #else
-#define TEXT(text) ANSITEXT(text)
-typedef char tchar;
+	#define TEXT(text) ANSITEXT(text)
+	typedef char tchar;
 #endif
 
 #define INDEX_NONE -1

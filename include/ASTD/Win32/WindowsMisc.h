@@ -3,6 +3,7 @@
 #pragma once
 
 #include "ASTD/Win32/WindowsBuild.h"
+#include <io.h>
 
 struct SWindowsPlatformMisc
 {

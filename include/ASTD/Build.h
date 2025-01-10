@@ -96,8 +96,8 @@
 	#define PLATFORM_LINUX 0
 #endif
 
-#ifndef PLATFORM_WINDOWS
-	#define PLATFORM_WINDOWS 0
+#ifndef PLATFORM_APPLE
+	#define PLATFORM_APPLE 0
 #endif
 
 // Other

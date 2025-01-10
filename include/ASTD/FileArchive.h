@@ -3,7 +3,6 @@
 #pragma once
 
 #include "ASTD/Build.h"
-
 #include "Archive.h"
 
 struct SCFileArchive : public SArchive
@@ -61,24 +60,32 @@ private:
 			switch (GetMode())
 			{
 				case EArchiveMode::Read:
-					_file = fopen(_filename, "r");
+					OpenCallImpl(TEXT("r"));
 				break;
 				case EArchiveMode::Write:
-					_file = fopen(_filename, "w");
+					OpenCallImpl(TEXT("w"));
 				break;
 				case EArchiveMode::ReadWrite:
 				{
-					const tchar* mode = _overwrite ? "w+" : "r+";
-					_file = fopen(_filename, mode);
+					OpenCallImpl(_overwrite ? TEXT("w+") : TEXT("r+"));
 					if (!_file)
 					{
-						_file = fopen(_filename, "w+");
+						OpenCallImpl(TEXT("w+"));
 					}
 				}
 				break;
 			}
 
 		}
+	}
+
+	void OpenCallImpl(const tchar* modes)
+	{
+#if PLATFORM_WINDOWS && ASTD_USE_UNICODE
+		_file = _wfopen(_filename, modes);
+#else
+		_file = fopen(_filename, modes);
+#endif
 	}
 
 	void CloseImpl()
