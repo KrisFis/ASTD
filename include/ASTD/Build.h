@@ -2,12 +2,6 @@
 
 #pragma once
 
-// Cpp standard check
-
-#if __cplusplus < 202002L
-	#error "C++20 standard is required to compile the code"
-#endif
-
 // Build type
 // * Supported: Debug, Release
 // * Example: BUILD_RELEASE

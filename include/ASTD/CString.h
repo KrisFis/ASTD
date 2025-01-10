@@ -7,7 +7,7 @@
 
 #include "ASTD/Memory.h"
 
-typedef PLATFORM_PREFIXED_TYPE(S,CString) SPlatformCString;
+typedef PLATFORM_PREFIXED_TYPE(S, PlatformCString) SPlatformCString;
 
 struct SCString : public SPlatformCString
 {

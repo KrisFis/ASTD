@@ -7,7 +7,7 @@
 #include <cwchar>
 #include <wctype.h>
 
-#include "ASTD/Build/Linux/LinuxBuild.h"
+#include "ASTD/Linux/LinuxBuild.h"
 
 struct SLinuxPlatformCString
 {

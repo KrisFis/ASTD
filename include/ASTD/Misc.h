@@ -7,7 +7,7 @@
 
 #include PLATFORM_HEADER(Misc)
 
-typedef PLATFORM_PREFIXED_TYPE(S,Misc) SPlatformMisc;
+typedef PLATFORM_PREFIXED_TYPE(S, PlatformMisc) SPlatformMisc;
 
 struct SMisc : public SPlatformMisc
 {

@@ -4,5 +4,8 @@
 
 #define STRINGIFY(x) #x
 #define EXPAND(x) x
+
 #define CONCAT(x, y) x##y
-#define DOUBLE_CONCAT(x, y, z) CONCAT(CONCAT(x, y), EXPAND(z))
+#define CONCAT_EXPAND(x, y) CONCAT(x,y)
+
+#define DOUBLE_CONCAT(x, y, z) CONCAT_EXPAND(CONCAT_EXPAND(x, y), z)

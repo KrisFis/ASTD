@@ -7,7 +7,7 @@
 
 #include "ASTD/TypeTraits.h"
 
-typedef PLATFORM_PREFIXED_TYPE(S, Memory) SPlatformMemory;
+typedef PLATFORM_PREFIXED_TYPE(S, PlatformMemory) SPlatformMemory;
 
 struct SMemory : public SPlatformMemory
 {
