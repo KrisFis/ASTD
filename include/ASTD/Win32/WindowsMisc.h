@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Core/Win32/WindowsBuild.h"
+#include "ASTD/Build/Win32/WindowsBuild.h"
 
 struct SWindowsPlatformMisc
 {

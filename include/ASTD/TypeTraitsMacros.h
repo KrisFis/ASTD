@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
-#include "ASTD/Internal/TypeTraitsCore.h"
+#include "ASTD/_internal/TypeTraitsCore.h"
 
 ////////////////////////////////////////////////////////
 // VARIADIC ITERATOR TRAIT

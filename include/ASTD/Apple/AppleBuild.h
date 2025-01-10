@@ -4,13 +4,6 @@
 
 #include <cstdint>
 
-// PLATFORM
-////////////////////////////////////////////////////////////////////////
-
-#define PLATFORM_HEADER(name) <ASTD/Core/Apple/Apple##name.h>
-#define PLATFORM_STRUCT(name) SApplePlatform ## name
-#define PLATFORM_CLASS(name) CApplePlatform ## name
-
 // COMPILATION & BUILD
 ////////////////////////////////////////////////////////////////////////
 

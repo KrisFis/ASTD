@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
 #include "ASTD/Memory.h"
 #include "ASTD/QueueAllocator.h"

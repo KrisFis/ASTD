@@ -9,8 +9,7 @@
 // Look at "Configurations.h" to see defines that affects features provided
 
 // IMPORTANT CORE
-#include "ASTD/Core/Build.h"
-#include "ASTD/Core/Configuration.h"
+#include "ASTD/Build.h"
 
 // TYPE MANIPULATION/GENERATION/SFINAE
 #include "ASTD/TypeMethods.h"

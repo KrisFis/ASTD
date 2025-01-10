@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 #include "ASTD/CString.h"
 
 #include PLATFORM_HEADER(Misc)
 
-typedef PLATFORM_STRUCT(Misc) SPlatformMisc;
+typedef PLATFORM_PREFIXED_TYPE(S,Misc) SPlatformMisc;
 
 struct SMisc : public SPlatformMisc
 {

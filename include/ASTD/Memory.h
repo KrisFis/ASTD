@@ -2,12 +2,12 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 #include PLATFORM_HEADER(Memory)
 
 #include "ASTD/TypeTraits.h"
 
-typedef PLATFORM_STRUCT(Memory) SPlatformMemory;
+typedef PLATFORM_PREFIXED_TYPE(S, Memory) SPlatformMemory;
 
 struct SMemory : public SPlatformMemory
 {

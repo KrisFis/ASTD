@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
-#include "ASTD/Internal/SharedClassInternals.h"
+#include "ASTD/_internal/SharedClassInternals.h"
 #include "ASTD/SharedObject.h"
 
 template<typename T, typename... ArgTypes>

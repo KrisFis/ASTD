@@ -30,25 +30,32 @@
 // * Example: COMPILER_GNUC_CLANG
 /////////////////////////////////
 
-#define COMPILER_MSVC 0
-#define COMPILER_CLANG 0
-#define COMPILER_INTEL 0
-#define COMPILER_GCC 0
-
 #if defined(_MSC_VER)
-	#undef COMPILER_MSVC
 	#define COMPILER_MSVC 1
 #elif defined(__llvm__) && defined(__clang__)
-	#undef COMPILER_CLANG
 	#define COMPILER_CLANG 1
 #elif defined(__INTEL_COMPILER)
-	#undef COMPILER_INTEL
 	#define COMPILER_INTEL 1
 #elif defined(__GNUC__)
-	#undef COMPILER_GCC
 	#define COMPILER_GCC 1
 #else
 	#error "Unsupported compiler"
+#endif
+
+#ifndef COMPILER_MSVC
+	#define COMPILER_MSVC 0
+#endif
+
+#ifndef COMPILER_CLANG
+	#define COMPILER_CLANG 0
+#endif
+
+#ifndef COMPILER_INTEL
+	#define COMPILER_INTEL 0
+#endif
+
+#ifndef COMPILER_GCC
+	#define COMPILER_GCC 0
 #endif
 
 // Architecture
@@ -56,17 +63,20 @@
 // * Example: ARCHITECTURE_64
 /////////////////////////////////
 
-#define ARCHITECTURE_32 0
-#define ARCHITECTURE_64 0
-
 #if defined(_WIN32) || defined(__i386__)
-	#undef ARCHITECTURE_32
 	#define ARCHITECTURE_32 1
 #elif defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__)
-	#undef ARCHITECTURE_64
 	#define ARCHITECTURE_64 1
 #else
 	#error "Unsupported architecture"
+#endif
+
+#ifndef ARCHITECTURE_32
+	#define ARCHITECTURE_32 0
+#endif
+
+#ifndef ARCHITECTURE_64
+	#define ARCHITECTURE_64 0
 #endif
 
 // Platform
@@ -74,61 +84,33 @@
 // * Example: PLATFORM_WINDOWS
 /////////////////////////////////
 
-#define PLATFORM_WINDOWS 0
-#define PLATFORM_LINUX 0
-#define PLATFORM_APPLE 0
-
 #if defined(_WIN32) || defined(_WIN64)
-	#undef PLATFORM_WINDOWS
 	#define PLATFORM_WINDOWS 1
 #elif defined(__linux__)
-	#undef PLATFORM_LINUX
 	#define PLATFORM_LINUX 1
 #elif defined(__APPLE__)
-	#undef PLATFORM_APPLE
 	#define PLATFORM_APPLE 1
 #else
 	#error "Unsupported platform"
 #endif
 
-// Platform & Configuration
-// Include configuration before platform
-/////////////////////////////////
+#ifndef PLATFORM_WINDOWS
+	#define PLATFORM_WINDOWS 0
+#endif
 
-#include "ASTD/Core/Configuration.h"
+#ifndef PLATFORM_LINUX
+	#define PLATFORM_LINUX 0
+#endif
 
-#if PLATFORM_WINDOWS
-	#include "ASTD/Core/Win32/WindowsBuild.h"
-#elif PLATFORM_LINUX
-	#include "ASTD/Core/Linux/LinuxBuild.h"
-#elif PLATFORM_APPLE
-	#include "ASTD/Core/Apple/AppleBuild.h"
-#else
-	#error "Unsupported platform"
+#ifndef PLATFORM_WINDOWS
+	#define PLATFORM_WINDOWS 0
 #endif
 
 // Other
+// * Order dependant
 /////////////////////////////////
 
-#define PTR_DIFF(Ptr1, Ptr2) static_cast<int64>(Ptr1 - Ptr2)
-#define PTR_DIFF_TYPED(RetType, Ptr1, Ptr2) static_cast<RetType>(Ptr1 -Ptr2)
-
-#if defined(TEXT)
-	#undef TEXT
-#endif
-
-#define ANSITEXT(text) text
-#define WIDETEXT(text) L ## text
-
-#if ASTD_USE_UNICODE
-	#define TEXT(text) WIDETEXT(text)
-	typedef wchar tchar;
-#else
-	#define TEXT(text) ANSITEXT(text)
-	typedef char tchar;
-#endif
-
-#define INDEX_NONE -1
-#define CHAR_TERM TEXT('\0')
-#define CHAR_SLASH TEXT('/')
-#define CHAR_NEWLINE TEXT('\n')
+#include "ASTD/_internal/MacroInternals.h"
+#include "ASTD/_internal/BuildConfiguration.h"
+#include "ASTD/_internal/BuildPlatform.h"
+#include "ASTD/_internal/BuildTypes.h"

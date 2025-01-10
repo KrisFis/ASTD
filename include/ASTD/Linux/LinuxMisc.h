@@ -5,7 +5,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "ASTD/Core/Linux/LinuxBuild.h"
+#include "ASTD/Build/Linux/LinuxBuild.h"
 
 struct SLinuxPlatformMisc
 {

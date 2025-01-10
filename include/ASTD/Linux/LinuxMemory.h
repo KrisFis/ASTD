@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <memory.h>
 
-#include "ASTD/Core/Linux/LinuxBuild.h"
+#include "ASTD/Build/Linux/LinuxBuild.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://linux.die.net/man/2/mmap

@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
-#include "ASTD/Internal/SharedObjectInternals.h"
+#include "ASTD/_internal/SharedObjectInternals.h"
 
 // Equivalent of std's shared_ptr
 template<typename T>

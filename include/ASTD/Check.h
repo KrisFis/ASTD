@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
-#include "ASTD/Internal/ChecksInternals.h"
+#include "ASTD/_internal/ChecksInternals.h"
 #include "ASTD/IsValid.h"
 
 #define CHECK(expression) CHECK_IMPL(expression)

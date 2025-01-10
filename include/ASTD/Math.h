@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
 // TODO: Get rid of CMATH
 #include <cmath>

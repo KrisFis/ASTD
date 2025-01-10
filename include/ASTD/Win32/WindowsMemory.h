@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Core/Win32/WindowsBuild.h"
+#include "ASTD/Build/Win32/WindowsBuild.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://docs.microsoft.com/en-us/windows/win32/api/memoryapi/nf-memoryapi-virtualalloc

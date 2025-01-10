@@ -4,13 +4,6 @@
 
 #include <stdint.h>
 
-// PLATFORM
-////////////////////////////////////////////////////////////////////////
-
-#define PLATFORM_HEADER(name) <ASTD/Core/Linux/Linux##name.h>
-#define PLATFORM_STRUCT(name) SLinuxPlatform ## name
-#define PLATFORM_CLASS(name) CLinuxPlatform ## name
-
 // COMPILATION & BUILD
 ////////////////////////////////////////////////////////////////////////
 

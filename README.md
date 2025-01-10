@@ -53,6 +53,24 @@ Initial purpose of this library was to learn how to implement stl-like library i
 | FIFO container 							| TQueue 							| queue				|
 | Optional value container					| TOptional 						| optional			|
 
+## PCH
+Library supports two types of like-PCH files.
+### ASTDMinimal.h
+Holds minimal includes, most of which are macros, templates, forward declarations and core platform code
+### ASTD.h
+Holds all features, declarations and implementation of all types within STD
+
+## Platform code
+To make it easier for writing bigger chunks of platform code. Each platform has its corresponding folders which can be included via **PLATFORM_HEADER** macro.
+For example **ASTD/Linux/LinuxMemory.h** and **ASTD/Memory.h**, which leverage **PLATFORM_HEADER** to get platform header from folder located in the root.
+### How to write platform code
+Make use of macros like **PLATFORM_HEADER**, **PLATFORM_STRUCT** or **PLATFORM_CLASS**. These are declared by platform and resolved by **ASTD/Build.h** include.
+```
+#include "ASTD/ASTDMinimal.h" // or "ASTD/Build.h"
+#include PLATFORM_HEADER(MyHeader)
+
+```
+
 ## Q&A
 ### But it's in global namespace ! :(
 Library is not intended to be encapsulated in its own namespace. While it is not intended, it doesn't mean its impossible to achieve.

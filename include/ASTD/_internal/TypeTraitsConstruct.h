@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
 // [Is constructible]
 // * Checks whether specific type is constructible from specific types

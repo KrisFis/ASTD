@@ -15,13 +15,6 @@
 #include <Windows.h>
 #include <intrin.h>
 
-// PLATFORM
-////////////////////////////////////////////////////////////////////////
-
-#define PLATFORM_HEADER(name) <ASTD/Core/Win32/Windows##name.h>
-#define PLATFORM_STRUCT(name) SWindowsPlatform ## name
-#define PLATFORM_CLASS(name) CWindowsPlatform ## name
-
 // COMPILATION & BUILD
 ////////////////////////////////////////////////////////////////////////
 

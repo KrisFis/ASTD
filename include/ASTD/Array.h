@@ -4,7 +4,7 @@
 
 #include <initializer_list>
 
-#include "ASTD/Core/Build.h"
+#include "ASTD/Build.h"
 
 #include "ASTD/TypeTraits.h"
 #include "ASTD/Math.h"
