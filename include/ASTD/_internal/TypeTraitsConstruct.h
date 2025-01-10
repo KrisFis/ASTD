@@ -32,10 +32,20 @@ template<typename T, typename... ArgTypes>
 struct TIsTriviallyConstructible { enum { Value = __is_trivially_constructible(T, ArgTypes...) }; };
 
 // [Is trivially destructible]
-// * Checks whether specific type has trivial (empty) destructor
+// * Checks whether specific type has trivial destructor
 
 template<typename T>
-struct TIsTriviallyDestructible { enum { Value = __is_trivially_destructible(T) }; };
+struct TIsTriviallyDestructible
+{
+	enum
+	{
+#if COMPILER_MSVC
+		Value = __is_trivially_destructible(T)
+#elif COMPILER_GCC || COMPILER_CLANG
+		Value = __has_trivial_destructor(T)
+#endif
+	};
+};
 
 // [Is trivially copy constructible]
 // * Checks whether specific type has trivial (empty) copy constructor
@@ -62,9 +72,6 @@ struct TIsTrivialType
 		TIsTriviallyMoveConstructible<T>::Value
 	};
 };
-
-// Virtual
-////////////////////////////////////////////////////////////////
 
 // [Has virtual destructor]
 // * Checks whether specific type has virtual destructor
