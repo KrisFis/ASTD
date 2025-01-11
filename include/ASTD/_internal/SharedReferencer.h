@@ -6,7 +6,7 @@
 
 #include "ASTD/Check.h"
 
-namespace NSharedInternals
+namespace _NShared
 {
 	struct SNullType {};
 

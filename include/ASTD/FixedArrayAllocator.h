@@ -7,14 +7,14 @@
 #include "ASTD/ArrayAllocator.h"
 
 // Default array allocator but with fixed num of elements
-template<typename InElementType, uint32 InNumLimit>
+template<typename ElementT, uint32 InNumLimit>
 class TFixedArrayAllocator
 {
 public:
 	// Typedef
 	/////////////////////////////////
 
-	typedef InElementType ElementType;
+	typedef ElementT ElementType;
 	typedef typename TArrayAllocator<ElementType>::SizeType SizeType;
 
 	// Getters

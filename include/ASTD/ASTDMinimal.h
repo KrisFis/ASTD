@@ -11,6 +11,9 @@
 // IMPORTANT CORE
 #include "ASTD/Build.h"
 
+// FORWARDS
+#include "ASTD/_internal/TypeFowards.h"
+
 // TYPE MANIPULATION/GENERATION/SFINAE
 #include "ASTD/TypeMethods.h"
 #include "ASTD/TypeTraits.h"

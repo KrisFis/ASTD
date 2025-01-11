@@ -3,8 +3,8 @@
 #pragma once
 
 #include "ASTD/Build.h"
-
-#include "ASTD/_internal/SharedObjectInternals.h"
+#include "ASTD/_internal/SharedReferencer.h"
+#include "ASTD/_internal/SharedTypeTraits.h"
 
 // Equivalent of std's shared_ptr
 template<typename T>
@@ -23,8 +23,8 @@ public:
 	// Constructor
 	/////////////////////////////////
 
-	FORCEINLINE TSharedPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE TSharedPtr(NSharedInternals::CReferencerBase& ref) : _referencerProxy(&ref) { _referencerProxy.AddShared(); }
+	FORCEINLINE TSharedPtr(_NShared::SNullType* = nullptr) {}
+	FORCEINLINE TSharedPtr(_NShared::CReferencerBase& ref) : _referencerProxy(&ref) { _referencerProxy.AddShared(); }
 
 	// Copy/Move constructors [SharedPtr]
 	/////////////////////////////////
@@ -37,8 +37,10 @@ public:
 
 	FORCEINLINE ~TSharedPtr() { Reset(); }
 
-	// Cast operators
+	// Conversion operators
 	/////////////////////////////////
+
+	FORCEINLINE operator bool() const { return IsValid(); }
 
 	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE operator TSharedPtr<OtherT>() const { return _referencerProxy.IsValid() ? TSharedPtr<OtherT>(*_referencerProxy) : nullptr; }
@@ -46,7 +48,7 @@ public:
 	template<typename OtherT, typename TEnableIf<TIsBaseOf<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE explicit operator TSharedPtr<OtherT>() const { return _referencerProxy.IsValid() ? TSharedPtr<OtherT>(*_referencerProxy) : nullptr; }
 
-	// Comparison operators [SharedPtr]
+	// Comparison operators
 	/////////////////////////////////
 
 	FORCEINLINE bool operator==(const TSharedPtr& other) const { return _referencerProxy == other._referencerProxy; }
@@ -55,10 +57,7 @@ public:
 	// Assignment operators
 	/////////////////////////////////
 
-	FORCEINLINE TSharedPtr& operator=(NSharedInternals::SNullType*) { Reset(); return *this; }
-
-	// Assignment operators [SharedPtr]
-	/////////////////////////////////
+	FORCEINLINE TSharedPtr& operator=(_NShared::SNullType*) { Reset(); return *this; }
 
 	FORCEINLINE TSharedPtr& operator=(const TSharedPtr& Other) { if(&Other != this) ReplaceBy(Other); return *this; }
 	FORCEINLINE TSharedPtr& operator=(TSharedPtr&& Other) { if(&Other != this) ReplaceBy(Forward<TSharedPtr>(Other)); return *this; }
@@ -121,7 +120,7 @@ private:
 		other._referencerProxy.Set(nullptr); // 3
 	}
 
-	mutable NSharedInternals::SReferencerProxy _referencerProxy = nullptr;
+	mutable _NShared::SReferencerProxy _referencerProxy = nullptr;
 };
 
 // Archive operator<< && operator>>
@@ -166,17 +165,14 @@ public:
 	// Constructors
 	/////////////////////////////////
 
-	FORCEINLINE TWeakPtr(NSharedInternals::SNullType* = nullptr) {}
-	FORCEINLINE TWeakPtr(NSharedInternals::CReferencerBase& ref) : _referencerProxy(&ref) { _referencerProxy.AddWeak();}
+	FORCEINLINE TWeakPtr(_NShared::SNullType* = nullptr) {}
+	FORCEINLINE TWeakPtr(_NShared::CReferencerBase& ref) : _referencerProxy(&ref) { _referencerProxy.AddWeak();}
 
-	// Copy/Move constructors [WeakPtr]
+	// Copy/Move constructors
 	/////////////////////////////////
 
 	FORCEINLINE TWeakPtr(const TWeakPtr& other) { ReplaceBy(other); }
 	FORCEINLINE TWeakPtr(TWeakPtr&& other) noexcept { ReplaceBy(Forward<TWeakPtr>(other)); }
-
-	// Copy/Move constructors [SharedPtr]
-	/////////////////////////////////
 
 	FORCEINLINE explicit TWeakPtr(const TSharedPtr<T>& other) { ReplaceBy(other); }
 	FORCEINLINE explicit TWeakPtr(TSharedPtr<T>&& other) noexcept { ReplaceBy(Forward<TSharedPtr<T>>(other)); }
@@ -186,8 +182,10 @@ public:
 
 	FORCEINLINE ~TWeakPtr() { Reset(); }
 
-	// Cast operators
+	// Conversion operators
 	/////////////////////////////////
+
+	FORCEINLINE operator bool() const { return IsValid(); }
 
 	template<typename OtherT, typename TEnableIf<TIsDerivedFrom<OtherT, T>::Value>::Type* = nullptr>
 	FORCEINLINE operator TWeakPtr<OtherT>() const { return _referencerProxy.IsValid() ? TWeakPtr<OtherT>(*_referencerProxy) : nullptr; }
@@ -210,7 +208,7 @@ public:
 	// Assignment operators
 	/////////////////////////////////
 
-	FORCEINLINE TWeakPtr& operator=(const NSharedInternals::SNullType*) { Reset(); return *this; }
+	FORCEINLINE TWeakPtr& operator=(const _NShared::SNullType*) { Reset(); return *this; }
 
 	// Assignment operators [WeakPtr]
 	/////////////////////////////////
@@ -306,7 +304,7 @@ private:
 		other._referencerProxy.Set(nullptr); // 3
 	}
 
-	mutable NSharedInternals::SReferencerProxy _referencerProxy = nullptr;
+	mutable _NShared::SReferencerProxy _referencerProxy = nullptr;
 };
 
 // Archive operator<< && operator>>
@@ -332,4 +330,83 @@ FORCEINLINE_DEBUGGABLE static SArchive& operator>>(SArchive& ar, TWeakPtr<T>& we
 	}
 
 	return ar;
+}
+
+template<typename T>
+class TSharedClass
+{
+public:
+	// Typedefs
+	/////////////////////////////////
+
+	typedef T ClassType;
+
+	// Constructors
+	/////////////////////////////////
+
+	FORCEINLINE TSharedClass() : _isSharedInitialized(false) {}
+
+	// Getters
+	/////////////////////////////////
+
+	FORCEINLINE bool IsSharedInitialized() const { return _isSharedInitialized; }
+
+	// External method
+	/////////////////////////////////
+
+	// Gets pointer as shared_ptr
+	FORCEINLINE TSharedPtr<ClassType> AsShared()
+	{
+		CHECK_RET(_weakThis.IsValid(), nullptr);
+		return _weakThis.Pin();
+	}
+
+	// Gets pointer as shared_ptr with provided type
+	template<typename ChildType>
+	FORCEINLINE TSharedPtr<ChildType> AsShared()
+	{
+		CHECK_RET(_weakThis.IsValid(), nullptr);
+		return _weakThis.Pin();
+	}
+
+private:
+	// Do not call this method DIRECTLY!
+	FORCEINLINE void Init_Private(const TSharedPtr<ClassType>& ptr)
+	{
+		CHECK_RET(!_isSharedInitialized);
+
+		_weakThis = ptr;
+		_isSharedInitialized = true;
+	}
+
+	mutable TWeakPtr<ClassType> _weakThis;
+	bool _isSharedInitialized;
+};
+
+template<typename T, typename... ArgTypes>
+FORCEINLINE_DEBUGGABLE static TSharedPtr<T> MakeShared(ArgTypes&&... args)
+{
+	_NShared::CReferencerBase* referencer = _NShared::NewCustomReferencer(new T(Forward<ArgTypes>(args)...));
+	TSharedPtr<T> newShared = TSharedPtr<T>(*referencer);
+	if constexpr (_NShared::TIsSharedClassType<T>::Value)
+	{
+		newShared->Init_Private(TSharedPtr<typename T::ClassType>(referencer));
+	}
+
+	return newShared;
+}
+
+template<typename T, typename InstanceT = T>
+FORCEINLINE_DEBUGGABLE static TSharedPtr<T> MakeShareable(InstanceT* instance)
+{
+	static_assert(TIsDerivedFrom<InstanceT,T>::Value, "Instance type must be derived from return type");
+
+	_NShared::CReferencerBase* referencer = _NShared::NewCustomReferencer(instance);
+	TSharedPtr<T> newShared = TSharedPtr<T>(*referencer);
+	if constexpr (_NShared::TIsSharedClassType<T>::Value)
+	{
+		newShared->Init_Private(TSharedPtr<typename T::ClassType>(referencer));
+	}
+
+	return newShared;
 }

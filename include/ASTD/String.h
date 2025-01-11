@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "ASTD/Archive.h"
 #include "ASTD/Build.h"
 
 #include "ASTD/Array.h"
@@ -516,6 +517,20 @@ private:
 
 	DataType _data = {};
 };
+
+struct TContainerTypeTraits<SString> : public TContainerTypeTraits<void>
+{
+	using ElementType = SString::CharType;
+	using AllocatorType = SString::DataType::AllocatorType;
+
+	enum
+	{
+		IsContainer = true,
+		IsDynamic = true,
+		InlineMemory = true
+	};
+};
+
 
 // Archive operator<< && operator>>
 ////////////////////////////////////////////

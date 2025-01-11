@@ -7,9 +7,8 @@
 
 #include PLATFORM_HEADER(Misc)
 
-typedef PLATFORM_PREFIXED_TYPE(S, PlatformMisc) SPlatformMisc;
-
-struct SMisc : public SPlatformMisc
+// TODO: Separate to IO (input/output) and STime
+struct SMisc : public PLATFORM_PREFIXED_TYPE(S, PlatformMisc)
 {
 	static constexpr long double NS_PER_SECOND = 1.e9; // nanoseconds
 	static constexpr long double MICROS_PER_SECOND = 1.e6; // microseconds

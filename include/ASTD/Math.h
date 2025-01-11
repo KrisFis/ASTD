@@ -4,9 +4,6 @@
 
 #include "ASTD/Build.h"
 
-// TODO: Get rid of CMATH
-#include <cmath>
-
 // Definitions
 ///////////////////////////////////////////////////////////
 
@@ -14,7 +11,7 @@
 	#undef PI
 #endif
 
-// PI = 3.1415926535897932384626433832795f
+// PI = 3.1415926535897932384626433832795
 #define PI 3.1415926535897932f
 
 #define TINY_NUMBER 1.e-8f
@@ -23,8 +20,6 @@
 // Types
 ///////////////////////////////////////////////////////////
 
-// TODO(jan.kristian.fisera):
-// * Type checks
 struct SMath
 {
 	template<typename T>
@@ -66,16 +61,20 @@ struct SMath
 	template<typename T>
 	FORCEINLINE static T LogX(T Base, T Value) { return LogE(Value) / LogE(Base); }
 
+	template <typename T>
+	FORCEINLINE static bool IsPowerOfTwo(T Value) { return ((Value & (Value - 1)) == (T)0); }
+
 	FORCEINLINE static uint32 CountLeadingZeros(uint32 Value) { return (Value == 0) ? 32 : (31 - FloorLog2(Value)); }
 	FORCEINLINE static uint64 CountLeadingZeros(uint64 Value) { return (Value == 0) ? 64 : (63 - FloorLog2(Value)); }
 
-	FORCEINLINE static uint32 CeilLog2(uint32 Value) 
-	{ return (32 - CountLeadingZeros(Value - 1)) & (~(((int32)(CountLeadingZeros(Value) << 26)) >> 31)); }
+	FORCEINLINE static uint32 CeilToPowerOfTwo(uint32 Value) { return (uint32)1 << CeilLog2(Value); }
+	FORCEINLINE static uint32 CeilLog2(uint32 Value) { return (32 - CountLeadingZeros(Value - 1)) & (~(((int32)(CountLeadingZeros(Value) << 26)) >> 31)); }
 
-	FORCEINLINE static uint64 CeilLog2(uint64 Value) 
-	{ return (64 - CountLeadingZeros(Value - 1)) & (~(((int64)(CountLeadingZeros(Value) << 57)) >> 63)); }
+	FORCEINLINE static uint32 CeilToPowerOfTwo(uint64 Value) { return (uint64)1 << CeilLog2(Value); }
+	FORCEINLINE static uint64 CeilLog2(uint64 Value) { return (64 - CountLeadingZeros(Value - 1)) & (~(((int64)(CountLeadingZeros(Value) << 57)) >> 63)); }
 
 	// see http://codinggorilla.domemtech.com/?p=81 or http://en.wikipedia.org/wiki/Binary_logarithm
+	FORCEINLINE static uint32 FloorToPowerOfTwo(uint32 Value) { return (uint32)1 << FloorLog2(Value); }
 	static uint32 FloorLog2(uint32 Value)
 	{
 		uint32 pos = 0;
@@ -88,6 +87,7 @@ struct SMath
 	}
 
 	// see http://codinggorilla.domemtech.com/?p=81 or http://en.wikipedia.org/wiki/Binary_logarithm
+	FORCEINLINE static uint64 FloorToPowerOfTwo(uint64 Value) { return (uint64)1 << FloorLog2(Value); }
 	static uint64 FloorLog2(uint64 Value)
 	{
 		uint64 pos = 0;
@@ -99,14 +99,4 @@ struct SMath
 		if (Value >= 1ull << 1) { pos +=  1; }
 		return (Value == 0) ? 0 : pos;
 	}
-
-	template <typename T>
-	FORCEINLINE static bool IsPowerOfTwo(T Value) { return ((Value & (Value - 1)) == (T)0); }
-
-	template<typename T>
-	FORCEINLINE static T CeilToPowerOfTwo(T Value) { return (T)1 << CeilLog2(Value); }
-
-	// must be uint64 or uint32
-	template<typename T>
-	FORCEINLINE static T FloorToPowerOfTwo(T Value) { return (T)1 << FloorLog2(Value); }
 };

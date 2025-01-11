@@ -8,6 +8,8 @@
 #include "ASTD/Array.h"
 #include "ASTD/TypeMethods.h"
 
+// TODO: we might want to in-place memory, meaning that it will write to memory block provided
+// Also setting read/write mode is annoying, maybe make it optional
 template<typename ElementT, typename AllocatorT = typename TArray<tchar>::AllocatorType>
 struct TArrayArchive : public SArchive
 {

@@ -30,10 +30,8 @@
 #include "ASTD/CString.h"
 #include "ASTD/String.h"
 
-// SMART POINTERS
-#include "ASTD/SharedClass.h"
-#include "ASTD/SharedObject.h"
-#include "ASTD/SharedUtils.h"
+// SHARED
+#include "ASTD/Shared.h"
 
 // EXTRAS -> ARCHIVE
 #include "ASTD/Archive.h"

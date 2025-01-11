@@ -6,7 +6,7 @@
 
 #include "ASTD/Memory.h"
 
-template<typename InElementType>
+template<typename ElementT>
 class TQueueAllocator
 {
 public:
@@ -14,7 +14,7 @@ public:
 	// Types
 	/////////////////////////////////
 
-	typedef InElementType ElementType;
+	typedef ElementT ElementType;
 	typedef uint32 SizeType;
 
 	struct SNode
@@ -35,17 +35,20 @@ public:
 	// Operators
 	/////////////////////////////////
 
-	FORCEINLINE bool operator==(const TQueueAllocator& other) const { return _head == other._head && _tail == other._tail; }
+	FORCEINLINE bool operator==(const TQueueAllocator& other) const { return _head == other._head && _tail == other._tail && _size == other._size; }
 	FORCEINLINE bool operator!=(const TQueueAllocator& other) const { return !operator==(other); }
 
 	// Getters
 	/////////////////////////////////
 
 	FORCEINLINE NodeType* GetHead() const { return _head; }
-	FORCEINLINE void SetHead(NodeType* Node) { _head = Node; }
+	FORCEINLINE void SetHead(NodeType* node) { _head = node; }
 
 	FORCEINLINE NodeType* GetTail() const { return _tail; }
-	FORCEINLINE void SetTail(NodeType* Node) { _tail = Node; }
+	FORCEINLINE void SetTail(NodeType* node) { _tail = node; }
+
+	FORCEINLINE SizeType GetSize() const { return _size; }
+	FORCEINLINE void SetSize(SizeType size) { _size = size; }
 
 	// Methods
 	/////////////////////////////////
@@ -71,6 +74,7 @@ public:
 
 		_tail = prevNode;
 		if(!_head) { _head = firstNode; }
+		_size += num;
 
 		return firstNode;
 	}
@@ -99,6 +103,7 @@ public:
 		}
 
 		SMemory::DeallocateElement(node);
+		--_size;
 	}
 
 	void Release()
@@ -113,10 +118,12 @@ public:
 
 		_head = nullptr;
 		_tail = nullptr;
+		_size = 0;
 	}
 
 private:
 
 	NodeType* _head = nullptr;
 	NodeType* _tail = nullptr;
+	SizeType _size = 0;
 };

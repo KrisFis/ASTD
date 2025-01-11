@@ -9,7 +9,7 @@
 #include "ASTD/TypeMethods.h"
 #include "ASTD/TypeTraits.h"
 
-template<typename InElementType>
+template<typename ElementT>
 class TOptional
 {
 public:
@@ -17,7 +17,7 @@ public:
 	// Typedefs
 	/////////////////////////////////
 
-	typedef InElementType ElementType;
+	typedef ElementT ElementType;
 
 	// Asserts
 	/////////////////////////////////
@@ -62,7 +62,8 @@ public:
 	// Checks
 	/////////////////////////////////
 
-	FORCEINLINE bool IsSet() const { return _data != nullptr; }
+	FORCEINLINE bool IsValid() const { return !!_data; }
+	FORCEINLINE bool IsSet() const { return IsValid(); }
 
 	// Getters
 	/////////////////////////////////

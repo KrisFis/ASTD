@@ -7,9 +7,7 @@
 
 #include "ASTD/Memory.h"
 
-typedef PLATFORM_PREFIXED_TYPE(S, PlatformCString) SPlatformCString;
-
-struct SCString : public SPlatformCString
+struct SCString : public PLATFORM_PREFIXED_TYPE(S, PlatformCString)
 {
 	static constexpr uint16 SMALL_BUFFER_SIZE = 1024;
 	static constexpr uint16 LARGE_BUFFER_SIZE = 4096;
@@ -40,7 +38,7 @@ struct SCString : public SPlatformCString
 	// * Rhs bigger -> 1
 	// * Equals -> 0
 	template<typename CharType>
-	static int32 CompareLenght(const CharType* lhs, const CharType* rhs)
+	static int32 CompareLength(const CharType* lhs, const CharType* rhs)
 	{
 		while(*lhs != CHAR_TERM)
 		{
@@ -59,7 +57,7 @@ struct SCString : public SPlatformCString
 	// * TestLen bigger -> 1
 	// * Equals -> 0
 	template<typename CharType>
-	static int32 CompareLenght(const CharType* val, uint32 testLen)
+	static int32 CompareLength(const CharType* val, uint32 testLen)
 	{
 		while(*val != CHAR_TERM)
 		{

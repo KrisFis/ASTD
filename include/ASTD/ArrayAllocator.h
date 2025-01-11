@@ -8,7 +8,7 @@
 
 // Main allocator used by TArray
 // * Has data inlined
-template<typename InElementType>
+template<typename ElementT>
 class TArrayAllocator
 {
 public:
@@ -16,7 +16,7 @@ public:
 	// Types
 	/////////////////////////////////
 
-	typedef InElementType ElementType;
+	typedef ElementT ElementType;
 	typedef int64 SizeType;
 
 	// Constructor
