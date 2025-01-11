@@ -10,13 +10,20 @@ struct SString;
 
 // TEMPLATED TYPES
 /////////////////////////////////
-template<typename ElementT, typename AllocatorT = void>
+
+template<typename ElementT>
+class TArrayAllocator;
+
+template<typename ElementT, typename AllocatorT = TArrayAllocator<ElementT>>
 class TArray;
 
 template<typename ElementT>
 class TOptional;
 
-template<typename ElementT, typename AllocatorT = void>
+template<typename ElementT>
+class TQueueAllocator;
+
+template<typename ElementT, typename AllocatorT = TQueueAllocator<ElementT>>
 class TQueue;
 
 template<typename T>

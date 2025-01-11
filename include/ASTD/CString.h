@@ -7,7 +7,10 @@
 
 #include "ASTD/Memory.h"
 
-struct SCString : public PLATFORM_PREFIXED_TYPE(S, PlatformCString)
+typedef PLATFORM_PREFIXED_TYPE(S, PlatformCString) SPlatformCString;
+
+// TODO: Implement Printf
+struct SCString : public SPlatformCString
 {
 	static constexpr uint16 SMALL_BUFFER_SIZE = 1024;
 	static constexpr uint16 LARGE_BUFFER_SIZE = 4096;
@@ -146,7 +149,7 @@ struct SCString : public PLATFORM_PREFIXED_TYPE(S, PlatformCString)
 	static const CharType* FindSubstring(const CharType* str, const CharType* subStr)
 	{
 		const uint32 subLen = GetLength(subStr);
-		if(CompareLenght(str, subLen) <= 0)
+		if(CompareLength(str, subLen) <= 0)
 		{
 			while (*(str + subLen) != CHAR_TERM)
 			{

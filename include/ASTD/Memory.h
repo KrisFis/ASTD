@@ -7,7 +7,9 @@
 
 #include "ASTD/TypeTraits.h"
 
-struct SMemory : public PLATFORM_PREFIXED_TYPE(S, PlatformMemory)
+typedef PLATFORM_PREFIXED_TYPE(S, PlatformMemory) SPlatformMemory;
+
+struct SMemory : public SPlatformMemory
 {
 	static constexpr long double BITS_PER_BYTE = 8; // bits
 	static constexpr long double KiB_PER_BYTE = 1.e-3; // kibibytes

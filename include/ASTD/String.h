@@ -16,7 +16,7 @@ struct SString
 
 	typedef tchar CharType;
 	typedef TArray<CharType> DataType;
-	typedef typename DataType::NumType SizeType;
+	typedef typename DataType::SizeType SizeType;
 
 	typedef CharType* StringIteratorType;
 	typedef const CharType* ConstStringIteratorType;
@@ -518,6 +518,7 @@ private:
 	DataType _data = {};
 };
 
+template<>
 struct TContainerTypeTraits<SString> : public TContainerTypeTraits<void>
 {
 	using ElementType = SString::CharType;

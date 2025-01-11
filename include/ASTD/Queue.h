@@ -9,7 +9,7 @@
 
 // TODO: Introduce iterator
 // TODO: Consider returning memory and allow changing values!
-template<typename ElementT, typename AllocatorT = TQueueAllocator<ElementT>>
+template<typename ElementT, typename AllocatorT>
 class TQueue
 {
 public:

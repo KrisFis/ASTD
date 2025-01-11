@@ -60,8 +60,8 @@ struct SLinuxPlatformCString
 	FORCEINLINE static int64 ToInt64(const wchar* val) { return wcstol(val, nullptr, 10); }
 
 	// Converts integer value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromInt64(int64 val, char* buf, int32 maxLen) { snprintf(buf, maxLen, "%lld", val); return buf; }
-	FORCEINLINE static wchar* FromInt64(int64 val, wchar* buf, int32 maxLen) { swprintf(buf, maxLen, L"%lld", val); return buf; }
+	FORCEINLINE static char* FromInt64(int64 val, char* buf, int32 maxLen) { snprintf(buf, maxLen, "%ld", val); return buf; }
+	FORCEINLINE static wchar* FromInt64(int64 val, wchar* buf, int32 maxLen) { swprintf(buf, maxLen, L"%ld", val); return buf; }
 
 	// Converts the string pointed to, by the argument str to a floating-point number
 	FORCEINLINE static double ToDouble(const char* val) { return atof(val); }
