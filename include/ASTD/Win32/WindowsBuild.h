@@ -39,6 +39,15 @@
 #define DLL_EXPORT __declspec(dllexport)
 #define DLL_IMPORT __declspec(dllimport)
 
+// VARIADIC
+////////////////////////////////////////////////////////////////////////
+
+#define VA_LIST va_list
+#define VA_ARG(list, type) va_arg(list, type)
+#define VA_START(list, param) va_start(list, param)
+#define VA_COPY(destinationList, sourceList) va_copy(destinationList, sourceList)
+#define VA_END(list) va_end(list)
+
 // DIAGNOSTICS
 ////////////////////////////////////////////////////////////////////////
 

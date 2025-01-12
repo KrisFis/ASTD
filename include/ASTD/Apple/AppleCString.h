@@ -70,4 +70,23 @@ struct SApplePlatformCString
 	// Converts double value to string in specified base, string is saved to provided buffer
 	FORCEINLINE static char* FromDouble(double val, int32 Digits, char* buf, int32 maxLen) { snprintf(buf, maxLen, "%.*f", Digits, val); return buf; }
 	FORCEINLINE static wchar* FromDouble(double val, int32 Digits, wchar* buf, int32 maxLen) { swprintf(buf, maxLen, L"%.*f", Digits, val); return buf; }
+
+	// Prints formatted string with variadic parameters to provided buffer
+	static int32 Printf(const char* fmt, char* buf, int32 maxLen, ...)
+	{
+		VA_LIST args;
+		VA_START(args, fmt);
+		const int32 result = vsnprintf(buf, maxLen, fmt, args);
+		VA_END(args);
+		return result;
+	}
+
+	static int32 Printf(const wchar* fmt, wchar* buf, int32 maxLen, ...)
+	{
+		VA_LIST args;
+		VA_START(args, fmt);
+		const int32 result = vswprintf(buf, maxLen, fmt, args);
+		VA_END(args);
+		return result;
+	}
 };

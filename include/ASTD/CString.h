@@ -9,7 +9,6 @@
 
 typedef PLATFORM_PREFIXED_TYPE(S, PlatformCString) SPlatformCString;
 
-// TODO: Implement Printf
 struct SCString : public SPlatformCString
 {
 	static constexpr uint16 SMALL_BUFFER_SIZE = 1024;
@@ -19,14 +18,14 @@ struct SCString : public SPlatformCString
 	static constexpr uint16 MAX_BUFFER_SIZE_DOUBLE = 309+40; // _CVTBUFSIZE
 
 	// Checks whether the passed character is wide character
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	FORCEINLINE static constexpr bool IsWideChar(CharType)
 	{
 		return TIsSame<CharType, wchar>::Value;
 	}
 
 	// Gets length of a string
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static uint32 GetLength(const CharType* str)
 	{
 		const CharType* current = str;
@@ -40,7 +39,7 @@ struct SCString : public SPlatformCString
 	// * Lhs bigger -> -1
 	// * Rhs bigger -> 1
 	// * Equals -> 0
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static int32 CompareLength(const CharType* lhs, const CharType* rhs)
 	{
 		while(*lhs != CHAR_TERM)
@@ -59,7 +58,7 @@ struct SCString : public SPlatformCString
 	// * Value bigger -> -1
 	// * TestLen bigger -> 1
 	// * Equals -> 0
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static int32 CompareLength(const CharType* val, uint32 testLen)
 	{
 		while(*val != CHAR_TERM)
@@ -75,7 +74,7 @@ struct SCString : public SPlatformCString
 	}
 
 	// Compares contents of two strings
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static int32 Compare(const CharType* lhs, const CharType* rhs)
 	{
 		while(*lhs != CHAR_TERM)
@@ -90,7 +89,7 @@ struct SCString : public SPlatformCString
 		return *lhs - *rhs;
 	}
 
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static CharType* ToUpper(CharType* str)
 	{
 		CharType* current = str;
@@ -103,7 +102,7 @@ struct SCString : public SPlatformCString
 		return str;
 	}
 
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static CharType* ToLower(CharType* str)
 	{
 		CharType* current = str;
@@ -118,7 +117,7 @@ struct SCString : public SPlatformCString
 
 	// Copies contents of one string to the other
 	// * String memory should not overlap
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static CharType* Copy(CharType* dest, const CharType* src)
 	{
 		SMemory::Copy(
@@ -132,7 +131,7 @@ struct SCString : public SPlatformCString
 
 	// Copies contents of one string to the other
 	// * String memory can overlap
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static CharType* Move(CharType* dest, const CharType* src)
 	{
 		SMemory::Move(
@@ -145,7 +144,7 @@ struct SCString : public SPlatformCString
 	}
 
 	// Finds the first occurrence of the substring "subStr" in the string "str"
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static const CharType* FindSubstring(const CharType* str, const CharType* subStr)
 	{
 		const uint32 subLen = GetLength(subStr);
@@ -163,7 +162,7 @@ struct SCString : public SPlatformCString
 		return nullptr;
 	}
 
-	template<typename CharType>
+	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
 	static const CharType* FindSubstringReversed(const CharType* str, const CharType* subStr)
 	{
 		const uint32 mainLen = GetLength(str);

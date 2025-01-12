@@ -86,6 +86,17 @@ struct SString
 	FORCEINLINE bool IsValidIndex(SizeType idx) const { return idx >= 0 && idx < GetLastCharIndex(); }
 	FORCEINLINE bool IsEmpty() const { return GetLength() == 0; }
 
+	// Construction
+	/////////////////////////////////
+
+	template<typename... VarTypes>
+	static SString Printf(const CharType* fmt, VarTypes&&... args)
+	{
+		thread_local CharType buffer[SCString::LARGE_BUFFER_SIZE];
+		SCString::Printf(buffer, SCString::LARGE_BUFFER_SIZE, fmt, Forward<VarTypes>(args)...);
+		return SString(buffer);
+	}
+
 	// Conversions
 	/////////////////////////////////
 
