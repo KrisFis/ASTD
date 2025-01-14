@@ -93,7 +93,17 @@ struct SString
 	static SString Printf(const CharType* fmt, VarTypes&&... args)
 	{
 		thread_local CharType buffer[SCString::LARGE_BUFFER_SIZE];
-		SCString::Printf(buffer, SCString::LARGE_BUFFER_SIZE, fmt, Forward<VarTypes>(args)...);
+
+		// TODO: Replace with custom implementation
+		if constexpr (TIsSame<CharType, wchar>::Value)
+		{
+			swprintf(buffer, fmt, Forward<VarTypes>(args)...);
+		}
+		else
+		{
+			sprintf(buffer, fmt, Forward<VarTypes>(args)...);
+		}
+
 		return SString(buffer);
 	}
 
@@ -134,8 +144,8 @@ struct SString
 	// Compares
 	/////////////////////////////////
 
-	FORCEINLINE int32 Compare(const SString& other, bool caseSensitive = true) const { return ComparePrivate(*this, other, caseSensitive); }
-	FORCEINLINE bool EqualsTo(const SString& other, bool caseSensitive = true) const { return ComparePrivate(*this, other, caseSensitive) == 0; }
+	FORCEINLINE int32 Compare(const SString& other, bool caseSensitive = true) const { return SCString::Compare(GetChars(), other.GetChars(), caseSensitive); }
+	FORCEINLINE bool Equals(const SString& other, bool caseSensitive = true) const { return Compare(other, caseSensitive) == 0; }
 
 	// Checks
 	/////////////////////////////////
@@ -157,12 +167,12 @@ struct SString
 
 	FORCEINLINE bool Contains(const SString& val, bool caseSensitive = true, bool fromStart = true) const
 	{
-		return FindOccurencePrivate(*this, val, caseSensitive, fromStart) != INDEX_NONE;
+		return !!SCString::Find(GetChars(), val.GetChars(), caseSensitive, fromStart);
 	}
 
 	FORCEINLINE SizeType Find(const SString& val, bool caseSensitive = true, bool fromStart = true) const
 	{
-		return FindOccurencePrivate(*this, val, caseSensitive, fromStart);
+		return SCString::FindIndex(GetChars(), val.GetChars(), caseSensitive, fromStart);
 	}
 
 	// Append
@@ -180,21 +190,19 @@ struct SString
 
 	bool Split(const SString& val, SString* outLeft, SString* outRight, bool caseSensitive = true, bool fromStart = true) const
 	{
-		const CharType* foundPtr = FindSubstringPrivate(*this, val, caseSensitive, fromStart);
-		if(!foundPtr)
+		const SizeType foundIdx = SCString::FindIndex(GetChars(), val.GetChars(), caseSensitive, fromStart);
+		if (foundIdx == INDEX_NONE)
 			return false;
-
-		const SizeType asIndex = PTR_DIFF_TYPED(SizeType, foundPtr, _data.GetData());
 
 		if(outLeft)
 		{
-			outLeft->_data = DataType(_data.GetData(), asIndex + 1);
-			outLeft->_data[asIndex] = CHAR_TERM;
+			outLeft->_data = DataType(_data.GetData(), foundIdx + 1);
+			outLeft->_data[foundIdx] = CHAR_TERM;
 		}
 
 		if(outRight)
 		{
-			outRight->_data = DataType(foundPtr + 1, _data.GetNum() - asIndex);
+			outRight->_data = DataType(GetChars() + foundIdx + 1, _data.GetNum() - foundIdx);
 		}
 
 		return true;
@@ -426,18 +434,9 @@ private:
 		return true;
 	}
 
-	static SizeType FindOccurencePrivate(const SString& str, const SString& subStr, bool caseSensitive, bool fromStart)
-	{
-		if(const CharType* foundPtr = FindSubstringPrivate(str, subStr, caseSensitive, fromStart))
-		{
-			return PTR_DIFF_TYPED(SizeType, foundPtr, str._data.GetData());
-		}
-		return INDEX_NONE;
-	}
-
 	template<typename FuncType>
 	static void SplitBySubstringPrivate(
-		const SString& str, const SString& substr, 
+		const SString& str, const SString& substr,
 		bool ignoreEmpty, bool caseSensitive,
 		SizeType maxSplits,
 		FuncType&& functor)
@@ -457,7 +456,7 @@ private:
 			const CharType* init = mainStr.GetData();
 			const CharType* subChars = subStr.GetData();
 
-			while(const CharType* current = SCString::FindSubstring(init, subChars))
+			while(const CharType* current = SCString::Find(init, subChars, caseSensitive))
 			{
 				if (!ignoreEmpty || current-init)
 				{
@@ -501,29 +500,6 @@ private:
 		}
 
 		return true;
-	}
-
-	static int32 ComparePrivate(const SString& lhs, const SString& rhs, bool caseSensitive) 
-	{
-		return caseSensitive ?
-			SCString::Compare(lhs._data.GetData(), rhs._data.GetData()) :
-			SCString::Compare(lhs.ToLower()._data.GetData(), rhs.ToLower()._data.GetData());
-	}
-
-	static const CharType* FindSubstringPrivate(const SString& str, const SString& substr, bool caseSensitive, bool fromStart)
-	{
-		if(caseSensitive)
-		{
-			return fromStart ?
-				SCString::FindSubstring(str._data.GetData(), substr._data.GetData()) :
-				SCString::FindSubstringReversed(str._data.GetData(), substr._data.GetData());
-		}
-		else
-		{
-			return fromStart ?
-				SCString::FindSubstring(str.ToLower()._data.GetData(), substr.ToLower()._data.GetData()) :
-				SCString::FindSubstringReversed(str.ToLower()._data.GetData(), substr.ToLower()._data.GetData());
-		}
 	}
 
 	DataType _data = {};

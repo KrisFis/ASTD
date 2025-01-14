@@ -37,14 +37,14 @@ struct SMisc : public SPlatformMisc
 		return SPlatformMisc::WriteStd(STDERR_FILE_NO, buffer, size);
 	}
 
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE static uint64 WriteToStdout(const CharType* str)
 	{
 		const uint64 writtenBytes = SPlatformMisc::WriteStd(STDOUT_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
 		return writtenBytes >= sizeof(tchar) ? writtenBytes / sizeof(tchar) : 0;
 	}
 
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE static uint64 WriteToStderr(const CharType* str)
 	{
 		const uint64 writtenBytes = SPlatformMisc::WriteStd(STDERR_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));

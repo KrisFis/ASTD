@@ -11,6 +11,8 @@
 
 #define ASSEMBLY(code) __asm__(code)
 
+#define HAS_INCLUDE(file) __has_include(file)
+
 #define DEPRECATED __attribute__ ((__deprecated__))
 #define NODISCARD [[nodiscard]]
 

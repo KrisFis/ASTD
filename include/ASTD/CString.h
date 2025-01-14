@@ -17,15 +17,8 @@ struct SCString : public SPlatformCString
 	static constexpr uint16 MAX_BUFFER_SIZE_INT64 = 65;
 	static constexpr uint16 MAX_BUFFER_SIZE_DOUBLE = 309+40; // _CVTBUFSIZE
 
-	// Checks whether the passed character is wide character
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	FORCEINLINE static constexpr bool IsWideChar(CharType)
-	{
-		return TIsSame<CharType, wchar>::Value;
-	}
-
 	// Gets length of a string
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
 	static uint32 GetLength(const CharType* str)
 	{
 		const CharType* current = str;
@@ -35,81 +28,29 @@ struct SCString : public SPlatformCString
 		return static_cast<uint32>(current - str);
 	}
 
-	// When:
-	// * Lhs bigger -> -1
-	// * Rhs bigger -> 1
-	// * Equals -> 0
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static int32 CompareLength(const CharType* lhs, const CharType* rhs)
-	{
-		while(*lhs != CHAR_TERM)
-		{
-			if(*rhs == CHAR_TERM)
-				return -1;
-
-			++lhs;
-			++rhs;
-		}
-
-		return *rhs == CHAR_TERM ? 0 : 1;
-	}
-
-	// When:
-	// * Value bigger -> -1
-	// * TestLen bigger -> 1
-	// * Equals -> 0
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static int32 CompareLength(const CharType* val, uint32 testLen)
-	{
-		while(*val != CHAR_TERM)
-		{
-			if(testLen == 0)
-				return -1;
-
-			++val;
-			--testLen;
-		}
-
-		return testLen == 0 ? 0 : 1;
-	}
-
-	// Compares contents of two strings
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static int32 Compare(const CharType* lhs, const CharType* rhs)
-	{
-		while(*lhs != CHAR_TERM)
-		{
-			if(*lhs != *rhs)
-				break;
-
-			++lhs;
-			++rhs;
-		}
-
-		return *lhs - *rhs;
-	}
-
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static CharType* ToUpper(CharType* str)
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static CharType* ToUpper(CharType* str, uint32 maxLen = TLimits<uint32>::Max)
 	{
 		CharType* current = str;
-		while(*current != CHAR_TERM)
+		while(*current != CHAR_TERM && maxLen > 0)
 		{
-			*current = ToUpperChar(*current);
+			*current = SCString::ToUpperChar(*current);
 			++current;
+			--maxLen;
 		}
 
 		return str;
 	}
 
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static CharType* ToLower(CharType* str)
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static CharType* ToLower(CharType* str, uint32 maxLen = TLimits<uint32>::Max)
 	{
 		CharType* current = str;
-		while(*current != CHAR_TERM)
+		while(*current != CHAR_TERM && maxLen > 0)
 		{
-			*current = ToLowerChar(*current);
+			*current = SCString::ToLowerChar(*current);
 			++current;
+			--maxLen;
 		}
 
 		return str;
@@ -117,69 +58,179 @@ struct SCString : public SPlatformCString
 
 	// Copies contents of one string to the other
 	// * String memory should not overlap
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static CharType* Copy(CharType* dest, const CharType* src)
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static CharType* Copy(CharType* dest, const CharType* src, uint32 maxLen = TLimits<uint32>::Max)
 	{
-		SMemory::Copy(
+		return SMemory::Copy(
 			dest,
 			src,
-			sizeof(CharType) * GetLength(src)
+			SMath::Min(GetLength(src), maxLen)
 		);
-
-		return dest;
 	}
 
 	// Copies contents of one string to the other
 	// * String memory can overlap
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static CharType* Move(CharType* dest, const CharType* src)
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static CharType* Move(CharType* dest, const CharType* src, uint32 maxLen = TLimits<uint32>::Max)
 	{
-		SMemory::Move(
+		return SMemory::Move(
 			dest,
 			src,
-			sizeof(CharType) * GetLength(src)
+			SMath::Min(GetLength(src), maxLen)
 		);
-
-		return dest;
 	}
 
-	// Finds the first occurrence of the substring "subStr" in the string "str"
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static const CharType* FindSubstring(const CharType* str, const CharType* subStr)
+	// When:
+	// * Lhs bigger -> -1
+	// * Rhs bigger -> 1
+	// * Equals -> 0
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static int32 CompareLength(const CharType* lhs, const CharType* rhs)
 	{
-		const uint32 subLen = GetLength(subStr);
-		if(CompareLength(str, subLen) <= 0)
+		while(*lhs != CHAR_TERM && *rhs != CHAR_TERM)
 		{
-			while (*(str + subLen) != CHAR_TERM)
-			{
-				if (SMemory::Compare(str, subStr, subLen) == 0)
-					return str;
+			++lhs;
+			++rhs;
+		}
 
+		return (*lhs == CHAR_TERM && *rhs == CHAR_TERM)
+			? 0
+			: (*lhs == CHAR_TERM ? 1 : -1);
+	}
+
+	// When:
+	// * Value bigger -> -1
+	// * TestLen bigger -> 1
+	// * Equals -> 0
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static int32 CompareLength(const CharType* val, uint32 testLen)
+	{
+		while (*val != CHAR_TERM && testLen > 0)
+		{
+			++val;
+			--testLen;
+		}
+
+		return (*val == CHAR_TERM && testLen == 0)
+			? 0
+			: (*val == CHAR_TERM ? 1 : -1);
+	}
+
+	// Compares contents of two strings
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static int32 Compare(
+		const CharType* lhs,
+		const CharType* rhs,
+		bool caseSensitive = true,
+		bool fromStart = true,
+		uint32 maxLen = TLimits<uint32>::Max)
+	{
+		if (!fromStart)
+		{
+			const uint32 lhsLen = GetLength(lhs);
+			const uint32 rhsLen = GetLength(rhs);
+
+			// iterate only up to shortest of the strings to not go under the allocation
+			maxLen = SMath::Min(maxLen, SMath::Min(lhsLen, rhsLen));
+
+			// move in character before CHAR_TERM
+			lhs += lhsLen - 1;
+			rhs += rhsLen - 1;
+		}
+
+		return CompareImpl(lhs, rhs, caseSensitive, !fromStart, maxLen);
+	}
+
+	// Finds the first occurrence of the substring "test" in the string "str" and returns ptr
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static const CharType* Find(
+		const CharType* str,
+		const CharType* test,
+		bool caseSensitive = true,
+		bool fromStart = true,
+		uint32 maxLen = TLimits<uint32>::Max)
+	{
+		const uint32 testLen = GetLength(test);
+		if (testLen == 0) return str;
+
+		const uint32 strLen = GetLength(str);
+		if (testLen >= strLen) return nullptr;
+
+		if (!fromStart)
+		{
+			// move in character before CHAR_TERM
+			str += strLen - 1;
+		}
+
+		maxLen = SMath::Min(maxLen, strLen);
+		while (maxLen > 0)
+		{
+			if (CompareImpl(str, test, caseSensitive, !fromStart, testLen) == 0)
+				return str;
+
+			if (fromStart)
+			{
 				++str;
 			}
+			else
+			{
+				--str;
+			}
+			--maxLen;
 		}
 
 		return nullptr;
 	}
 
-	template<typename CharType, typename TEnableIf<TIsCharacterType<CharType>::Value>::Type* = nullptr>
-	static const CharType* FindSubstringReversed(const CharType* str, const CharType* subStr)
+	// Finds the first occurrence of the substring "test" in the string "str" and returns index
+	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
+	static int32 FindIndex(
+		const CharType* str,
+		const CharType* test,
+		bool caseSensitive = true,
+		bool fromStart = true,
+		uint32 maxLen = TLimits<uint32>::Max)
 	{
-		const uint32 mainLen = GetLength(str);
-		const uint32 subLen = GetLength(subStr);
+		const CharType* foundStr = Find(str, test, caseSensitive, fromStart, maxLen);
+		return foundStr ? PTR_DIFF_TYPED(int32, foundStr, str) : INDEX_NONE;
+	}
 
-		if(mainLen >= subLen)
+private:
+
+	// Compare implementation
+	template<typename CharType>
+	static int32 CompareImpl(const CharType* lhs, const CharType* rhs, bool caseSensitive, bool reverse, int32 maxLen)
+	{
+		while(maxLen > 0)
 		{
-			const CharType* current = str + (mainLen - subLen);
-			while(current >= str)
-			{
-				if (SMemory::Compare(str, subStr, subLen) == 0)
-					return current;
+			CharType lhsChar = *lhs;
+			CharType rhsChar = *rhs;
 
-				--current;
+			if (!caseSensitive)
+			{
+				lhsChar = SPlatformCString::ToLowerChar(*lhs);
+				rhsChar = SPlatformCString::ToLowerChar(*rhs);
 			}
+
+			if (lhsChar != rhsChar)
+				break;
+
+			if (lhsChar == CHAR_TERM)
+				return 0;
+
+			if (reverse)
+			{
+				--lhs;
+				--rhs;
+			}
+			else
+			{
+				++lhs;
+				++rhs;
+			}
+			--maxLen;
 		}
 
-		return nullptr;
+		return (maxLen > 0) ? (*lhs - *rhs) : 0;
 	}
 };

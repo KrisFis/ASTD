@@ -26,25 +26,34 @@ struct SMemory : public SPlatformMemory
 	static constexpr long double TB_PER_BYTE = 1.e-12; // terabytes
 
 	template<typename T>
-	FORCEINLINE static T* AllocateElement(int64 num = 1)
+	FORCEINLINE static T* Allocate(int64 num = 1)
 	{
-		return (T*)Allocate(num * sizeof(T));
+#if ASTD_TRACK_MEMORY
+		GetAllocatedBytesImpl() += num * sizeof(T);
+#endif
+		return (T*)SPlatformMemory::Malloc(num * sizeof(T));
 	}
 
 	template<typename T>
-	FORCEINLINE static T* AllocateElementZeroed(int64 num = 1)
+	FORCEINLINE static T* AllocateZeroed(int64 num = 1)
 	{
-		return (T*)AllocateZeroed(num * sizeof(T));
+#if ASTD_TRACK_MEMORY
+		GetAllocatedBytesImpl() += num * sizeof(T);
+#endif
+		return (T*)SPlatformMemory::Calloc(num * sizeof(T));
 	}
 
 	template<typename T>
-	FORCEINLINE static void DeallocateElement(T* ptr, int64 num = 1)
+	FORCEINLINE static void Deallocate(T* ptr, int64 num = 1)
 	{
-		return Deallocate(ptr, num * sizeof(T));
+#if ASTD_TRACK_MEMORY
+		GetAllocatedBytesImpl() -= num * sizeof(T);
+#endif
+		return SPlatformMemory::Free(ptr, num * sizeof(T));
 	}
 
 	template<typename T, typename... ArgTypes>
-	FORCEINLINE static void ConstructElement(T* ptr, ArgTypes&&... Args)
+	FORCEINLINE static void Construct(T* ptr, ArgTypes&&... Args)
 	{
 		if constexpr (!TIsTriviallyConstructible<T, ArgTypes...>::Value)
 		{
@@ -53,7 +62,7 @@ struct SMemory : public SPlatformMemory
 	}
 
 	template<typename T>
-	FORCEINLINE static void CopyElement(T* To, const T* From, int64 num)
+	FORCEINLINE static void Copy(T* To, const T* From, int64 num)
 	{
 		if constexpr (!TIsTriviallyCopyConstructible<T>::Value)
 		{
@@ -65,7 +74,7 @@ struct SMemory : public SPlatformMemory
 		}
 		else
 		{
-			Copy(
+			SPlatformMemory::Memcpy(
 				To,
 				From,
 				sizeof(T) * num
@@ -74,27 +83,27 @@ struct SMemory : public SPlatformMemory
 	}
 
 	template<typename T>
-	FORCEINLINE static void CopyElement(T* ptr, const T* val)
+	FORCEINLINE static void Copy(T* ptr, const T* val)
 	{
-		CopyElement(ptr, val, 1);
+		Copy(ptr, val, 1);
 	}
 
 	template<typename T>
-	FORCEINLINE static void CopyElement(T* ptr, const T& val)
+	FORCEINLINE static void Copy(T* ptr, const T& val)
 	{
-		CopyElement(ptr, &val, 1);
+		Copy(ptr, &val, 1);
 	}
 
 	template<typename T>
-	FORCEINLINE static void MoveElement(T* ptr, T* val)
+	FORCEINLINE static void Move(T* ptr, T* val)
 	{
 		if constexpr(!TIsTriviallyMoveConstructible<T>::Value)
 		{
-			::new((void*)ptr) T(Move(*val));
+			::new((void*)ptr) T(SPlatformMemory::Memmove(*val));
 		}
 		else
 		{
-			Copy(
+			SPlatformMemory::Memmove(
 				ptr,
 				val,
 				sizeof(T)
@@ -103,14 +112,14 @@ struct SMemory : public SPlatformMemory
 	}
 
 	template<typename T>
-	FORCEINLINE static void MoveElement(T* ptr, T&& val)
+	FORCEINLINE static void Move(T* ptr, T&& val)
 	{
-		MoveElement(ptr, &val);
+		Move(ptr, &val);
 	}
 
 	// Destruct element
 	template<typename T>
-	FORCEINLINE static void DestructElement(T* ptr)
+	FORCEINLINE static void Destruct(T* ptr)
 	{
 		if constexpr(!TIsTriviallyDestructible<T>::Value)
 		{
@@ -119,15 +128,12 @@ struct SMemory : public SPlatformMemory
 	}
 
 #if ASTD_TRACK_MEMORY
-	// Gets allocated memory as specific type
 	FORCEINLINE static uint64 GetAllocatedBytes() { return GetAllocatedBytesImpl(); }
-
-	FORCEINLINE static void* Allocate(int64 size) { return (GetAllocatedBytesImpl() += size, SPlatformMemory::Allocate(size)); }
-	FORCEINLINE static void* AllocateZeroed(int64 size) { return (GetAllocatedBytesImpl() += size, SPlatformMemory::AllocateZeroed(size)); }
-	FORCEINLINE static void Deallocate(void* ptr, int64 size) { return (GetAllocatedBytesImpl() -= size, SPlatformMemory::Deallocate(ptr, size)); }
+#endif
 
 private:
 
+#if ASTD_TRACK_MEMORY
 	static uint64& GetAllocatedBytesImpl()
 	{
 		static uint64 bytes = 0;
@@ -137,13 +143,13 @@ private:
 };
 
 #if ASTD_NEW_DELETE
-void* operator new(TSize size)
+inline void* operator new(TSize size)
 {
-	return SMemory::Allocate((uint32)size);
+	return SMemory::Allocate<uint8>((uint32)size);
 }
 
-void operator delete(void* ptr, TSize size) noexcept
+inline void operator delete(void* ptr, TSize size) noexcept
 {
-	return SMemory::Deallocate(ptr, (uint32)size);
+	return SMemory::Deallocate<uint8>((uint8*)ptr, (uint32)size);
 }
 #endif

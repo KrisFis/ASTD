@@ -31,7 +31,7 @@ public:
 	FORCEINLINE ElementType* Allocate(SizeType num)
 	{
 		CHECK_RET(GetCount() + num <= InNumLimit, nullptr);
-		return _allocator.Allocate(num);
+		return _allocator.Malloc(num);
 	}
 
 	FORCEINLINE void Release() { _allocator.Release(); }

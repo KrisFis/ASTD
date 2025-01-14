@@ -4,7 +4,7 @@
 
 #include "ASTD/Build.h"
 
-namespace NTypeInternals
+namespace _NTypeInternals
 {
 	template<typename T>
 	struct TDecayHelper	{ typedef T Type; };

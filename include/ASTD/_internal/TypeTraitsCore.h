@@ -84,52 +84,52 @@ template<typename T, uint32 N> struct TIsArray<T[N]> { enum { Value = true }; };
 // [Is Function]
 // * Checks whether specific type is function
 
-template<typename T> struct TIsFunctionType { enum { Value = false }; };
-template <typename RetType, typename... Params> struct TIsFunctionType<RetType(Params...)> { enum { Value = true }; };
+template<typename T> struct TIsFunction { enum { Value = false }; };
+template <typename RetType, typename... Params> struct TIsFunction<RetType(Params...)> { enum { Value = true }; };
 
 // [Is Bool Type]
 // * Checks whether specific type is bool type
 
-template<typename T> struct TIsBoolType { enum { Value = false }; };
-template<> struct TIsBoolType<bool> { enum { Value = true }; };
+template<typename T> struct TIsBool { enum { Value = false }; };
+template<> struct TIsBool<bool> { enum { Value = true }; };
 
 // [Is Floating Type]
 // * Checks whether specific type is floating type
 // * Floating types are: float, double
 
-template<typename T> struct TIsFloatingType { enum { Value = false }; };
-template<> struct TIsFloatingType<float> { enum { Value = true }; };
-template<> struct TIsFloatingType<double> { enum { Value = true }; };
-template<> struct TIsFloatingType<long double> { enum { Value = true }; };
+template<typename T> struct TIsFloating { enum { Value = false }; };
+template<> struct TIsFloating<float> { enum { Value = true }; };
+template<> struct TIsFloating<double> { enum { Value = true }; };
+template<> struct TIsFloating<long double> { enum { Value = true }; };
 
 // [Is Integer Type]
 // * Checks whether specific type is integer type
 // * Integer types are: int8, int16, int32, int64, uint8, uint16, uint32, uint64
 
-template<typename T> struct TIsIntegerType { enum { Value = false }; };
-template<> struct TIsIntegerType<int8> { enum { Value = true }; };
-template<> struct TIsIntegerType<int16> { enum { Value = true }; };
-template<> struct TIsIntegerType<int32> { enum { Value = true }; };
-template<> struct TIsIntegerType<int64> { enum { Value = true }; };
-template<> struct TIsIntegerType<uint8> { enum { Value = true }; };
-template<> struct TIsIntegerType<uint16> { enum { Value = true }; };
-template<> struct TIsIntegerType<uint32> { enum { Value = true }; };
-template<> struct TIsIntegerType<uint64> { enum { Value = true }; };
+template<typename T> struct TIsIntegral { enum { Value = false }; };
+template<> struct TIsIntegral<int8> { enum { Value = true }; };
+template<> struct TIsIntegral<int16> { enum { Value = true }; };
+template<> struct TIsIntegral<int32> { enum { Value = true }; };
+template<> struct TIsIntegral<int64> { enum { Value = true }; };
+template<> struct TIsIntegral<uint8> { enum { Value = true }; };
+template<> struct TIsIntegral<uint16> { enum { Value = true }; };
+template<> struct TIsIntegral<uint32> { enum { Value = true }; };
+template<> struct TIsIntegral<uint64> { enum { Value = true }; };
 
 // [Is Character Type]
 // * Checks whether specific type is character type
 // * Character types are: char, wchar
 
-template<typename T> struct TIsCharacterType { enum { Value = false }; };
-template<> struct TIsCharacterType<char> { enum { Value = true }; };
-template<> struct TIsCharacterType<wchar> { enum { Value = true }; };
+template<typename T> struct TIsCharacter { enum { Value = false }; };
+template<> struct TIsCharacter<char> { enum { Value = true }; };
+template<> struct TIsCharacter<wchar> { enum { Value = true }; };
 
 // [Is signed type]
 // * Checks whether specific type is signed type
 // * Signed types are types that is missing "unsigned" qualifier
 
-template<typename T> struct TIsSignedType { enum { Value = true }; };
-template<> struct TIsSignedType<uint8> { enum { Value = false }; };
-template<> struct TIsSignedType<uint16> { enum { Value = false }; };
-template<> struct TIsSignedType<uint32> { enum { Value = false }; };
-template<> struct TIsSignedType<uint64> { enum { Value = false }; };
+template<typename T> struct TIsSigned { enum { Value = true }; };
+template<> struct TIsSigned<uint8> { enum { Value = false }; };
+template<> struct TIsSigned<uint16> { enum { Value = false }; };
+template<> struct TIsSigned<uint32> { enum { Value = false }; };
+template<> struct TIsSigned<uint64> { enum { Value = false }; };

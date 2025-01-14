@@ -32,7 +32,7 @@ public:
 	/////////////////////////////////
 
 	static_assert(!TIsSame<ElementT, void>::Value && !TIsReference<ElementT>::Value, "Element type is not valid");
-	static_assert(!TIsSame<AllocatorT, void>::Value && TIsSignedType<SizeType>::Value, "Allocator type is not valid");
+	static_assert(!TIsSame<AllocatorT, void>::Value && TIsSigned<SizeType>::Value, "Allocator type is not valid");
 
 	// Constructors
 	/////////////////////////////////
@@ -408,9 +408,9 @@ private:
 		{
 			// Moves entire allocation by one index down
 
-			// NOTE(jan.kristian.fisera): 
+			// NOTE(jan.kristian.fisera):
 			// * Is it worth to cache start index and try to move from start in case that would be less iterations ?
-			SMemory::Move(
+			SMemory::Memmove(
 				GetElementAtImpl(idx),
 				GetElementAtImpl(idx + 1),
 				sizeof(ElementT) * (_num - idx - 1)
@@ -531,7 +531,7 @@ private:
 
 			_num += num;
 			ReallocateIfNeededImpl();
-			SMemory::CopyElement(_allocator.GetData() + oldCount, data, num);
+			SMemory::Copy(_allocator.GetData() + oldCount, data, num);
 		}
 	}
 
@@ -544,7 +544,7 @@ private:
 			_num += num;
 			ReallocateIfNeededImpl();
 
-			SMemory::MoveElement(_allocator.GetData() + oldCount, data);
+			SMemory::Move(_allocator.GetData() + oldCount, data);
 		}
 		else
 		{
@@ -605,7 +605,7 @@ private:
 	{
 		for(SizeType i = 0; i < num; ++i)
 		{
-			SMemory::DestructElement(element);
+			SMemory::Destruct(element);
 			++element;
 		}
 	}
@@ -613,13 +613,13 @@ private:
 	FORCEINLINE static bool CompareAllocatorsPrivate(const AllocatorT* lhs, const AllocatorT* rhs, SizeType size)
 	{
 		return (lhs->GetSize() >= size && rhs->GetSize() >= size) ?
-			SMemory::Compare(lhs->GetData(), rhs->GetData(), sizeof(ElementT) * size) == 0 : false;
+			SMemory::Memcmp(lhs->GetData(), rhs->GetData(), sizeof(ElementT) * size) == 0 : false;
 	}
 
 	FORCEINLINE static bool CompareElementsPrivate(const ElementT* lhs, const ElementT* rhs)
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
-		return SMemory::Compare(lhs, rhs, sizeof(ElementT)) == 0;
+		return SMemory::Memcmp(lhs, rhs, sizeof(ElementT)) == 0;
 	}
 
 	AllocatorT _allocator = {};

@@ -67,7 +67,7 @@ struct SWindowsPlatformCString
 	static wchar* FromDouble(double val, int32 digits, wchar* buf, int32 maxLen)
 	{
 		char tmpBuf[_CVTBUFSIZE];
-		_gcvt(val, digits, tmpBuf);
+		_gcvt_s(tmpBuf, maxLen, val, digits);
 
 		for(uint16 i = 0;;++i)
 		{
@@ -77,24 +77,5 @@ struct SWindowsPlatformCString
 		}
 
 		return buf;
-	}
-
-	// Prints formatted string with variadic parameters to provided buffer
-	static int32 Printf(char* buf, int32 maxLen, const char* fmt, ...)
-	{
-		VA_LIST args;
-		VA_START(args, fmt);
-		const int32 result = _vsnprintf_s(buf, maxLen, _TRUNCATE, fmt, args);
-		VA_END(args);
-		return result;
-	}
-
-	static int32 Printf(wchar* buf, int32 maxLen, const wchar* fmt ...)
-	{
-		VA_LIST args;
-		VA_START(args, fmt);
-		const int32 result = _vsnwprintf_s(buf, maxLen, _TRUNCATE, fmt, args);
-		VA_END(args);
-		return result;
 	}
 };

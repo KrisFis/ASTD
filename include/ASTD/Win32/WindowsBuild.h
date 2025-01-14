@@ -22,6 +22,8 @@
 
 #define ASSEMBLY(code) __asm(code)
 
+#define HAS_INCLUDE(file) __has_include(file)
+
 #define DEPRECATED [[deprecated]]
 #define NODISCARD [[nodiscard]]
 

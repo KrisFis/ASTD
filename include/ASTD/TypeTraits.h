@@ -95,10 +95,10 @@ template <typename T>
 struct TIsArithmetic
 {
 	enum { Value =
-			TIsIntegerType<T>::Value ||
-			TIsFloatingType<T>::Value ||
-			TIsCharacterType<T>::Value ||
-			TIsBoolType<T>::Value
+			TIsIntegral<T>::Value ||
+			TIsFloating<T>::Value ||
+			TIsCharacter<T>::Value ||
+			TIsBool<T>::Value
 	};
 };
 
@@ -109,7 +109,7 @@ struct TIsArithmetic
 template<typename T>
 struct TDecay
 {
-	typedef typename NTypeInternals::TDecayHelper<
+	typedef typename _NTypeInternals::TDecayHelper<
 		typename TRemoveConstReference<T>::Type
 	>::Type Type;
 };
@@ -129,7 +129,7 @@ public:
 	typedef typename TChoose<
 		TIsPointer<TestType>::Value, 
 		typename TRemovePointer<TestType>::Type,
-		typename NTypeInternals::TDecayHelper<TestType>::Type
+		typename _NTypeInternals::TDecayHelper<TestType>::Type
 	>::Type Type;
 };
 
@@ -156,12 +156,30 @@ template <typename T>
 struct TCallTraits : TGetType<T>
 {
 private:
-
 	enum { IsSmallType = ((sizeof(T) <= sizeof(void*)) && TIsPODType<T>::Value ) || TIsArithmetic<T>::Value };
 
 public:
+	typedef typename _NTypeInternals::TCallTraitsHelper<T, IsSmallType>::Type Param;
+	typedef typename _NTypeInternals::TCallTraitsHelper<T, IsSmallType>::ConstType ConstParam;
+};
 
-	typedef typename NTypeInternals::TCallTraitsHelper<T, IsSmallType>::Type Param;
-	typedef typename NTypeInternals::TCallTraitsHelper<T, IsSmallType>::ConstType ConstParam;
+// [Limits]
+// Tells value limit of specific integral type
+// Similar to std::numeric_limits<T>
 
+template<typename T>
+struct TLimits
+{
+	static_assert(TIsIntegral<T>::Value, "TIntLimit accepts only integer types");
+	static_assert(TIsSame<T, typename TPure<T>::Type>::Value, "TIntLimit accepts only pure types");
+
+	static constexpr bool IsSigned = TIsSigned<T>::Value;
+
+	static constexpr T Max = IsSigned
+		? ((T)1 << (sizeof(T) * 8 - 1)) - 1
+		: ((T)1 << (sizeof(T) * 8 - 1)) * 2 + 1;
+
+	static constexpr T Min = IsSigned
+		? -((T)1 << (sizeof(T) * 8 - 1))
+		: 0;
 };

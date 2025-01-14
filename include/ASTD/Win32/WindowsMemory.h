@@ -9,20 +9,20 @@
 struct SWindowsPlatformMemory
 {
 	// Allocates new memory
-	FORCEINLINE static void* Allocate(int64 size) { return HeapAlloc(GetProcessHeap(), 0, size); }
+	FORCEINLINE static void* Malloc(int64 size) { return HeapAlloc(GetProcessHeap(), 0, size); }
 
 	// Allocates new memory and sets every bit to zero
-	FORCEINLINE static void* AllocateZeroed(int64 size) { return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size); }
+	FORCEINLINE static void* Calloc(int64 size) { return HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size); }
 
 	// Deallocates memory
-	FORCEINLINE static void Deallocate(void* ptr, int64 size) { HeapFree(GetProcessHeap(), 0, ptr); }
+	FORCEINLINE static void Free(void* ptr, int64 size) { HeapFree(GetProcessHeap(), 0, ptr); }
 
 	// Copies block of memory from destionation to source (does not handle overlapping)
-	FORCEINLINE static void* Copy(void* dest, const void* src, int64 size) { return CopyMemory(dest, src, size); }
+	FORCEINLINE static void* Memcpy(void* dest, const void* src, int64 size) { return CopyMemory(dest, src, size); }
 
 	// Copies block of memory from destionation to source (handles overlapping)
-	FORCEINLINE static void* Move(void* dest, const void* src, int64 size) { return MoveMemory(dest, src, size); }
+	FORCEINLINE static void* Memmove(void* dest, const void* src, int64 size) { return MoveMemory(dest, src, size); }
 
 	// Compares two blocks of memory
-	FORCEINLINE static int32 Compare(const void* lhs, const void* rhs, int64 num) { return RtlEqualMemory(lhs, rhs, num); }
+	FORCEINLINE static int32 Memcmp(const void* lhs, const void* rhs, int64 num) { return RtlEqualMemory(lhs, rhs, num); }
 };
