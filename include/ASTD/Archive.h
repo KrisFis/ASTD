@@ -258,12 +258,12 @@ static SArchive& operator<<(SArchive& ar, SArchive& otherAr)
 		const uint16 remainingBytes = (otherAr.GetTotalBytes() - otherAr.GetBytesOffset());
 		if (remainingBytes > 0)
 		{
-			uint8* buffer = SMemory::Allocate<uint8>(remainingBytes);
+			uint8* buffer = SMemory::MallocObject<uint8>(remainingBytes);
 			{
 				otherAr.ReadBytes(buffer, remainingBytes);
 				ar.WriteBytes(buffer, remainingBytes);
 			}
-			SMemory::Deallocate(buffer);
+			SMemory::FreeObject(buffer);
 		}
 	}
 

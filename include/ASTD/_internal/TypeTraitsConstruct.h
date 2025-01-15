@@ -39,9 +39,9 @@ struct TIsTriviallyDestructible
 {
 	enum
 	{
-#if COMPILER_MSVC
+#if PLATFORM_WINDOWS || PLATFORM_APPLE
 		Value = __is_trivially_destructible(T)
-#elif COMPILER_GCC || COMPILER_CLANG
+#elif PLATFORM_LINUX
 		Value = __has_trivial_destructor(T)
 #endif
 	};

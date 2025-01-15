@@ -15,7 +15,7 @@ struct TStdoutArchive : public TArrayArchive<tchar, AllocatorT>
 
 	static_assert(FileNo == SMisc::STDOUT_FILE_NO || FileNo == SMisc::STDERR_FILE_NO, "Unsupported std output file no");
 
-	TStdoutArchive(bool flushOnNewLine = true)
+	explicit TStdoutArchive(bool flushOnNewLine = true)
 		: Super(EArchiveType::String, EArchiveMode::Write)
 		, _flushOnNewLine(flushOnNewLine)
 	{}

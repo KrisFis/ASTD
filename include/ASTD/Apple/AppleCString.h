@@ -7,7 +7,7 @@
 #include <cwchar>
 #include <cwctype>
 
-#include "ASTD/Core/Apple/AppleBuild.h"
+#include "ASTD/Apple/AppleBuild.h"
 
 struct SApplePlatformCString
 {

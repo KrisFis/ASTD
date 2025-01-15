@@ -5,7 +5,7 @@
 #include <ctime>
 #include <unistd.h>
 
-#include "ASTD/Core/Apple/AppleBuild.h"
+#include "ASTD/Apple/AppleBuild.h"
 
 struct SApplePlatformMisc
 {

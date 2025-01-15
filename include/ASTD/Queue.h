@@ -79,7 +79,7 @@ private:
 		AllocatorNodeType* node = _allocator.GetHead();
 		if(node)
 		{
-			SMemory::Copy(&outVal, &node->Value);
+			SMemory::CopyObject(&outVal, &node->Value);
 		}
 
 		return node != nullptr;
@@ -88,14 +88,14 @@ private:
 	AllocatorNodeType* AddImpl(const ElementT& val)
 	{
 		AllocatorNodeType* node = _allocator.Malloc(1);
-		SMemory::Move(&node->Value, &val);
+		SMemory::MoveObject(&node->Value, &val);
 		return node;
 	}
 
 	AllocatorNodeType* AddImpl(ElementT&& val)
 	{
 		AllocatorNodeType* node = _allocator.Malloc(1);
-		SMemory::Move(&node->Value, &val);
+		SMemory::MoveObject(&node->Value, &val);
 		return node;
 	}
 
@@ -107,7 +107,7 @@ private:
 			return false;
 		}
 
-		SMemory::Destruct(&node->Value);
+		SMemory::DestructObject(&node->Value);
 		_allocator.Deallocate(node);
 
 		return true;
@@ -121,7 +121,7 @@ private:
 			return false;
 		}
 
-		SMemory::Move(&outVal, &node->Value);
+		SMemory::MoveObject(&outVal, &node->Value);
 		_allocator.Deallocate(node);
 
 		return true;
@@ -134,7 +134,7 @@ private:
 		{
 			while(currentNode != nullptr)
 			{
-				SMemory::Destruct(&currentNode->Value);
+				SMemory::DestructObject(&currentNode->Value);
 				currentNode = currentNode->Next;
 			}
 
@@ -150,7 +150,7 @@ private:
 		while(currentNode != nullptr)
 		{
 			AllocatorNodeType* newNode = _allocator.Malloc(1);
-			SMemory::Copy(&newNode->Value, &currentNode->Value);
+			SMemory::CopyObject(&newNode->Value, &currentNode->Value);
 		}
 	}
 

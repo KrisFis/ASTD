@@ -52,6 +52,7 @@ struct TArrayArchive : public SArchive
 
 		return false;
 	}
+
 	virtual SizeType ReadBytes(void* ptr, SizeType size) override
 	{
 		if (!ptr || size < ELEMENT_SIZE) return 0;
@@ -64,12 +65,13 @@ struct TArrayArchive : public SArchive
 
 		if (elementsToRead > 0)
 		{
-			SMemory::Copy(ptr, _data.GetData() + (_offset * ELEMENT_SIZE), elementsToRead * ELEMENT_SIZE);
+			SMemory::Memcpy(ptr, _data.GetData() + (_offset * ELEMENT_SIZE), elementsToRead * ELEMENT_SIZE);
 			_offset += elementsToRead;
 		}
 
 		return elementsToRead * ELEMENT_SIZE;
 	}
+
 	virtual SizeType WriteBytes(const void* ptr, SizeType size) override
 	{
 		if (!ptr || size < ELEMENT_SIZE) return 0;
@@ -81,7 +83,7 @@ struct TArrayArchive : public SArchive
 			_data.Grow(elementsToWrite + _offset);
 		}
 
-		SMemory::Copy(_data.GetData() + (_offset * ELEMENT_SIZE), ptr, size);
+		SMemory::Memcpy(_data.GetData() + (_offset * ELEMENT_SIZE), ptr, size);
 		_offset += elementsToWrite;
 
 		return elementsToWrite * ELEMENT_SIZE;

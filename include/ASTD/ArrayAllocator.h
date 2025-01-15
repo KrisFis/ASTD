@@ -49,11 +49,11 @@ public:
 	// @return - array of new elements
 	ElementType* Allocate(SizeType num)
 	{
-		ElementType* newData = SMemory::Allocate<ElementType>(_size + num);
+		ElementType* newData = SMemory::MallocObject<ElementType>(_size + num);
 		if(_data)
 		{
-			SMemory::Copy(newData, _data, sizeof(ElementType) * _size);
-			SMemory::Deallocate(_data, sizeof(ElementType) * _size);
+			SMemory::CopyObject(newData, _data, _size);
+			SMemory::FreeObject(_data, _size);
 		}
 
 		ElementType* elementPtr = newData + _size;
@@ -69,7 +69,7 @@ public:
 	{
 		if(_data)
 		{
-			SMemory::Deallocate(_data, _size);
+			SMemory::FreeObject(_data, _size);
 
 			_data = nullptr;
 			_size = 0;

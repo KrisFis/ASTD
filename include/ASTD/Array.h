@@ -388,7 +388,7 @@ private:
 		if(idx != _num - 1)
 		{
 			// Swaps last element with this
-			SMemory::Move(
+			SMemory::Memmove(
 				GetElementAtImpl(idx),
 				GetElementAtImpl(_num - 1),
 				sizeof(ElementT)
@@ -427,7 +427,7 @@ private:
 		// Copy to temporary storage
 		AllocatorT tmp;
 		tmp.Allocate(num);
-		SMemory::Copy(
+		SMemory::CopyObject(
 			tmp.GetData(),
 			GetElementAtImpl(firstIdx),
 			sizeof(ElementT) * num
@@ -435,7 +435,7 @@ private:
 
 		// Do swap to first index
 		// * elements from second idx to first
-		SMemory::Copy(
+		SMemory::CopyObject(
 			GetElementAtImpl(firstIdx),
 			GetElementAtImpl(secondIdx),
 			sizeof(ElementT) * num
@@ -443,7 +443,7 @@ private:
 
 		// Do swap to second index
 		// * copied elements from first idx to second
-		SMemory::Copy(
+		SMemory::CopyObject(
 			GetElementAtImpl(secondIdx),
 			tmp.GetData(),
 			sizeof(ElementT) * num
@@ -468,19 +468,19 @@ private:
 		// Copy to temporary allocator
 		AllocatorT tmp;
 		tmp.Allocate(num);
-		SMemory::Copy(
+		SMemory::CopyObject(
 			tmp.GetData(),
 			_allocator.GetData(),
-			sizeof(ElementT) * num
+			num
 		);
 
 		// Move data back to main allocator
 		_allocator.Release();
 		_allocator.Allocate(num);
-		SMemory::Copy(
+		SMemory::CopyObject(
 			_allocator.GetData(),
 			tmp.GetData(),
-			sizeof(ElementT) * num
+			num
 		);
 
 		tmp.SetData(nullptr);
@@ -531,7 +531,7 @@ private:
 
 			_num += num;
 			ReallocateIfNeededImpl();
-			SMemory::Copy(_allocator.GetData() + oldCount, data, num);
+			SMemory::CopyObject(_allocator.GetData() + oldCount, data, num);
 		}
 	}
 
@@ -544,7 +544,7 @@ private:
 			_num += num;
 			ReallocateIfNeededImpl();
 
-			SMemory::Move(_allocator.GetData() + oldCount, data);
+			SMemory::MoveObject(_allocator.GetData() + oldCount, data);
 		}
 		else
 		{
@@ -605,7 +605,7 @@ private:
 	{
 		for(SizeType i = 0; i < num; ++i)
 		{
-			SMemory::Destruct(element);
+			SMemory::DestructObject(element);
 			++element;
 		}
 	}

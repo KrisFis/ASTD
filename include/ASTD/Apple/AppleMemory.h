@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <memory.h>
 
-#include "ASTD/Core/Apple/AppleBuild.h"
+#include "ASTD/Apple/AppleBuild.h"
 
 // TODO(jan.kristian.fisera): Virtual memory allocations
 // * see: https://linux.die.net/man/2/mmap

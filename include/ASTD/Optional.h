@@ -86,8 +86,8 @@ public:
 	{
 		if(_data)
 		{
-			SMemory::Destruct(_data);
-			SMemory::Deallocate(_data);
+			SMemory::DestructObject(_data);
+			SMemory::FreeObject(_data);
 			_data = nullptr;
 		}
 	}
@@ -96,14 +96,14 @@ private:
 
 	void FillToEmpty(const ElementType& InValue)
 	{
-		_data = SMemory::Allocate<ElementType>();
-		SMemory::Copy(_data, InValue);
+		_data = SMemory::MallocObject<ElementType>();
+		SMemory::CopyObject(_data, &InValue);
 	}
 
 	void FillToEmpty(ElementType&& InValue)
 	{
-		_data = SMemory::Allocate<ElementType>();
-		SMemory::Move(_data, Move(InValue));
+		_data = SMemory::MallocObject<ElementType>();
+		SMemory::MoveObject(_data, &InValue);
 	}
 
 	FORCEINLINE void FillToEmpty(const TOptional& other) 
