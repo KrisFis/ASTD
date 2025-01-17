@@ -24,8 +24,8 @@
 
 #define HAS_INCLUDE(file) __has_include(file)
 
-#define DEPRECATED [[deprecated]]
-#define NODISCARD [[nodiscard]]
+#define DEPRECATED __declspec(deprecated)
+#define NODISCARD __declspec(nodiscard)
 
 #define FORCEINLINE __forceinline
 #define FORCENOINLINE __declspec(noinline)
@@ -40,15 +40,6 @@
 
 #define DLL_EXPORT __declspec(dllexport)
 #define DLL_IMPORT __declspec(dllimport)
-
-// VARIADIC
-////////////////////////////////////////////////////////////////////////
-
-#define VA_LIST va_list
-#define VA_ARG(list, type) va_arg(list, type)
-#define VA_START(list, param) va_start(list, param)
-#define VA_COPY(destinationList, sourceList) va_copy(destinationList, sourceList)
-#define VA_END(list) va_end(list)
 
 // DIAGNOSTICS
 ////////////////////////////////////////////////////////////////////////

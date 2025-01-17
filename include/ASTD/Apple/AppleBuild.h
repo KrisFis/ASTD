@@ -14,6 +14,7 @@
 #define HAS_INCLUDE(file) __has_include(file)
 
 #define DEPRECATED __attribute__ ((__deprecated__))
+#define DEPRECATED_MSG(msg) __attribute__ ((__deprecated__(msg)))
 #define NODISCARD [[nodiscard]]
 
 #define FORCEINLINE inline __attribute__((always_inline))
@@ -34,15 +35,6 @@
 
 #define DLL_EXPORT __attribute__((visibility("default")))
 #define DLL_IMPORT
-
-// VARIADIC
-////////////////////////////////////////////////////////////////////////
-
-#define VA_LIST va_list
-#define VA_ARG(list, type) va_arg(list, type)
-#define VA_START(list, param) va_start(list, param)
-#define VA_COPY(destinationList, sourceList) va_copy(destinationList, sourceList)
-#define VA_END(list) va_end(list)
 
 // DIAGNOSTICS
 ////////////////////////////////////////////////////////////////////////
