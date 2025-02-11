@@ -46,12 +46,6 @@ struct SMemory : public SPlatformMemory
 	}
 
 	template<typename T>
-	FORCEINLINE static void FreeTyped(T* ptr)
-	{
-		return SPlatformMemory::Free(ptr);
-	}
-
-	template<typename T>
 	FORCEINLINE static void CopyTyped(T* to, const T* from, uint32 num = 1)
 	{
 		if constexpr (!TIsTriviallyCopyConstructible<T>::Value)
@@ -120,6 +114,6 @@ inline void* operator new(TSize size)
 
 inline void operator delete(void* ptr, TSize) noexcept
 {
-	return SMemory::FreeTyped<uint8>((uint8*)ptr);
+	return SMemory::Free(ptr);
 }
 #endif

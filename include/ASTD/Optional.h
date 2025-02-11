@@ -87,7 +87,7 @@ public:
 		if(_data)
 		{
 			SMemory::Destruct(_data);
-			SMemory::FreeTyped(_data);
+			SMemory::Free(_data);
 			_data = nullptr;
 		}
 	}

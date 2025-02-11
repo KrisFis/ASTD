@@ -263,7 +263,7 @@ static SArchive& operator<<(SArchive& ar, SArchive& otherAr)
 				otherAr.ReadBytes(buffer, remainingBytes);
 				ar.WriteBytes(buffer, remainingBytes);
 			}
-			SMemory::FreeTyped(buffer);
+			SMemory::Free(buffer);
 		}
 	}
 

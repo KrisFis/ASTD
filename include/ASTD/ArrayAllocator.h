@@ -49,11 +49,13 @@ public:
 	// @return - array of new elements
 	ElementType* Allocate(SizeType num)
 	{
-		ElementType* newData = SMemory::MallocTyped<ElementType>(_size + num);
-		if(_data)
+		ElementType* newData = _data
+			? SMemory::ReallocTyped<ElementType>(_data, _size + num)
+			: SMemory::MallocTyped<ElementType>(_size + num);
+
+		if(_data && _data != newData)
 		{
-			SMemory::CopyTyped(newData, _data, _size);
-			SMemory::FreeTyped(_data);
+			SMemory::Free(_data);
 		}
 
 		ElementType* elementPtr = newData + _size;
@@ -69,7 +71,7 @@ public:
 	{
 		if(_data)
 		{
-			SMemory::FreeTyped(_data);
+			SMemory::Free(_data);
 
 			_data = nullptr;
 			_size = 0;

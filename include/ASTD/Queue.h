@@ -87,14 +87,14 @@ private:
 
 	AllocatorNodeType* AddImpl(const ElementT& val)
 	{
-		AllocatorNodeType* node = _allocator.Malloc(1);
+		AllocatorNodeType* node = _allocator.Allocate(1);
 		SMemory::MoveTyped(&node->Value, &val);
 		return node;
 	}
 
 	AllocatorNodeType* AddImpl(ElementT&& val)
 	{
-		AllocatorNodeType* node = _allocator.Malloc(1);
+		AllocatorNodeType* node = _allocator.Allocate(1);
 		SMemory::MoveTyped(&node->Value, &val);
 		return node;
 	}
@@ -149,7 +149,7 @@ private:
 		AllocatorNodeType* currentNode = other._allocator.GetHead();
 		while(currentNode != nullptr)
 		{
-			AllocatorNodeType* newNode = _allocator.Malloc(1);
+			AllocatorNodeType* newNode = _allocator.Allocate(1);
 			SMemory::CopyTyped(&newNode->Value, &currentNode->Value);
 		}
 	}

@@ -102,7 +102,7 @@ public:
 			}
 		}
 
-		SMemory::FreeTyped(node);
+		SMemory::Free(node);
 		--_size;
 	}
 
@@ -112,7 +112,7 @@ public:
 		while(currentNode != nullptr)
 		{
 			NodeType* nextNode = currentNode->Next;
-			SMemory::FreeTyped(currentNode);
+			SMemory::Free(currentNode);
 			currentNode = nextNode;
 		}
 
