@@ -86,8 +86,8 @@ public:
 	{
 		if(_data)
 		{
-			SMemory::DestructObject(_data);
-			SMemory::FreeObject(_data);
+			SMemory::Destruct(_data);
+			SMemory::FreeTyped(_data);
 			_data = nullptr;
 		}
 	}
@@ -96,14 +96,14 @@ private:
 
 	void FillToEmpty(const ElementType& InValue)
 	{
-		_data = SMemory::MallocObject<ElementType>();
-		SMemory::CopyObject(_data, &InValue);
+		_data = SMemory::MallocTyped<ElementType>();
+		SMemory::CopyTyped(_data, &InValue);
 	}
 
 	void FillToEmpty(ElementType&& InValue)
 	{
-		_data = SMemory::MallocObject<ElementType>();
-		SMemory::MoveObject(_data, &InValue);
+		_data = SMemory::MallocTyped<ElementType>();
+		SMemory::MoveTyped(_data, &InValue);
 	}
 
 	FORCEINLINE void FillToEmpty(const TOptional& other) 
@@ -140,7 +140,7 @@ private:
 	{
 		if(Lhs.IsSet() == Rhs.IsSet())
 		{
-			return Lhs.IsSet() && SMemory::Memcmp(Lhs._data, Rhs._data, sizeof(ElementType)) == 0;
+			return Lhs.IsSet() && SMemory::Compare(Lhs._data, Rhs._data, sizeof(ElementType)) == 0;
 		}
 
 		return false;

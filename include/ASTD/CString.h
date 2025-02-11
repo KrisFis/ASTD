@@ -61,7 +61,7 @@ struct SCString : public SPlatformCString
 	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
 	static CharType* Copy(CharType* dest, const CharType* src, uint32 maxLen = TLimits<uint32>::Max)
 	{
-		return SMemory::CopyObject(
+		return SMemory::CopyTyped(
 			dest,
 			src,
 			SMath::Min(GetLength(src), maxLen)
@@ -73,7 +73,7 @@ struct SCString : public SPlatformCString
 	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
 	static CharType* Move(CharType* dest, const CharType* src, uint32 maxLen = TLimits<uint32>::Max)
 	{
-		return SMemory::MoveObject(
+		return SMemory::MoveTyped(
 			dest,
 			src,
 			SMath::Min(GetLength(src), maxLen)

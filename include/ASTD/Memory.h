@@ -28,53 +28,31 @@ struct SMemory : public SPlatformMemory
 	static constexpr long double TB_PER_BYTE = 1.e-12; // terabytes
 
 	template<typename T>
-	FORCEINLINE static T* MallocObject(int64 num = 1)
+	FORCEINLINE static T* MallocTyped(int64 num = 1)
 	{
-#if ASTD_TRACK_MEMORY
-		GetAllocatedBytesImpl() += num * sizeof(T);
-#endif
 		return (T*)SPlatformMemory::Malloc(num * sizeof(T));
 	}
 
 	template<typename T>
-	FORCEINLINE static T* CallocObject(int64 num = 1)
+	FORCEINLINE static T* ReallocTyped(T* ptr, int64 num = 1)
 	{
-#if ASTD_TRACK_MEMORY
-		GetAllocatedBytesImpl() += num * sizeof(T);
-#endif
+		return (T*)SPlatformMemory::Realloc(ptr, num * sizeof(T));
+	}
+
+	template<typename T>
+	FORCEINLINE static T* CallocTyped(int64 num = 1)
+	{
 		return (T*)SPlatformMemory::Calloc(num * sizeof(T));
 	}
 
 	template<typename T>
-	FORCEINLINE static void FreeObject(T* ptr, int64 num = 1)
+	FORCEINLINE static void FreeTyped(T* ptr)
 	{
-#if ASTD_TRACK_MEMORY
-		GetAllocatedBytesImpl() -= num * sizeof(T);
-#endif
-		return SPlatformMemory::Free(ptr, num * sizeof(T));
-	}
-
-	template<typename T, typename... ArgTypes>
-	FORCEINLINE static void ConstructObject(T* ptr, ArgTypes&&... Args)
-	{
-		if constexpr (!TIsTriviallyConstructible<T, ArgTypes...>::Value)
-		{
-			::new((void*)ptr) T(Forward<ArgTypes>(Args)...);
-		}
-	}
-
-	// Destruct element
-	template<typename T>
-	FORCEINLINE static void DestructObject(T* ptr)
-	{
-		if constexpr(!TIsTriviallyDestructible<T>::Value)
-		{
-			ptr->~T();
-		}
+		return SPlatformMemory::Free(ptr);
 	}
 
 	template<typename T>
-	FORCEINLINE static void CopyObject(T* to, const T* from, uint32 num = 1)
+	FORCEINLINE static void CopyTyped(T* to, const T* from, uint32 num = 1)
 	{
 		if constexpr (!TIsTriviallyCopyConstructible<T>::Value)
 		{
@@ -89,7 +67,7 @@ struct SMemory : public SPlatformMemory
 		}
 		else
 		{
-			SPlatformMemory::Memcpy(
+			SPlatformMemory::Copy(
 				to,
 				from,
 				sizeof(T) * num
@@ -98,15 +76,15 @@ struct SMemory : public SPlatformMemory
 	}
 
 	template<typename T>
-	FORCEINLINE static void MoveObject(T* to, T* from)
+	FORCEINLINE static void MoveTyped(T* to, T* from)
 	{
 		if constexpr(!TIsTriviallyMoveConstructible<T>::Value)
 		{
-			::new((void*)to) T(SPlatformMemory::Memmove(*from));
+			::new((void*)to) T(SPlatformMemory::Move(*from));
 		}
 		else
 		{
-			SPlatformMemory::Memmove(
+			SPlatformMemory::Move(
 				to,
 				from,
 				sizeof(T)
@@ -114,29 +92,34 @@ struct SMemory : public SPlatformMemory
 		}
 	}
 
-#if ASTD_TRACK_MEMORY
-	FORCEINLINE static uint64 GetAllocatedBytes() { return GetAllocatedBytesImpl(); }
-#endif
-
-private:
-
-#if ASTD_TRACK_MEMORY
-	static uint64& GetAllocatedBytesImpl()
+	template<typename T, typename... ArgTypes>
+	FORCEINLINE static void Construct(T* ptr, ArgTypes&&... Args)
 	{
-		static uint64 bytes = 0;
-		return bytes;
+		if constexpr (!TIsTriviallyConstructible<T, ArgTypes...>::Value)
+		{
+			::new((void*)ptr) T(Forward<ArgTypes>(Args)...);
+		}
 	}
-#endif
+
+	// Destruct element
+	template<typename T>
+	FORCEINLINE static void Destruct(T* ptr)
+	{
+		if constexpr(!TIsTriviallyDestructible<T>::Value)
+		{
+			ptr->~T();
+		}
+	}
 };
 
 #if ASTD_NEW_DELETE
-void* operator new(TSize size)
+inline void* operator new(TSize size)
 {
-	return SMemory::MallocObject<uint8>((uint32)size);
+	return SMemory::MallocTyped<uint8>((uint32)size);
 }
 
-void operator delete(void* ptr, TSize size) noexcept
+inline void operator delete(void* ptr, TSize) noexcept
 {
-	return SMemory::FreeObject<uint8>((uint8*)ptr, (uint32)size);
+	return SMemory::FreeTyped<uint8>((uint8*)ptr);
 }
 #endif

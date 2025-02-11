@@ -59,7 +59,7 @@ public:
 		NodeType* prevNode = _tail;
 		for(SizeType i = 0; i < num; ++i)
 		{
-			NodeType* newNode = SMemory::MallocObject<NodeType>();
+			NodeType* newNode = SMemory::MallocTyped<NodeType>();
 			newNode->Previous = prevNode;
 			newNode->Next = nullptr;
 
@@ -102,7 +102,7 @@ public:
 			}
 		}
 
-		SMemory::FreeObject(node);
+		SMemory::FreeTyped(node);
 		--_size;
 	}
 
@@ -112,7 +112,7 @@ public:
 		while(currentNode != nullptr)
 		{
 			NodeType* nextNode = currentNode->Next;
-			SMemory::FreeObject(currentNode);
+			SMemory::FreeTyped(currentNode);
 			currentNode = nextNode;
 		}
 

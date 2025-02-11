@@ -388,7 +388,7 @@ private:
 		if(idx != _num - 1)
 		{
 			// Swaps last element with this
-			SMemory::Memmove(
+			SMemory::Move(
 				GetElementAtImpl(idx),
 				GetElementAtImpl(_num - 1),
 				sizeof(ElementT)
@@ -410,7 +410,7 @@ private:
 
 			// NOTE(jan.kristian.fisera):
 			// * Is it worth to cache start index and try to move from start in case that would be less iterations ?
-			SMemory::Memmove(
+			SMemory::Move(
 				GetElementAtImpl(idx),
 				GetElementAtImpl(idx + 1),
 				sizeof(ElementT) * (_num - idx - 1)
@@ -427,7 +427,7 @@ private:
 		// Copy to temporary storage
 		AllocatorT tmp;
 		tmp.Allocate(num);
-		SMemory::CopyObject(
+		SMemory::CopyTyped(
 			tmp.GetData(),
 			GetElementAtImpl(firstIdx),
 			sizeof(ElementT) * num
@@ -435,7 +435,7 @@ private:
 
 		// Do swap to first index
 		// * elements from second idx to first
-		SMemory::CopyObject(
+		SMemory::CopyTyped(
 			GetElementAtImpl(firstIdx),
 			GetElementAtImpl(secondIdx),
 			sizeof(ElementT) * num
@@ -443,7 +443,7 @@ private:
 
 		// Do swap to second index
 		// * copied elements from first idx to second
-		SMemory::CopyObject(
+		SMemory::CopyTyped(
 			GetElementAtImpl(secondIdx),
 			tmp.GetData(),
 			sizeof(ElementT) * num
@@ -468,7 +468,7 @@ private:
 		// Copy to temporary allocator
 		AllocatorT tmp;
 		tmp.Allocate(num);
-		SMemory::CopyObject(
+		SMemory::CopyTyped(
 			tmp.GetData(),
 			_allocator.GetData(),
 			num
@@ -477,7 +477,7 @@ private:
 		// Move data back to main allocator
 		_allocator.Release();
 		_allocator.Allocate(num);
-		SMemory::CopyObject(
+		SMemory::CopyTyped(
 			_allocator.GetData(),
 			tmp.GetData(),
 			num
@@ -531,7 +531,7 @@ private:
 
 			_num += num;
 			ReallocateIfNeededImpl();
-			SMemory::CopyObject(_allocator.GetData() + oldCount, data, num);
+			SMemory::CopyTyped(_allocator.GetData() + oldCount, data, num);
 		}
 	}
 
@@ -544,7 +544,7 @@ private:
 			_num += num;
 			ReallocateIfNeededImpl();
 
-			SMemory::MoveObject(_allocator.GetData() + oldCount, data);
+			SMemory::MoveTyped(_allocator.GetData() + oldCount, data);
 		}
 		else
 		{
@@ -605,7 +605,7 @@ private:
 	{
 		for(SizeType i = 0; i < num; ++i)
 		{
-			SMemory::DestructObject(element);
+			SMemory::Destruct(element);
 			++element;
 		}
 	}
@@ -613,13 +613,13 @@ private:
 	FORCEINLINE static bool CompareAllocatorsPrivate(const AllocatorT* lhs, const AllocatorT* rhs, SizeType size)
 	{
 		return (lhs->GetSize() >= size && rhs->GetSize() >= size) ?
-			SMemory::Memcmp(lhs->GetData(), rhs->GetData(), sizeof(ElementT) * size) == 0 : false;
+			SMemory::Compare(lhs->GetData(), rhs->GetData(), sizeof(ElementT) * size) == 0 : false;
 	}
 
 	FORCEINLINE static bool CompareElementsPrivate(const ElementT* lhs, const ElementT* rhs)
 	{
 		// Compare bytes instead of using == operator (that might not be provided)
-		return SMemory::Memcmp(lhs, rhs, sizeof(ElementT)) == 0;
+		return SMemory::Compare(lhs, rhs, sizeof(ElementT)) == 0;
 	}
 
 	AllocatorT _allocator = {};
