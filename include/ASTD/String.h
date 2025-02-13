@@ -97,11 +97,11 @@ struct SString
 		// TODO: Replace with custom implementation
 		if constexpr (TIsSame<CharType, wchar>::Value)
 		{
-			swprintf(buffer, fmt, Forward<VarTypes>(args)...);
+			swprintf(buffer, SCString::LARGE_BUFFER_SIZE, fmt, Forward<VarTypes>(args)...);
 		}
 		else
 		{
-			sprintf(buffer, fmt, Forward<VarTypes>(args)...);
+			snprintf(buffer, SCString::LARGE_BUFFER_SIZE, fmt, Forward<VarTypes>(args)...);
 		}
 
 		return SString(buffer);

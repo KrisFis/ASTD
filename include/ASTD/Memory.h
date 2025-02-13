@@ -107,12 +107,12 @@ struct SMemory : public SPlatformMemory
 };
 
 #if ASTD_NEW_DELETE
-inline void* operator new(TSize size)
+void* operator new(TSize size)
 {
 	return SMemory::MallocTyped<uint8>((uint32)size);
 }
 
-inline void operator delete(void* ptr, TSize) noexcept
+void operator delete(void* ptr, TSize) noexcept
 {
 	return SMemory::Free(ptr);
 }
