@@ -383,19 +383,6 @@ private:
 	bool _isSharedInitialized;
 };
 
-template<typename T, typename... ArgTypes>
-FORCEINLINE_DEBUGGABLE static TSharedPtr<T> MakeShared(ArgTypes&&... args)
-{
-	_NShared::CReferencerBase* referencer = _NShared::NewCustomReferencer(new T(Forward<ArgTypes>(args)...));
-	TSharedPtr<T> newShared = TSharedPtr<T>(*referencer);
-	if constexpr (_NShared::TIsSharedClassType<T>::Value)
-	{
-		newShared->Init_Private(TSharedPtr<typename T::ClassType>(referencer));
-	}
-
-	return newShared;
-}
-
 template<typename T, typename InstanceT = T>
 FORCEINLINE_DEBUGGABLE static TSharedPtr<T> MakeShareable(InstanceT* instance)
 {
@@ -409,4 +396,17 @@ FORCEINLINE_DEBUGGABLE static TSharedPtr<T> MakeShareable(InstanceT* instance)
 	}
 
 	return newShared;
+}
+
+template<typename T, typename... ArgTypes>
+FORCEINLINE_DEBUGGABLE static TSharedPtr<T> MakeShared(ArgTypes&&... args)
+{
+	if constexpr (sizeof...(args) > 0)
+	{
+		return MakeShareable<T>(new T(Forward<ArgTypes>(args)...));
+	}
+	else
+	{
+		return MakeShareable<T>(new T());
+	}
 }

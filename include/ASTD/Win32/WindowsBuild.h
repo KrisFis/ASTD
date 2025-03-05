@@ -4,13 +4,25 @@
 
 // Windows setup
 
-#if ASTD_USE_UNICODE
+#if ASTD_USE_UNICODE && !defined(UNICODE)
 	#define UNICODE
 #endif
 
-// Disable CRT warnings
+#if !defined(WIN32_LEAN_AND_MEAN)
+	// Prevents pulling unnecessary Windows headers
+	#define WIN32_LEAN_AND_MEAN
+#endif
+
+#if !defined(NOMINMAX)
+	// Prevents windows to define min/max
+	#define NOMINMAX
+#endif
+
 #pragma warning(disable : 4996)
-#define _CRT_NONSTDC_NO_WARNINGS
+#if !defined(_CRT_NONSTDC_NO_WARNINGS)
+	// Disable CRT warnings
+	#define _CRT_NONSTDC_NO_WARNINGS
+#endif
 
 #include <Windows.h>
 #include <intrin.h>

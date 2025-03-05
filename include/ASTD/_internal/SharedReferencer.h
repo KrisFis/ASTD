@@ -3,8 +3,10 @@
 #pragma once
 
 #include "ASTD/Build.h"
-
 #include "ASTD/Check.h"
+
+// TODO(jkfisera): REIMPLEMENT Invoke
+#include <type_traits>
 
 namespace _NShared
 {
@@ -58,18 +60,16 @@ namespace _NShared
 			--_weakCount;
 		}
 
-	protected: // Children methods
+	protected:
 
 		virtual void* GetObjectImpl() const = 0;
 		virtual void DeconstructObjectImpl() = 0;
-
-	protected: // Children fields
 
 		uint16 _sharedNum = 0;
 		uint16 _weakCount = 0;
 	};
 
-	template<typename T, typename DeleterT = void>
+	template<typename T, typename DeleterT>
 	class TCustomReferencer : public CReferencerBase
 	{
 	public:
@@ -82,55 +82,54 @@ namespace _NShared
 		// Constructors
 		/////////////////////////////////
 
-		FORCEINLINE TCustomReferencer(ObjectType* InObject, DeleterType InDeleter)
+		TCustomReferencer() = delete;
+
+		template<typename OtherDeleterT>
+		FORCEINLINE TCustomReferencer(ObjectType* object, OtherDeleterT&& deleter)
 			: CReferencerBase()
-			, _object(InObject)
-			, _deleter(InDeleter)
+			, _object(object)
+			, _deleter(MoveIfPossible(deleter))
 		{}
 
-		virtual ~TCustomReferencer() override
-		{
-			if (_object)
-			{
-				CHECK_RET(_deleter);
-				Deleter(_object);
-			}
-		}
+		virtual ~TCustomReferencer() override {	DestructObjectImpl(); }
 
-	protected: // FReferencer overrides
+	protected:
 
-		FORCEINLINE virtual void* GetObjectImpl() const override
-		{
-			return _object;
-		}
+		// ~BEGIN CReferencerBase interface
+		FORCEINLINE virtual void* GetObjectImpl() const override { return _object; }
+		FORCEINLINE virtual void DeconstructObjectImpl() override { DestructObjectImpl(); }
+		// ~END CReferencerBase interface
 
-		FORCEINLINE virtual void DeconstructObjectImpl() override
+	private: // Fields
+		void DestructObjectImpl()
 		{
 			if(_object)
 			{
-				CHECK_RET(_deleter);
-
-				Deleter(_object);
+				std::invoke(_deleter, _object);
 				_object = nullptr;
 			}
 		}
-
-	private: // Fields
 
 		ObjectType* _object;
 		DeleterType _deleter;
 	};
 
-	template<typename ObjectType>
-	FORCEINLINE static CReferencerBase* NewCustomReferencer(ObjectType* obj)
+	template<typename ObjectT>
+	void DefaultDeleteObjectFunc(ObjectT* obj)
 	{
-		return new TCustomReferencer<ObjectType>(obj, [](ObjectType* obj) { delete obj; });
+		delete obj;
 	}
 
 	template<typename ObjectType, typename DeleterType>
-	FORCEINLINE static CReferencerBase* NewCustomReferencerWithDeleter(ObjectType* obj, DeleterType* delObj)
+	FORCEINLINE static CReferencerBase* NewCustomReferencerWithDeleter(ObjectType* obj, DeleterType&& deleter)
 	{
-		return new TCustomReferencer<ObjectType>(obj, delObj);
+		return new TCustomReferencer<ObjectType, DeleterType>(obj, MoveIfPossible(deleter));
+	}
+
+	template<typename ObjectType>
+	FORCEINLINE_DEBUGGABLE static CReferencerBase* NewCustomReferencer(ObjectType* obj)
+	{
+		return NewCustomReferencerWithDeleter(obj, &DefaultDeleteObjectFunc<ObjectType>);
 	}
 
 	FORCEINLINE static void DeleteReferencer(CReferencerBase* referencer)
@@ -219,7 +218,7 @@ namespace _NShared
 			if(!IsValid()) return;
 
 			_inner->RemoveWeak();
-			if (!_inner->HasAnyReference())
+			if (!_inner->HasAnyReference()) 
 			{
 				DeleteReferencer(_inner);
 				_inner = nullptr;
