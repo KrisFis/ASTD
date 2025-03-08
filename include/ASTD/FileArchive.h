@@ -5,6 +5,8 @@
 #include "ASTD/Build.h"
 #include "Archive.h"
 
+#include <cstdio>
+
 struct SCFileArchive : public SArchive
 {
 	FORCEINLINE SCFileArchive(EArchiveType type, EArchiveMode mode, const tchar* filename, bool overwrite)
