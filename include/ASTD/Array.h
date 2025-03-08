@@ -351,7 +351,6 @@ public:
 
 	FORCEINLINE void Reset() { EmptyImpl(true); }
 	FORCEINLINE void Empty(SizeType newNum = 0) { EmptyImpl(newNum); }
-	FORCEINLINE void Empty(bool keepResources) { EmptyImpl(keepResources ? _allocator.GetSize() : 0); }
 
 	// Iterators
 	/////////////////////////////////

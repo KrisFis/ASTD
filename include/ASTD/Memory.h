@@ -74,7 +74,7 @@ struct SMemory : public SPlatformMemory
 	{
 		if constexpr(!TIsTriviallyMoveConstructible<T>::Value)
 		{
-			::new((void*)to) T(SPlatformMemory::Move(*from));
+			::new((void*)to) T(*from);
 		}
 		else
 		{

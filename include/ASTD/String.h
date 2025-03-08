@@ -24,16 +24,16 @@ struct SString
 	// Constructors
 	/////////////////////////////////
 
-	FORCEINLINE SString() { FillToEmptyImpl({}); }
+	FORCEINLINE SString() { InitToEmpty(); }
 
-	FORCEINLINE SString(const SString& other) { FillToEmptyImpl(other.GetData()); }
-	FORCEINLINE SString(SString&& other) { FillToEmptyImpl(Move(other.GetData())); }
+	FORCEINLINE SString(const SString& other) { AppendStringImpl(other); }
+	FORCEINLINE SString(SString&& other) noexcept { AppendStringImpl(Move(other)); }
 
-	FORCEINLINE SString(CharType character) { FillToEmptyImpl({character}); }
-	FORCEINLINE SString(const CharType* text) { FillToEmptyImpl(text); }
+	FORCEINLINE SString(const CharType* text) { AppendCharsImpl(text); }
+	FORCEINLINE SString(const CharType* text, SizeType length) { AppendCharsImpl(text, length); }
 
-	FORCEINLINE explicit SString(const DataType& data) { FillToEmptyImpl(data); }
-	FORCEINLINE explicit SString(DataType&& data) { FillToEmptyImpl(Move(data)); }
+	FORCEINLINE explicit SString(const DataType& data) { AppendDataImpl(data); }
+	FORCEINLINE explicit SString(DataType&& data) noexcept { AppendDataImpl(Move(data)); }
 
 	// Static fields
 	/////////////////////////////////
@@ -53,17 +53,17 @@ struct SString
 	// Assign operators
 	/////////////////////////////////
 
-	FORCEINLINE SString& operator=(const SString& other) { EmptyImpl(true); FillToEmptyImpl(other.GetData()); return *this; }
-	FORCEINLINE SString& operator=(SString&& other) { EmptyImpl(true); FillToEmptyImpl(Move(other.GetData())); return *this; }
+	FORCEINLINE SString& operator=(const SString& other) { InitToEmpty(); AppendStringImpl(other); return *this; }
+	FORCEINLINE SString& operator=(SString&& other) noexcept { InitToEmpty(); AppendStringImpl(Move(other)); return *this; }
 
 	// Arithmetic operators
 	/////////////////////////////////
 
-	FORCEINLINE SString operator+(const SString& other) const { SString tmpStr(*this); return tmpStr.Append_GetRef(other); }
-	FORCEINLINE SString operator+(SString&& other) const { SString tmpStr(*this); return tmpStr.Append_GetRef(Move(other)); }
+	FORCEINLINE SString operator+(const SString& other) const { SString tmpStr(*this); tmpStr.AppendStringImpl(other); return *this; }
+	FORCEINLINE SString operator+(SString&& other) const { SString tmpStr(*this); tmpStr.AppendStringImpl(Move(other)); return *this; }
 
-	FORCEINLINE SString& operator+=(const SString& other) { AppendImpl(other); return *this; }
-	FORCEINLINE SString& operator+=(SString&& other) { AppendImpl(Move(other)); return *this; }
+	FORCEINLINE SString& operator+=(const SString& other) { AppendStringImpl(other); return *this; }
+	FORCEINLINE SString& operator+=(SString&& other) { AppendStringImpl(Move(other)); return *this; }
 
 	// Get operators
 	/////////////////////////////////
@@ -72,6 +72,12 @@ struct SString
 	FORCEINLINE CharType* operator*() { return _data.GetData(); }
 
 	FORCEINLINE CharType operator[](SizeType idx) const { return _data[idx]; }
+
+	// Path operators
+	/////////////////////////////////
+
+	FORCEINLINE SString operator/(const SString& other) const { SString tmpStr(*this); tmpStr.operator/=(other); return tmpStr; }
+	FORCEINLINE SString operator/=(const SString& other) { AppendCharsImpl(TEXT("/")); AppendStringImpl(other); return *this; }
 
 	// Property getters
 	/////////////////////////////////
@@ -89,9 +95,12 @@ struct SString
 	// Construction
 	/////////////////////////////////
 
-	template<typename... VarTypes>
-	static SString Printf(const CharType* fmt, VarTypes&&... args)
+	template<
+		typename StringT,
+		typename... VarTypes>
+	static SString Printf(StringT&& fmt, VarTypes&&... args)
 	{
+		static_assert(TIsSame<StringT, CharType*>::Value || TIsSame<StringT, SString>::Value, "Format variable has to be string type");
 		thread_local CharType buffer[SCString::LARGE_BUFFER_SIZE];
 
 		// TODO: Replace with custom implementation
@@ -152,7 +161,19 @@ struct SString
 
 	FORCEINLINE bool IsWhitespace() const
 	{
-		return ContainsOnlyWhitespacesPrivate(*this);
+		if(GetLength() > 0)
+		{
+			const CharType* data = _data.GetData();
+			while(*data != CHAR_TERM)
+			{
+				if(!SCString::IsWhitespaceChar(*data))
+					return false;
+
+				++data;
+			}
+		}
+
+		return true;
 	}
 
 	FORCEINLINE bool StartsWith(const SString& val, bool caseSensitive = true) const
@@ -178,12 +199,22 @@ struct SString
 	// Append
 	/////////////////////////////////
 
-	FORCEINLINE void Append(const SString& other) { AppendImpl(other); }
-	FORCEINLINE void Append(SString&& other) { AppendImpl(Move(other)); }
-	FORCEINLINE void Append(CharType other) { AppendImpl(other); }
+	FORCEINLINE void Append(const SString& other) { AppendStringImpl(other); }
+	FORCEINLINE void Append(SString&& other) { AppendStringImpl(Move(other)); }
+	FORCEINLINE void Append(const CharType* other, SizeType num = INDEX_NONE) { AppendCharsImpl(other, num); }
 
-	FORCEINLINE SString& Append_GetRef(const SString& other) { AppendImpl(other); return *this; }
-	FORCEINLINE SString& Append_GetRef(SString&& other) { AppendImpl(Move(other)); return *this; }
+	template<typename StringT, typename... ArgTypes>
+	FORCEINLINE void AppendPrintf(StringT&& fmt, ArgTypes&&... args)
+	{
+		AppendStringImpl(
+			Move(
+				SString::Printf(
+					Forward<StringT>(fmt),
+					Forward<ArgTypes>(args)...
+				)
+			)
+		);
+	}
 
 	// Const manipulation
 	/////////////////////////////////
@@ -373,41 +404,54 @@ struct SString
 	// Other
 	/////////////////////////////////
 
+	FORCEINLINE void Reserve(SizeType num) { _data.Reserve(num + 1); } // termination character
 	FORCEINLINE void ShrinkToFit() { _data.ShrinkToFit(); }
 
 private:
-	FORCEINLINE void AppendImpl(const SString& other) { AppendImpl(other._data); }
-	FORCEINLINE void AppendImpl(SString&& other) { AppendImpl(other._data); other.Empty(); }
-	FORCEINLINE void AppendImpl(CharType other) { _data.Add(other); _data.Swap(_data.GetNum() - 1, _data.GetNum() - 2); }
-
-	void AppendImpl(const DataType& data)
+	FORCEINLINE void InitToEmpty()
 	{
-		_data.RemoveAt(_data.GetNum() - 1); // Remove termination character
-		_data.Append(data.GetData(), data.GetNum());
+		_data.Empty(1);
+		AddTermChecked(_data);
+	}
+	
+	template<
+		typename DataT,
+		typename TEnableIf<TIsSame<typename TDecay<DataT>::Type, DataType>::Value>::Type* = nullptr>
+	void AppendDataImpl(DataT&& data)
+	{
+		RemoveTerm(_data);
+		_data.Append(MoveIfPossible(data));
+		AddTerm(_data);
 	}
 
-	FORCEINLINE void FillToEmptyImpl(const DataType& data) { _data = data; SanitizeData(); }
-	FORCEINLINE void FillToEmptyImpl(DataType&& data) { _data = Move(data); SanitizeData(); }
-	void FillToEmptyImpl(const CharType* text)
+	template<
+		typename StringT,
+		typename TEnableIf<TIsSame<typename TDecay<StringT>::Type, SString>::Value>::Type* = nullptr>
+	void AppendStringImpl(StringT&& str)
 	{
-		if(text)
+		RemoveTerm(_data);
+		_data.Append(MoveIfPossible(str._data));
+		AddTerm(_data);
+	}
+
+	void AppendCharsImpl(const CharType* text, SizeType textLen = INDEX_NONE)
+	{
+		RemoveTerm(_data);
+		if (text)
 		{
-			_data = DataType(text, SCString::GetLength(text) + 1);
+			_data.Append(text, textLen > 0 ? textLen : SCString::GetLength(text) + 1);
 		}
-
-		SanitizeData();
+		AddTerm(_data);
 	}
 
-	void SanitizeData()
-	{
-		if (_data.IsEmpty() || (*_data.GetLast() != CHAR_TERM))
-		{
-			_data.Add(CHAR_TERM);
-		}
-	}
-
-	FORCEINLINE void EmptyImpl(bool releaseResources) { _data.Empty(releaseResources); }
+	FORCEINLINE void EmptyImpl(bool keepResources) { _data.Empty(keepResources); }
 	FORCEINLINE SizeType GetLastCharIndex() const { return _data.GetNum() - 2; }
+
+	FORCEINLINE_DEBUGGABLE static bool HasTerm(const DataType& data) { return !data.IsEmpty() && *data.GetLast() == CHAR_TERM; }
+	FORCEINLINE static void AddTermChecked(DataType& data) { data.Add(CHAR_TERM); }
+	FORCEINLINE static void AddTerm(DataType& data) { if (!HasTerm(data)) { AddTermChecked(data); }}
+	FORCEINLINE static void RemoveTermChecked(DataType& data) { data.RemoveAt(data.GetNum() - 1); }
+	FORCEINLINE static void RemoveTerm(DataType& data) { if (HasTerm(data)) { RemoveTermChecked(data); }}
 
 	static bool IsAtIndexPrivate(const SString& str, const SString& val, SizeType idx, bool caseSensitive)
 	{
@@ -441,10 +485,6 @@ private:
 		SizeType maxSplits,
 		FuncType&& functor)
 	{
-		// There has to be at least two splits
-		// * Otherwise its not "split" but "cut"
-		CHECKF(maxSplits > 1);
-
 		const SizeType mainLen = str.GetLength();
 		const SizeType subLen = substr.GetLength();
 
@@ -485,23 +525,6 @@ private:
 		}
 	}
 
-	static bool ContainsOnlyWhitespacesPrivate(const SString& val)
-	{
-		if(val.GetLength() > 0)
-		{
-			const CharType* data = val._data.GetData();
-			while(*data != CHAR_TERM)
-			{
-				if(!SCString::IsWhitespaceChar(*data))
-					return false;
-
-				++data;
-			}
-		}
-
-		return true;
-	}
-
 	DataType _data = {};
 };
 
@@ -518,7 +541,6 @@ struct TContainerTypeTraits<SString> : public TContainerTypeTraits<void>
 		InlineMemory = true
 	};
 };
-
 
 // Archive operator<< && operator>>
 ////////////////////////////////////////////
