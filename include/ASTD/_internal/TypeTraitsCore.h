@@ -133,3 +133,23 @@ template<> struct TIsSigned<uint8> { enum { Value = false }; };
 template<> struct TIsSigned<uint16> { enum { Value = false }; };
 template<> struct TIsSigned<uint32> { enum { Value = false }; };
 template<> struct TIsSigned<uint64> { enum { Value = false }; };
+
+// [Make Signed]
+// * Gets signed type from unsigned
+// * if T is already signed, it remains unchanged
+
+template<typename T> struct TMakeSigned { typedef T Type; };
+template<> struct TMakeSigned<uint8> { typedef int8 Type; };
+template<> struct TMakeSigned<uint16> { typedef int16 Type; };
+template<> struct TMakeSigned<uint32> { typedef int32 Type; };
+template<> struct TMakeSigned<uint64> { typedef int64 Type; };
+
+// [Make Unsigned]
+// * Gets unsigned type from signed
+// * if T is already unsigned, it remains unchanged
+
+template<typename T> struct TMakeUnsigned { typedef T Type; };
+template<> struct TMakeUnsigned<int8> { typedef uint8 Type; };
+template<> struct TMakeUnsigned<int16> { typedef uint16 Type; };
+template<> struct TMakeUnsigned<int32> { typedef uint32 Type; };
+template<> struct TMakeUnsigned<int64> { typedef uint64 Type; };

@@ -45,6 +45,12 @@
 
 #define DIAG_WARNING_UNUSED_VALUE "-Wunused-value"
 #define DIAG_WARNING_NULL_DEREFERENCE "-Wnull-dereference"
+#define DIAG_WARNING_IMPLICIT_NARROWING "-Wconversion"
+
+#if ASTD_DEFAULT_WARNING_SUPPRESS
+	DIAG_WARNINGS_SUPPRESS(DIAG_WARNING_IMPLICIT_NARROWING)
+#endif
+
 
 // OPTIMIZATIONS
 // * Uses options, make sure it does not collide with anything

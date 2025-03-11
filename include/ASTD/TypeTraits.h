@@ -180,6 +180,6 @@ struct TLimits
 		: ((T)1 << (sizeof(T) * 8 - 1)) * 2 + 1;
 
 	static constexpr T Min = IsSigned
-		? -((T)1 << (sizeof(T) * 8 - 1))
+		? -(static_cast<typename TMakeSigned<T>::Type>(1) << (sizeof(T) * 8 - 1))
 		: 0;
 };

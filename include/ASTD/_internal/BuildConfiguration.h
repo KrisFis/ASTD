@@ -17,6 +17,10 @@
 	#define ASTD_TRACK_MEMORY BUILD_DEBUG
 #endif
 
+#ifndef ASTD_DEFAULT_WARNING_SUPPRESS
+	#define ASTD_DEFAULT_WARNING_SUPPRESS 1
+#endif
+
 // Whether we want "new" and "delete" to use ASTD memory alloc. See Memory.h
 #ifndef ASTD_NEW_DELETE
 	#define ASTD_NEW_DELETE 1

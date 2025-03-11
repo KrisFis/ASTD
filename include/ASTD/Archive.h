@@ -255,7 +255,7 @@ static SArchive& operator<<(SArchive& ar, SArchive& otherAr)
 {
 	if (ar.GetMode() == otherAr.GetMode() && otherAr.AllowsRead())
 	{
-		const uint16 remainingBytes = (otherAr.GetTotalBytes() - otherAr.GetBytesOffset());
+		const uint32 remainingBytes = (otherAr.GetTotalBytes() - otherAr.GetBytesOffset());
 		if (remainingBytes > 0)
 		{
 			uint8* buffer = SMemory::MallocTyped<uint8>(remainingBytes);
