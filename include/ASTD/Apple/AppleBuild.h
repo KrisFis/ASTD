@@ -60,6 +60,12 @@
 #define OPTIMIZATIONS_DISABLE() DO_PRAGMA(GCC push_options) DO_PRAGMA(GCC optimize("O0"))
 #define OPTIMIZATIONS_RESET() DO_PRAGMA(GCC pop_options)
 
+// Prediction
+////////////////////////////////////////////////////////////////////////
+
+#define LIKELY(x) __builtin_expect(!!(x), 1)
+#define UNLIKELY(x) __builtin_expect(!!(x), 0)
+
 // Integers
 ////////////////////////////////////////////////
 

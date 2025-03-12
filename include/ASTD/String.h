@@ -35,9 +35,7 @@ struct SString
 	FORCEINLINE explicit SString(const DataType& data) { AppendDataImpl(data); }
 	FORCEINLINE explicit SString(DataType&& data) noexcept { AppendDataImpl(Move(data)); }
 
-	// Static fields
-	/////////////////////////////////
-
+	// Gets the empty string as a non-mutable reference
 	static const SString& GetEmpty()
 	{
 		static SString emptyString = SString();
@@ -87,9 +85,13 @@ struct SString
 	FORCEINLINE const CharType* GetChars() const { return _data.GetData(); }
 	FORCEINLINE CharType* GetChars() { return _data.GetData(); }
 
+	// Gets length of the string WITHOUT terminating character
 	FORCEINLINE SizeType GetLength() const { return _data.GetNum() > 1 ? _data.GetNum() - 1 : 0; }
 
+	// Checks whether specific index within the string can be safely dereferenced 
 	FORCEINLINE bool IsValidIndex(SizeType idx) const { return idx >= 0 && idx < GetLastCharIndex(); }
+
+	// Checks whether string is empty
 	FORCEINLINE bool IsEmpty() const { return GetLength() == 0; }
 
 	// Construction
@@ -119,22 +121,36 @@ struct SString
 	// Conversions
 	/////////////////////////////////
 
+	// Converts string to int32 equivalent
+	// * "10" => 10
 	FORCEINLINE int32 ToInt32() const { return SCString::ToInt32(_data.GetData()); }
+
+	// Converts string to int64 equivalent
+	// * "10" => 10
 	FORCEINLINE int64 ToInt64() const { return SCString::ToInt64(_data.GetData()); }
+
+	// Converts string to int64 equivalent
+	// * "10.1" => 10.1
 	FORCEINLINE double ToDouble() const { return SCString::ToDouble(_data.GetData()); }
 
+	// Constructs new string from int32
+	// * 10 => "10"
 	static SString FromInt32(int32 val)
 	{
 		thread_local CharType buffer[SCString::MAX_BUFFER_SIZE_INT32];
 		return SString(SCString::FromInt32(val, buffer, SCString::MAX_BUFFER_SIZE_INT32));
 	}
 
+	// Constructs new string from int64
+	// * 10 => "10"
 	static SString FromInt64(int64 val)
 	{
 		thread_local CharType buffer[SCString::MAX_BUFFER_SIZE_INT64];
 		return SString(SCString::FromInt64(val, buffer, SCString::MAX_BUFFER_SIZE_INT64));
 	}
 
+	// Constructs new string from double, providing number of digits to expect
+	// * 10.1 => "10.1"
 	static SString FromDouble(double val, uint8 digits)
 	{
 		thread_local CharType buffer[SCString::MAX_BUFFER_SIZE_DOUBLE];
@@ -153,12 +169,18 @@ struct SString
 	// Compares
 	/////////////////////////////////
 
+	// Compares this string against the provided one
+	// * returns 0 if equal, -1 if this string is "bigger" and 1 if provided string is "bigger"
 	FORCEINLINE int32 Compare(const SString& other, bool caseSensitive = true) const { return SCString::Compare(GetChars(), other.GetChars(), caseSensitive); }
+
+	// Checks whether this string is same as the provided one
+	// * Is same as Compare == 0
 	FORCEINLINE bool Equals(const SString& other, bool caseSensitive = true) const { return Compare(other, caseSensitive) == 0; }
 
 	// Checks
 	/////////////////////////////////
 
+	// Checks whether this string contains ONLY whitespaces
 	FORCEINLINE bool IsWhitespace() const
 	{
 		if(GetLength() > 0)
@@ -176,21 +198,31 @@ struct SString
 		return true;
 	}
 
+	// Checks whether this string contains provided string from the beginning
 	FORCEINLINE bool StartsWith(const SString& val, bool caseSensitive = true) const
 	{
-		return IsAtIndexPrivate(*this, val, 0, caseSensitive);
+		return ContainsAtIndexImpl(*this, val, 0, caseSensitive);
 	}
 
+	// Checks whether this string contains provided string from the end
 	FORCEINLINE bool EndsWith(const SString& val, bool caseSensitive = true) const
 	{
-		return IsAtIndexPrivate(*this, val, GetLastCharIndex() - val.GetLastCharIndex(), caseSensitive);
+		return ContainsAtIndexImpl(*this, val, GetLastCharIndex() - val.GetLastCharIndex(), caseSensitive);
 	}
 
+	// Checks whether this string contains provided string in any place
 	FORCEINLINE bool Contains(const SString& val, bool caseSensitive = true, bool fromStart = true) const
 	{
 		return !!SCString::Find(GetChars(), val.GetChars(), caseSensitive, fromStart);
 	}
 
+	// Checks whether this string contains provided string in provided index
+	FORCEINLINE bool ContainsAt(const SString& val, SizeType index, bool caseSensitive = true)
+	{
+		return ContainsAtIndexImpl(*this, val, index, caseSensitive);
+	}
+
+	// Gets index from which this string contains provided string
 	FORCEINLINE SizeType Find(const SString& val, bool caseSensitive = true, bool fromStart = true) const
 	{
 		return SCString::FindIndex(GetChars(), val.GetChars(), caseSensitive, fromStart);
@@ -199,10 +231,12 @@ struct SString
 	// Append
 	/////////////////////////////////
 
+	// Appends this string with other string
 	FORCEINLINE void Append(const SString& other) { AppendStringImpl(other); }
 	FORCEINLINE void Append(SString&& other) { AppendStringImpl(Move(other)); }
 	FORCEINLINE void Append(const CharType* other, SizeType num = INDEX_NONE) { AppendCharsImpl(other, num); }
 
+	// Appends this string via "printf"
 	template<typename StringT, typename... ArgTypes>
 	FORCEINLINE void AppendPrintf(StringT&& fmt, ArgTypes&&... args)
 	{
@@ -324,6 +358,9 @@ struct SString
 
 	FORCEINLINE void ToLowerInline() { SCString::ToLower(_data.GetData()); }
 
+	// Removes all characters from the index position to the end of the string
+	// * Does NOT modify the source string
+	// * ChopRight at index 1 for "ABC" returns "A"
 	SString ChopRight(SizeType idx) const
 	{
 		SString newString(*this);
@@ -331,6 +368,9 @@ struct SString
 		return newString;
 	}
 
+	// Removes all characters from the index position to the end of the string
+	// * Modifies the source string
+	// * ChopRightInline at index 1 for "ABC" returns "A"
 	void ChopRightInline(SizeType idx)
 	{
 		if(!IsValidIndex(idx))
@@ -342,6 +382,9 @@ struct SString
 		_data[idx] = CHAR_TERM;
 	}
 
+	// Removes all characters from the start of the string to the index position
+	// * Does NOT modify the source string
+	// * ChopLeft at index 1 for "ABC" returns "C"
 	SString ChopLeft(SizeType idx) const
 	{
 		SString newString(*this);
@@ -349,6 +392,9 @@ struct SString
 		return newString;
 	}
 
+	// Removes all characters from the start of the string to the index position
+	// * Modifies the source string
+	// * ChopLeftInline at index 1 for "ABC" returns "C"
 	void ChopLeftInline(SizeType idx)
 	{
 		if(!IsValidIndex(idx))
@@ -362,7 +408,7 @@ struct SString
 			newData[i] = _data[idx + i];
 		}
 
-		_data = newData;
+		_data = Move(newData);
 	}
 
 	SString ChopRange(SizeType firstIdx, SizeType secondIdx) const
@@ -453,7 +499,7 @@ private:
 	FORCEINLINE static void RemoveTermChecked(DataType& data) { data.RemoveAt(data.GetNum() - 1); }
 	FORCEINLINE static void RemoveTerm(DataType& data) { if (HasTerm(data)) { RemoveTermChecked(data); }}
 
-	static bool IsAtIndexPrivate(const SString& str, const SString& val, SizeType idx, bool caseSensitive)
+	static bool ContainsAtIndexImpl(const SString& str, const SString& val, SizeType idx, bool caseSensitive)
 	{
 		if(idx < 0 || str.GetLength() < idx + val.GetLength())
 			return false;

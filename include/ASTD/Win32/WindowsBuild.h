@@ -27,6 +27,10 @@
 #include <Windows.h>
 #include <intrin.h>
 
+#ifdef GetCommandLine
+	#undef GetCommandLine
+#endif
+
 // COMPILATION & BUILD
 ////////////////////////////////////////////////////////////////////////
 
@@ -67,6 +71,12 @@
 #if ASTD_DEFAULT_WARNING_SUPPRESS
 	DIAG_WARNINGS_SUPPRESS(DIAG_WARNING_IMPLICIT_NARROWING)
 #endif
+
+// Prediction
+////////////////////////////////////////////////////////////////////////
+
+#define LIKELY(x) _LIKELY(x)
+#define UNLIKELY(x) _UNLIKELY(x)
 
 // OPTIMIZATIONS
 ////////////////////////////////////////////////////////////////////////
