@@ -53,11 +53,6 @@ public:
 			? SMemory::ReallocTyped<ElementType>(_data, _size + num)
 			: SMemory::MallocTyped<ElementType>(_size + num);
 
-		if(_data && _data != newData)
-		{
-			SMemory::Free(_data);
-		}
-
 		ElementType* elementPtr = newData + _size;
 
 		_data = newData;
