@@ -175,11 +175,6 @@ struct TLimits
 
 	static constexpr bool IsSigned = TIsSigned<T>::Value;
 
-	static constexpr T Max = IsSigned
-		? ((T)1 << (sizeof(T) * 8 - 1)) - 1
-		: ((T)1 << (sizeof(T) * 8 - 1)) * 2 + 1;
-
-	static constexpr T Min = IsSigned
-		? -(static_cast<typename TMakeSigned<T>::Type>(1) << (sizeof(T) * 8 - 1))
-		: 0;
+	static constexpr T Max = (T)((uint64)1 << (sizeof(T) * 8 - (IsSigned ? 1 : 0))) - 1;
+	static constexpr T Min = IsSigned ? (-(int64)((uint64)1 << (sizeof(T) * 8 - 1))) : 0;
 };

@@ -199,7 +199,7 @@ private:
 
 	// Compare implementation
 	template<typename CharType>
-	static int32 CompareImpl(const CharType* lhs, const CharType* rhs, bool caseSensitive, bool reverse, int32 maxLen)
+	static int32 CompareImpl(const CharType* lhs, const CharType* rhs, bool caseSensitive, bool reverse, uint32 maxLen)
 	{
 		while(maxLen > 0)
 		{

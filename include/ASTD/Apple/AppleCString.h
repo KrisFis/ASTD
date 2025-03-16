@@ -52,22 +52,22 @@ struct SApplePlatformCString
 	FORCEINLINE static int32 ToInt32(const wchar* val) { return wcstol(val, nullptr, 10); }
 
 	// Converts integer value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromInt32(int32 val, char* buf, int32 maxLen) { snprintf(buf, maxLen, "%d", val); return buf; }
-	FORCEINLINE static wchar* FromInt32(int32 val, wchar* buf, int32 maxLen) { swprintf(buf, maxLen, L"%d", val); return buf; }
+	FORCEINLINE static char* FromInt32(int32 val, char* buf, uint32 maxLen) { snprintf(buf, maxLen, "%d", val); return buf; }
+	FORCEINLINE static wchar* FromInt32(int32 val, wchar* buf, uint32 maxLen) { swprintf(buf, maxLen, L"%d", val); return buf; }
 
 	// Converts the string pointed to, by the argument str to a long integer
 	FORCEINLINE static int64 ToInt64(const char* val) { return atol(val); }
 	FORCEINLINE static int64 ToInt64(const wchar* val) { return wcstol(val, nullptr, 10); }
 
 	// Converts integer value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromInt64(int64 val, char* buf, int32 maxLen) { snprintf(buf, maxLen, "%lld", val); return buf; }
-	FORCEINLINE static wchar* FromInt64(int64 val, wchar* buf, int32 maxLen) { swprintf(buf, maxLen, L"%lld", val); return buf; }
+	FORCEINLINE static char* FromInt64(int64 val, char* buf, uint32 maxLen) { snprintf(buf, maxLen, "%lld", val); return buf; }
+	FORCEINLINE static wchar* FromInt64(int64 val, wchar* buf, uint32 maxLen) { swprintf(buf, maxLen, L"%lld", val); return buf; }
 
 	// Converts the string pointed to, by the argument str to a floating-point number
 	FORCEINLINE static double ToDouble(const char* val) { return atof(val); }
 	FORCEINLINE static double ToDouble(const wchar* val) { return wcstod(val, nullptr); }
 
 	// Converts double value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromDouble(double val, int32 Digits, char* buf, int32 maxLen) { snprintf(buf, maxLen, "%.*f", Digits, val); return buf; }
-	FORCEINLINE static wchar* FromDouble(double val, int32 Digits, wchar* buf, int32 maxLen) { swprintf(buf, maxLen, L"%.*f", Digits, val); return buf; }
+	FORCEINLINE static char* FromDouble(double val, int32 Digits, char* buf, uint32 maxLen) { snprintf(buf, maxLen, "%.*f", Digits, val); return buf; }
+	FORCEINLINE static wchar* FromDouble(double val, int32 Digits, wchar* buf, uint32 maxLen) { swprintf(buf, maxLen, L"%.*f", Digits, val); return buf; }
 };

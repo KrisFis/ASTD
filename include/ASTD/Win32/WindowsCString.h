@@ -47,24 +47,24 @@ struct SWindowsPlatformCString
 	FORCEINLINE static int32 ToInt32(const wchar* val) { return _wtoi(val); }
 
 	// Converts integer value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromInt32(int32 val, char* buf, int32 maxLen) { _itoa_s(val, buf, maxLen, 10); return buf; }
-	FORCEINLINE static wchar* FromInt32(int32 val, wchar* buf, int32 maxLen) { _itow_s(val, buf, maxLen, 10); return buf; }
+	FORCEINLINE static char* FromInt32(int32 val, char* buf, uint32 maxLen) { _itoa_s(val, buf, maxLen, 10); return buf; }
+	FORCEINLINE static wchar* FromInt32(int32 val, wchar* buf, uint32 maxLen) { _itow_s(val, buf, maxLen, 10); return buf; }
 
 	// Converts the string pointed to, by the argument str to a long integer
 	FORCEINLINE static int64 ToInt64(const char* val) { return _atoi64(val); }
 	FORCEINLINE static int64 ToInt64(const wchar* val) { return _wtoi64(val); }
 
 	// Converts integer value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromInt64(int64 val, char* buf, int32 maxLen) { _i64toa_s(val, buf, maxLen, 10); return buf; }
-	FORCEINLINE static wchar* FromInt64(int64 val, wchar* buf, int32 maxLen) { _i64tow_s(val, buf, maxLen, 10); return buf; }
+	FORCEINLINE static char* FromInt64(int64 val, char* buf, uint32 maxLen) { _i64toa_s(val, buf, maxLen, 10); return buf; }
+	FORCEINLINE static wchar* FromInt64(int64 val, wchar* buf, uint32 maxLen) { _i64tow_s(val, buf, maxLen, 10); return buf; }
 
 	// Converts the string pointed to, by the argument str to a floating-point number
 	FORCEINLINE static double ToDouble(const char* val) { return atof(val); }
 	FORCEINLINE static double ToDouble(const wchar* val) { return _wtof(val); }
 
 	// Converts double value to string in specified base, string is saved to provided buffer
-	FORCEINLINE static char* FromDouble(double val, int32 digits, char* buf, int32 maxLen) { _gcvt_s(buf, maxLen, val, digits); return buf; }
-	static wchar* FromDouble(double val, int32 digits, wchar* buf, int32 maxLen)
+	FORCEINLINE static char* FromDouble(double val, int32 digits, char* buf, uint32 maxLen) { _gcvt_s(buf, maxLen, val, digits); return buf; }
+	static wchar* FromDouble(double val, int32 digits, wchar* buf, uint32 maxLen)
 	{
 		char tmpBuf[_CVTBUFSIZE];
 		_gcvt_s(tmpBuf, maxLen, val, digits);
