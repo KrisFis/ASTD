@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
+#include "ASTD/_internal/TypeTraitsCore.h"
 
 // [Is constructible]
 // * Checks whether specific type is constructible from specific types
@@ -14,13 +14,13 @@ struct TIsConstructible { enum { Value = __is_constructible(T, ArgTypes...) }; }
 // * Checks whether specific type is copy constructible
 
 template<typename T>
-struct TIsCopyConstructible { enum { Value = TIsConstructible<T, const T&>::Value }; };
+struct TIsCopyConstructible : TIsConstructible<T, const typename TRemoveConstReference<T>::Type&> {};
 
 // [Is move constructible]
 // * Checks whether specific type is move constructible
 
 template<typename T>
-struct TIsMoveConstructible { enum { Value = TIsConstructible<T, T&&>::Value }; };
+struct TIsMoveConstructible : TIsConstructible<T, typename TRemoveConstReference<T>::Type&&> {};
 
 // Trivial type
 ////////////////////////////////////////////////////////////////
@@ -30,6 +30,18 @@ struct TIsMoveConstructible { enum { Value = TIsConstructible<T, T&&>::Value }; 
 
 template<typename T, typename... ArgTypes>
 struct TIsTriviallyConstructible { enum { Value = __is_trivially_constructible(T, ArgTypes...) }; };
+
+// [Is trivially copy constructible]
+// * Checks whether specific type can be trivially constructed from its own copy
+
+template<typename T>
+struct TIsTriviallyCopyConstructible : TIsTriviallyConstructible<T, const typename TRemoveConstReference<T>::Type&> {};
+
+// [Is trivially move constructible]
+// * Checks whether specific type can be trivially constructed from its own move
+
+template<typename T>
+struct TIsTriviallyMoveConstructible : TIsTriviallyConstructible<T, typename TRemoveConstReference<T>::Type&&> {};
 
 // [Is trivially destructible]
 // * Checks whether specific type has trivial destructor
@@ -47,34 +59,31 @@ struct TIsTriviallyDestructible
 	};
 };
 
-// [Is trivially copy constructible]
-// * Checks whether specific type has trivial (empty) copy constructor
+// [Is trivially assignable]
+
+template<typename T, typename R>
+struct TIsTriviallyAssignable { enum { Value = __is_trivially_assignable(T, R) };};
+
+// [Is trivially copy assignable]
+// * Checks whether specific type can be trivially assigned from its own copy
 
 template<typename T>
-struct TIsTriviallyCopyConstructible { enum { Value = TIsTriviallyConstructible<T, const T&>::Value }; };
+struct TIsTriviallyCopyAssignable : TIsTriviallyAssignable<T, const typename TRemoveConstReference<T>::Type&> {};
 
-// [Is trivially move constructible]
-// * Checks whether specific type has trivial (empty) move constructor
-
-template<typename T>
-struct TIsTriviallyMoveConstructible { enum { Value = TIsTriviallyConstructible<T, T&&>::Value }; };
-
-// [Is trivial type]
-// * Checks whether specific type is trivial
+// [Is trivially move assignable]
+// * Checks whether specific type can be trivially assigned from its own move
 
 template<typename T>
-struct TIsTrivialType
-{
-	enum { Value =
-		TIsTriviallyConstructible<T>::Value &&
-		TIsTriviallyDestructible<T>::Value &&
-		TIsTriviallyCopyConstructible<T>::Value &&
-		TIsTriviallyMoveConstructible<T>::Value
-	};
-};
+struct TIsTriviallyMoveAssignable : TIsTriviallyAssignable<T, typename TRemoveConstReference<T>::Type&&> {};
 
-// [Has virtual destructor]
-// * Checks whether specific type has virtual destructor
+// [Is trivially copyable]
+// * Checks whether specific type can be trivially copied
 
 template<typename T>
-struct THasVirtualDestructor { enum { Value = __has_virtual_destructor(T) }; };
+struct TIsTriviallyCopyable { enum { Value = __is_trivially_copyable(T) };};
+
+// [Is trivially movable]
+// * Checks whether specific type can be trivially moved
+
+template<typename T>
+struct TIsTriviallyMovable { enum { Value = TIsTriviallyMoveConstructible<T>::Value && TIsTriviallyMoveAssignable<T>::Value };};

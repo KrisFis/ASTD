@@ -15,7 +15,6 @@
 #include "ASTD/_internal/TypeFowards.h"
 
 // TYPE MANIPULATION/GENERATION/SFINAE
-#include "ASTD/TypeMethods.h"
 #include "ASTD/TypeTraits.h"
 #include "ASTD/TypeTraitsMacros.h"
 

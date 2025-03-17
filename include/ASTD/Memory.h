@@ -46,12 +46,11 @@ struct SMemory : public SPlatformMemory
 	}
 
 	template<typename T>
-	FORCEINLINE static void CopyTyped(T* to, const T* from, uint32 num = 1)
+	static void CopyTyped(T* to, const T* from, int64 num = 1)
 	{
-		if constexpr (!TIsTriviallyCopyConstructible<T>::Value)
+		if constexpr (!TTypeTraits<T>::IsBitwiseCopyable)
 		{
-			int64 signedNum = num;
-			while(signedNum-- > 0)
+			while(num-- > 0)
 			{
 				::new((void*)to) T(*from);
 
@@ -72,7 +71,7 @@ struct SMemory : public SPlatformMemory
 	template<typename T>
 	FORCEINLINE static void MoveTyped(T* to, T* from)
 	{
-		if constexpr(!TIsTriviallyMoveConstructible<T>::Value)
+		if constexpr(!TTypeTraits<T>::IsBitwiseMovable)
 		{
 			::new((void*)to) T(*from);
 		}
@@ -82,6 +81,31 @@ struct SMemory : public SPlatformMemory
 				to,
 				from,
 				sizeof(T)
+			);
+		}
+	}
+
+	template<typename T>
+	FORCEINLINE static bool IsEqual(const T* lhs, const T* rhs, int64 num = 1)
+	{
+		if constexpr (!TTypeTraits<T>::IsBitwiseComparable)
+		{
+			while(num-- > 0)
+			{
+				if (*lhs != *rhs) return false;
+
+				++lhs;
+				++rhs;
+			}
+
+			return true;
+		}
+		else
+		{
+			return SPlatformMemory::Compare(
+				lhs,
+				rhs,
+				sizeof(T) * num
 			);
 		}
 	}

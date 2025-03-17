@@ -62,9 +62,9 @@
 																																\
 		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
-		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(MethodCall())>;						\
+		template<typename TestType> static auto TestHasMethod(int32)->TValue<decltype(MethodCall())>;							\
 																																\
-		template<typename> static auto TestHasMethod(int64)->TConstBool<false>;													\
+		template<typename> static auto TestHasMethod(int64)->TBoolValue<false>;													\
 																																\
 		template<class TestType> struct FGetTestValue : decltype(TestHasMethod<TestType>(0)){};									\
 																																\
@@ -82,9 +82,9 @@
 																																\
 		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
-		template<typename TestType> static auto TestHasMethod(int32)->TTrueValue<decltype(DeclVal<TestType>().MethodCall)>;		\
+		template<typename TestType> static auto TestHasMethod(int32)->TValue<decltype(DeclVal<TestType>().MethodCall)>;			\
 																																\
-		template<typename> static auto TestHasMethod(int64)->TConstBool<false>;													\
+		template<typename> static auto TestHasMethod(int64)->TBoolValue<false>;													\
 																																\
 		template<class TestType> struct FGetTestValue : decltype(TestHasMethod<TestType>(0)){};									\
 																																\
@@ -101,9 +101,9 @@
 																																\
 		typedef typename TPure<CheckType>::Type PureType;																		\
 																																\
-		template<typename TestType> static auto TestHasField(int32)->TTrueValue<decltype(&TestType::FieldName)>;				\
+		template<typename TestType> static auto TestHasField(int32)->TValue<decltype(&TestType::FieldName)>;					\
 																																\
-		template<typename> static auto TestHasField(int64)->TConstBool<false>;													\
+		template<typename> static auto TestHasField(int64)->TBoolValue<false>;													\
 																																\
 		template<class TestType> struct FGetTestValue : decltype(TestHasField<TestType>(0)){};									\
 																																\

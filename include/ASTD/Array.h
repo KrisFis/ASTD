@@ -260,7 +260,7 @@ public:
 	{
 		for(SizeType i = 0; i < _num; ++i)
 		{
-			if(CompareElementsPrivate(GetElementAtImpl(i), &val))
+			if(SMemory::IsEqual(GetElementAtImpl(i), &val))
 			{
 				return i;
 			}
@@ -612,13 +612,7 @@ private:
 	FORCEINLINE static bool CompareAllocatorsPrivate(const AllocatorT* lhs, const AllocatorT* rhs, SizeType size)
 	{
 		return (lhs->GetSize() >= size && rhs->GetSize() >= size) ?
-			SMemory::Compare(lhs->GetData(), rhs->GetData(), sizeof(ElementT) * size) == 0 : false;
-	}
-
-	FORCEINLINE static bool CompareElementsPrivate(const ElementT* lhs, const ElementT* rhs)
-	{
-		// Compare bytes instead of using == operator (that might not be provided)
-		return SMemory::Compare(lhs, rhs, sizeof(ElementT)) == 0;
+			SMemory::IsEqual(lhs->GetData(), rhs->GetData(), size) : false;
 	}
 
 	AllocatorT _allocator = {};

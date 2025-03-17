@@ -4,12 +4,19 @@
 
 #include "ASTD/Build.h"
 
-// [Const bool]
-// * False and true type
+// [Size]
+// * Gets size type without need of std (same as std::size_t)
 
-template<bool T> struct TConstBool { static constexpr bool Value = T; };
-template<typename> struct TTrueValue : TConstBool<true> {};
-template<typename> struct TFalseValue : TConstBool<false> {};
+typedef decltype(sizeof(0)) TSize;
+
+// [Bool Value]
+// * False and true value
+
+template<bool T> struct TBoolValue { static constexpr bool Value = T; };
+template<typename> struct TValue : TBoolValue<true> {};
+
+typedef TBoolValue<true> TTrueValue;
+typedef TBoolValue<true> TFalseValue;
 
 // [Enable if]
 // * Enables compilation of specific template function/struct when condition met
@@ -60,6 +67,15 @@ template<typename T> struct TRemoveConst<const T> { typedef T Type; };
 template<typename T> struct TRemoveConst<volatile T> { typedef T Type; };
 template<typename T> struct TRemoveConst<const volatile T> { typedef T Type; };
 
+// [Remove const reference]
+// * Removes const and reference from specific type
+
+template<typename T>
+struct TRemoveConstReference
+{
+	typedef typename TRemoveConst<typename TRemoveReference<T>::Type>::Type Type;
+};
+
 // [Is Pointer]
 // * Checks whether provided type is pointer
 
@@ -102,6 +118,14 @@ template<> struct TIsFloating<float> { enum { Value = true }; };
 template<> struct TIsFloating<double> { enum { Value = true }; };
 template<> struct TIsFloating<long double> { enum { Value = true }; };
 
+// [Is Character Type]
+// * Checks whether specific type is character type
+// * Character types are: char, wchar
+
+template<typename T> struct TIsCharacter { enum { Value = false }; };
+template<> struct TIsCharacter<char> { enum { Value = true }; };
+template<> struct TIsCharacter<wchar> { enum { Value = true }; };
+
 // [Is Integer Type]
 // * Checks whether specific type is integer type
 // * Integer types are: int8, int16, int32, int64, uint8, uint16, uint32, uint64
@@ -116,13 +140,21 @@ template<> struct TIsIntegral<uint16> { enum { Value = true }; };
 template<> struct TIsIntegral<uint32> { enum { Value = true }; };
 template<> struct TIsIntegral<uint64> { enum { Value = true }; };
 
-// [Is Character Type]
-// * Checks whether specific type is character type
-// * Character types are: char, wchar
+// [Is Fundamental]
+// * Checks whether specific type is a fundamental type
+// * Fundamental types is any type that is fundamental to cpp (not user-defined)
 
-template<typename T> struct TIsCharacter { enum { Value = false }; };
-template<> struct TIsCharacter<char> { enum { Value = true }; };
-template<> struct TIsCharacter<wchar> { enum { Value = true }; };
+template<typename T>
+struct TIsFundamental
+{
+	enum { Value =
+		TIsPointer<T>::Value ||
+		TIsBool<T>::Value ||
+		TIsFloating<T>::Value ||
+		TIsCharacter<T>::Value ||
+		TIsIntegral<T>::Value
+	};
+};
 
 // [Is signed type]
 // * Checks whether specific type is signed type

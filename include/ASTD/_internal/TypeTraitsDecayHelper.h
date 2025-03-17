@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
+#include "ASTD/_internal/TypeTraitsCore.h"
 
 namespace _NTypeInternals
 {

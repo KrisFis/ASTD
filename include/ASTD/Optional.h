@@ -6,7 +6,6 @@
 
 #include "ASTD/Archive.h"
 #include "ASTD/Memory.h"
-#include "ASTD/TypeMethods.h"
 #include "ASTD/TypeTraits.h"
 
 template<typename ElementT>
@@ -140,7 +139,7 @@ private:
 	{
 		if(Lhs.IsSet() == Rhs.IsSet())
 		{
-			return Lhs.IsSet() && SMemory::Compare(Lhs._data, Rhs._data, sizeof(ElementType)) == 0;
+			return Lhs.IsSet() && SMemory::IsEqual(Lhs._data, Rhs._data) == 0;
 		}
 
 		return false;

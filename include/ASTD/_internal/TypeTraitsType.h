@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
+#include "ASTD/_internal/TypeTraitsForward.h"
 
 // [Is abstract type]
 // * Checks whether specific type is abstract
@@ -15,6 +15,12 @@ struct TIsAbstractType { enum { Value = __is_abstract(T) }; };
 
 template<typename T>
 struct TIsClassType { enum { Value = __is_class(T) }; };
+
+// [Is enum type]
+// * Checks whether specific type is enum
+
+template<typename T>
+struct TIsEnum { enum { Value = __is_enum(T) }; };
 
 // [Is empty type]
 // * Checks whether specific type is empty
@@ -35,3 +41,16 @@ struct TIsPODType { enum { Value = __is_pod(T) }; };
 
 template<typename T>
 struct TIsUnionType { enum { Value = __is_union(T) }; };
+
+// [Has virtual destructor]
+// * Checks whether specific type has virtual destructor
+
+template<typename T>
+struct THasVirtualDestructor { enum { Value = __has_virtual_destructor(T) }; };
+
+// [Has equal operator]
+// * Checks whether specific type has equal operator
+// * NOTE: POD types always have operator==
+
+template<typename T, typename = void> struct THasEqualOperator { enum { Value = false };};
+template<typename T> struct THasEqualOperator<T, decltype(DeclVal<T>() == DeclVal<T>(), void())> { enum { Value = true };};

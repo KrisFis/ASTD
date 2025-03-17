@@ -8,22 +8,9 @@
 #include "ASTD/_internal/TypeTraitsConstruct.h"
 #include "ASTD/_internal/TypeTraitsContainers.h"
 #include "ASTD/_internal/TypeTraitsCore.h"
-#include "ASTD/_internal/TypeTraitsInternals.h"
-#include "ASTD/_internal/TypeTraitsIsType.h"
-
-// [Size]
-// * Gets size type without need of std (same as std::size_t)
-
-typedef decltype(sizeof(0)) TSize;
-
-// [Remove const reference]
-// * Removes const and reference from specific type
-
-template<typename T>
-struct TRemoveConstReference
-{
-	typedef typename TRemoveConst<typename TRemoveReference<T>::Type>::Type Type;
-};
+#include "ASTD/_internal/TypeTraitsDecayHelper.h"
+#include "ASTD/_internal/TypeTraitsForward.h"
+#include "ASTD/_internal/TypeTraitsType.h"
 
 // [Choose]
 // * Chooses between two different types based on a value
@@ -177,4 +164,29 @@ struct TLimits
 
 	static constexpr T Max = (T)((uint64)1 << (sizeof(T) * 8 - (IsSigned ? 1 : 0))) - 1;
 	static constexpr T Min = IsSigned ? (-(int64)((uint64)1 << (sizeof(T) * 8 - 1))) : 0;
+};
+
+// [Type Traits]
+// Tells information about the type
+
+template<typename T>
+struct TTypeTraits
+{
+	enum
+	{
+		IsFundamental = TIsFundamental<T>::Value,
+		IsEnum = TIsEnum<T>::Value,
+
+		HasDefaultConstructor = !TIsTriviallyConstructible<T>::Value,
+
+		HasCopyConstructor = !TIsTriviallyCopyConstructible<T>::Value,
+		HasMoveConstructor = !TIsTriviallyMoveConstructible<T>::Value,
+
+		HasCopyAssign = !TIsTriviallyCopyAssignable<T>::Value,
+		HasMoveAssign = !TIsTriviallyMoveAssignable<T>::Value,
+
+		IsBitwiseCopyable = !HasCopyConstructor && !HasCopyAssign,
+		IsBitwiseMovable = !HasMoveConstructor && !HasMoveAssign,
+		IsBitwiseComparable = IsFundamental || IsEnum || !THasEqualOperator<T>::Value
+	};
 };

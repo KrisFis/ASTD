@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
-
 template<typename T>
 struct TContainerTypeTraits
 {

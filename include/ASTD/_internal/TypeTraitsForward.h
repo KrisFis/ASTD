@@ -1,8 +1,6 @@
-// Copyright Alternity Arts. All Rights Reserved
+﻿// Copyright (c) 2025 Alternity Arts. All rights reserved.
 
 #pragma once
-
-#include "ASTD/Build.h"
 
 #include "ASTD/_internal/TypeTraitsCore.h"
 
@@ -37,3 +35,4 @@ FORCEINLINE constexpr T&& Forward(typename TRemoveReference<T>::Type&& obj) noex
 
 template<typename T>
 T&& DeclVal();
+

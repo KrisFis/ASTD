@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "ASTD/TypeMethods.h"
 #include "ASTD/TypeTraits.h"
 
 namespace _NShared
@@ -19,15 +18,15 @@ namespace _NShared
 
 	private: // WeakThis test
 
-		template<typename TestType> static auto TestHasSharedInit(int32)->TTrueValue<decltype(DeclVal<TestType>().IsSharedInitialized())>;
-		template<typename TestType>	static auto TestHasSharedInit(int64)->TConstBool<false>;
+		template<typename TestType> static auto TestHasSharedInit(int32)->TValue<decltype(DeclVal<TestType>().IsSharedInitialized())>;
+		template<typename TestType>	static auto TestHasSharedInit(int64)->TBoolValue<false>;
 
 		template<typename TestType> struct FGetHasSharedInitTest : decltype(TestHasSharedInit<TestType>(0)) {};
 
 	private: // Private init method
 
-		template<typename TestType> static auto TestHasAsShared(int32)->TTrueValue<decltype(DeclVal<TestType>().AsShared())>;
-		template<typename TestType>	static auto TestHasAsShared(int64)->TConstBool<false>;
+		template<typename TestType> static auto TestHasAsShared(int32)->TValue<decltype(DeclVal<TestType>().AsShared())>;
+		template<typename TestType>	static auto TestHasAsShared(int64)->TBoolValue<false>;
 
 		template<typename TestType> struct FGetHasAsSharedTest : decltype(TestHasAsShared<TestType>(0)) {};
 
