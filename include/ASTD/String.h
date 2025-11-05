@@ -102,7 +102,7 @@ struct SString
 		typename... VarTypes>
 	static SString Printf(StringT&& fmt, VarTypes&&... args)
 	{
-		static_assert(TIsSame<StringT, CharType*>::Value || TIsSame<StringT, SString>::Value, "Format variable has to be string type");
+		static_assert(TIsSame<typename TPure<StringT>::Type, CharType*>::Value || TIsSame<typename TPure<StringT>::Type, SString>::Value, "Format variable has to be string type");
 		thread_local CharType buffer[SCString::LARGE_BUFFER_SIZE];
 
 		// TODO: Replace with custom implementation

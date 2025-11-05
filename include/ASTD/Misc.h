@@ -23,30 +23,30 @@ struct SMisc : public SPlatformMisc
 
 	FORCEINLINE_DEBUGGABLE static int64 ReadFromStdin(void* buffer, int64 size)
 	{
-		return SPlatformMisc::ReadStd(STDIN_FILE_NO, buffer, size);
+		return SPlatformMisc::ReadFromFile(STDIN_FILE_NO, buffer, size);
 	}
 
 	FORCEINLINE_DEBUGGABLE static int64 WriteToStdout(const void* buffer, int64 size)
 	{
-		return SPlatformMisc::WriteStd(STDOUT_FILE_NO, buffer, size);
+		return SPlatformMisc::WriteToFile(STDOUT_FILE_NO, buffer, size);
 	}
 
 	FORCEINLINE_DEBUGGABLE static int64 WriteToStderr(const void* buffer, int64 size)
 	{
-		return SPlatformMisc::WriteStd(STDERR_FILE_NO, buffer, size);
+		return SPlatformMisc::WriteToFile(STDERR_FILE_NO, buffer, size);
 	}
 
 	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE static uint64 WriteToStdout(const CharType* str)
 	{
-		const uint64 writtenBytes = SPlatformMisc::WriteStd(STDOUT_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+		const uint64 writtenBytes = SPlatformMisc::WriteToFile(STDOUT_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
 		return writtenBytes >= sizeof(tchar) ? writtenBytes / sizeof(tchar) : 0;
 	}
 
 	template<typename CharType, typename TEnableIf<TIsCharacter<CharType>::Value>::Type* = nullptr>
 	FORCEINLINE_DEBUGGABLE static uint64 WriteToStderr(const CharType* str)
 	{
-		const uint64 writtenBytes = SPlatformMisc::WriteStd(STDERR_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
+		const uint64 writtenBytes = SPlatformMisc::WriteToFile(STDERR_FILE_NO, str, SCString::GetLength(str) * sizeof(CharType));
 		return writtenBytes >= sizeof(tchar) ? writtenBytes / sizeof(tchar) : 0;
 	}
 };

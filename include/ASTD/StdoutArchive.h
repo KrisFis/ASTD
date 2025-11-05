@@ -43,7 +43,7 @@ struct TStdoutArchive : public TArrayArchive<tchar, AllocatorT>
 			const auto& data = Super::GetData();
 			if (!data.IsEmpty())
 			{
-				SMisc::WriteStd(FileNo, data.GetData(), data.GetNum());
+				SMisc::WriteToFile(FileNo, data.GetData(), data.GetNum());
 			}
 		}
 
