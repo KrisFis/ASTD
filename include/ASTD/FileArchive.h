@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
-#include "Archive.h"
+#include "ASTDMinimal.h"
 
+#include "Archive.h"
 #include <cstdio>
 
 struct SCFileArchive : public SArchive

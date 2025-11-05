@@ -2,15 +2,12 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
-#include PLATFORM_HEADER(Memory)
+#include "ASTDMinimal.h"
 
 #include <new>
-
-#include "ASTD/TypeTraits.h"
+#include PLATFORM_HEADER(Memory)
 
 typedef PLATFORM_PREFIXED_TYPE(S, PlatformMemory) SPlatformMemory;
-
 struct SMemory : public SPlatformMemory
 {
 	static constexpr long double BITS_PER_BYTE = 8; // bits
@@ -92,7 +89,7 @@ struct SMemory : public SPlatformMemory
 		{
 			while(num-- > 0)
 			{
-				if (*lhs != *rhs) return false;
+				if (!(*lhs == *rhs)) return false;
 
 				++lhs;
 				++rhs;

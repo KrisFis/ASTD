@@ -2,12 +2,12 @@
 
 #pragma once
 
+#include "ASTDMinimal.h"
+
 #include "ASTD/Archive.h"
-#include "ASTD/Build.h"
 
 #include "ASTD/Array.h"
 #include "ASTD/CString.h"
-#include "ASTD/Check.h"
 
 struct SString
 {
@@ -280,7 +280,7 @@ struct SString
 		SplitBySubstringPrivate(*this, delimiter, discardEmpty, caseSensitive, _data.GetNum(),
 			[&result, &num](const CharType* ptr, SizeType count) -> bool
 			{
-				SString& newStr = result.AddUnitialized_GetRef();
+				SString& newStr = result.AddUninitialized_GetRef();
 				newStr._data = DataType(ptr, count);
 				newStr._data.Add(CHAR_TERM);
 				return (--num == 0);
@@ -378,7 +378,7 @@ struct SString
 			return;
 		}
 
-		_data.Shrink(idx + 1);
+		_data.Resize(idx + 1);
 		_data[idx] = CHAR_TERM;
 	}
 

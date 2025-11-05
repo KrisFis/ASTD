@@ -6,7 +6,7 @@
 // * Should include minimal features
 /////////////////////////////////////////
 
-// Look at "Configurations.h" to see defines that affects features provided
+// Look at "Build.h" to see defines that affects features provided
 
 // IMPORTANT CORE
 #include "ASTD/Build.h"

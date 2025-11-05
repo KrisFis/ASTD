@@ -2,7 +2,8 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
+#include "ASTDMinimal.h"
+
 #include "ASTD/_internal/SharedReferencer.h"
 #include "ASTD/_internal/SharedTypeTraits.h"
 

@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
+#include "ASTDMinimal.h"
 
 #include "ASTD/Archive.h"
 #include "ASTD/Array.h"
@@ -79,7 +79,7 @@ struct TArrayArchive : public SArchive
 		const SizeType elementsToWrite = SMath::Floor(size / ELEMENT_SIZE);
 		if (elementsToWrite + _offset > _data.GetNum())
 		{
-			_data.Grow(elementsToWrite + _offset);
+			_data.Resize(elementsToWrite + _offset);
 		}
 
 		SMemory::Copy(_data.GetData() + (_offset * ELEMENT_SIZE), ptr, size);

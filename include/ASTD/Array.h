@@ -2,13 +2,10 @@
 
 #pragma once
 
-#include <initializer_list>
-
-#include "ASTD/Build.h"
+#include "ASTD/ASTDMinimal.h"
 
 #include "ASTD/Math.h"
 #include "ASTD/Memory.h"
-#include "ASTD/TypeTraits.h"
 
 #include "ASTD/ArrayAllocator.h"
 
@@ -39,11 +36,13 @@ public:
 
 	FORCEINLINE TArray() : _allocator(), _num(0) {}
 	FORCEINLINE TArray(const TArray& other) : _allocator(), _num(0) { AppendImpl(other); }
-	FORCEINLINE TArray(TArray&& other) : _allocator(), _num(0) { ReplaceImpl(Move(other)); }
-	FORCEINLINE TArray(SizeType num, bool reserveOnly = false) : _allocator(), _num(0) { ResizeImpl(num, reserveOnly); }
-	FORCEINLINE TArray(const ElementListType& list)
-		: _allocator()
-		, _num(0)
+	FORCEINLINE TArray(TArray&& other) noexcept : _allocator(), _num(0) { ReplaceImpl(Move(other)); }
+	FORCEINLINE TArray(SizeType num, bool reserveOnly = false) : _allocator(), _num(0)
+	{
+		if (reserveOnly) ReserveImpl(num);
+		else GrowImpl(num);
+	}
+	FORCEINLINE TArray(const ElementListType& list) : _allocator() , _num(0)
 	{
 		AppendImpl(list.begin(), list.size());
 	}
@@ -70,7 +69,7 @@ public:
 	/////////////////////////////////
 
 	FORCEINLINE TArray& operator=(const TArray& other) { EmptyImpl(true); AppendImpl(other); return *this; }
-	FORCEINLINE TArray& operator=(TArray&& other) { ReplaceImpl(Move(other)); return *this; }
+	FORCEINLINE TArray& operator=(TArray&& other) noexcept { ReplaceImpl(Move(other)); return *this; }
 
 	FORCEINLINE TArray& operator=(const ElementListType& list) { EmptyImpl(true); AppendImpl(list.begin(), list.size()); return *this; }
 
@@ -95,9 +94,6 @@ public:
 	FORCEINLINE bool IsEmpty() const { return _num == 0; }
 	FORCEINLINE bool IsValidIndex(SizeType idx) const { return idx >= 0 && idx < _num; }
 
-	FORCEINLINE SizeType GetFirstIndex() const { return 0; }
-	FORCEINLINE SizeType GetLastIndex() const { return _num > 0 ? _num - 1 : 0; }
-
 	// Append
 	/////////////////////////////////
 
@@ -108,7 +104,7 @@ public:
 	FORCEINLINE void Append(const ElementListType& list) { AppendImpl(list.begin(), list.size()); }
 	FORCEINLINE void Append(const ElementT* data, SizeType num) { AppendImpl(data, num); }
 
-	FORCEINLINE void AppendUnitialized(SizeType numToAdd) { if(numToAdd > 0) GrowImpl(_num + numToAdd); }
+	FORCEINLINE void AppendUninitialized(SizeType numToAdd) { GrowImpl(_num + numToAdd); }
 
 	// Replace
 	/////////////////////////////////
@@ -131,9 +127,9 @@ public:
 		return _num - 1;
 	}
 
-	FORCEINLINE SizeType AddUnitialized()
+	FORCEINLINE SizeType AddUninitialized()
 	{
-		AddUnitializedImpl();
+		AddUninitializedImpl();
 		return _num - 1;
 	}
 
@@ -149,9 +145,9 @@ public:
 		return *GetElementAtImpl(_num - 1);
 	}
 
-	FORCEINLINE ElementT& AddUnitialized_GetRef()
+	FORCEINLINE ElementT& AddUninitialized_GetRef()
 	{
-		AddUnitializedImpl();
+		AddUninitializedImpl();
 		return *GetElementAtImpl(_num - 1);
 	}
 
@@ -163,22 +159,50 @@ public:
 	// * Swap is faster version of Remove
 	// * but does not preserve order
 
-	FORCEINLINE void Remove(const ElementT& val)
+	// Returns number of removed elements
+	int32 Remove(const ElementT& val, bool allowShrink = true)
 	{
-		SizeType foundIndex = FindIndex(val);
-		if(foundIndex != INDEX_NONE)
+		int32 removedNum = 0;
+		for(SizeType i = _num - 1; i >= 0; --i)
 		{
-			RemoveImpl(foundIndex);
+			if(!SMemory::IsEqual(GetElementAtImpl(i), &val)) continue;
+			RemoveImpl(i);
+			++removedNum;
 		}
+
+		if (allowShrink && removedNum > 0) ShrinkIfNeededImpl();
+		return removedNum;
 	}
 
-	FORCEINLINE void RemoveSwap(const ElementT& val)
+	// Returns number of removed elements
+	int32 RemoveSwap(const ElementT& val, bool allowShrink = true)
 	{
-		SizeType foundIndex = FindIndex(val);
-		if(foundIndex != INDEX_NONE)
+		int32 removedNum = 0;
+		for(SizeType i = _num - 1; i >= 0; --i)
 		{
-			RemoveSwapImpl(foundIndex);
+			if(!SMemory::IsEqual(GetElementAtImpl(i), &val)) continue;
+			RemoveSwapImpl(i);
+			++removedNum;
 		}
+
+		if (allowShrink && removedNum > 0) ShrinkIfNeededImpl();
+		return removedNum;
+	}
+
+	// Returns index of removed element or INDEX_NONE if not found
+	FORCEINLINE int32 RemoveFirst(const ElementT& val)
+	{
+		const int32 foundIdx = FindIndex(val);
+		if (foundIdx != INDEX_NONE) RemoveImpl(foundIdx);
+		return foundIdx;
+	}
+
+	// Returns index of removed element or INDEX_NONE if not found
+	FORCEINLINE int32 RemoveSwapFirst(const ElementT& val)
+	{
+		const int32 foundIdx = FindIndex(val);
+		if (foundIdx != INDEX_NONE) RemoveSwapImpl(foundIdx);
+		return foundIdx;
 	}
 
 	FORCEINLINE void RemoveAt(SizeType idx)
@@ -343,10 +367,8 @@ public:
 	/////////////////////////////////
 
 	FORCEINLINE void ShrinkToFit() { if(_num < _allocator.GetSize()) ShrinkImpl(_num); }
-	FORCEINLINE void Shrink(SizeType num) { if(num < _num) ShrinkImpl(num); }
-	FORCEINLINE void Grow(SizeType num) { if(num > _num) GrowImpl(num); }
 
-	FORCEINLINE void Resize(SizeType num) { ResizeImpl(num, false); }
+	FORCEINLINE void Resize(SizeType num) { ResizeImpl(num); }
 	FORCEINLINE void Reserve(SizeType num) { if(num > _num) ReserveImpl(num); }
 
 	FORCEINLINE void Reset() { EmptyImpl(true); }
@@ -371,13 +393,12 @@ private:
 
 	FORCEINLINE ElementT* GetElementAtImpl(SizeType idx) const { return _allocator.GetData() + idx; }
 
-	void AddUnitializedImpl(SizeType num = 1)
+	FORCEINLINE void AddUninitializedImpl(SizeType num = 1)
 	{
-		if(num > 0)
-		{
-			_num += num;
-			ReallocateIfNeededImpl();
-		}
+		if(num <= 0) return;
+
+		_num += num;
+		GrowIfNeededImpl();
 	}
 
 	void RemoveSwapImpl(SizeType idx)
@@ -395,8 +416,6 @@ private:
 		}
 
 		--_num;
-
-		ReallocateIfNeededImpl();
 	}
 
 	void RemoveImpl(SizeType idx)
@@ -408,7 +427,7 @@ private:
 			// Moves entire allocation by one index down
 
 			// NOTE(jan.kristian.fisera):
-			// * Is it worth to cache start index and try to move from start in case that would be less iterations ?
+			// * Is it worth to cache start index and try to move from start in case that would be fewer iterations ?
 			SMemory::Move(
 				GetElementAtImpl(idx),
 				GetElementAtImpl(idx + 1),
@@ -417,8 +436,6 @@ private:
 		}
 
 		--_num;
-
-		ReallocateIfNeededImpl();
 	}
 
 	void SwapImpl(SizeType firstIdx, SizeType secondIdx, SizeType num)
@@ -486,13 +503,13 @@ private:
 		tmp.SetSize(0);
 	}
 
-	void GrowImpl(SizeType num)
+	FORCEINLINE void GrowImpl(SizeType num)
 	{
 		_num = num;
-		ReallocateIfNeededImpl();
+		GrowIfNeededImpl();
 	}
 
-	void ReserveImpl(SizeType num)
+	FORCEINLINE void ReserveImpl(SizeType num)
 	{
 		_allocator.Allocate(num - _allocator.GetSize());
 	}
@@ -529,7 +546,7 @@ private:
 			const SizeType oldCount = _num;
 
 			_num += num;
-			ReallocateIfNeededImpl();
+			GrowIfNeededImpl();
 			SMemory::CopyTyped(_allocator.GetData() + oldCount, data, num);
 		}
 	}
@@ -541,7 +558,7 @@ private:
 			const SizeType oldCount = _num;
 
 			_num += num;
-			ReallocateIfNeededImpl();
+			GrowIfNeededImpl();
 
 			SMemory::MoveTyped(_allocator.GetData() + oldCount, data);
 		}
@@ -554,11 +571,8 @@ private:
 	void AppendImpl(TArray&& other)
 	{
 		AppendImpl(other.GetData(), other._num, true);
-
-		{
-			other._allocator.Release();
-			other._num = 0;
-		}
+		other._allocator.Release();
+		other._num = 0;
 	}
 
 	FORCEINLINE void AppendImpl(const TArray& other) { AppendImpl(other.GetData(), other._num); }
@@ -576,22 +590,23 @@ private:
 		other._num = 0;
 	}
 
-	void ResizeImpl(SizeType num, bool reserveOnly)
+	FORCEINLINE void ResizeImpl(SizeType num)
 	{
-		if(num > _num)
+		if(num > _num) GrowImpl(num);
+		else if(num < _num) ShrinkImpl(num);
+	}
+
+	void ShrinkIfNeededImpl()
+	{
+		const SizeType reserved = _allocator.GetSize();
+		const SizeType preferred = SMath::CeilToPowerOfTwo((uint64)_num);
+		if (preferred < reserved)
 		{
-			if(reserveOnly)
-				ReserveImpl(num);
-			else
-				GrowImpl(num);
-		}
-		else if(num < _num)
-		{
-			ShrinkImpl(num);
+			ShrinkImpl(preferred);
 		}
 	}
 
-	void ReallocateIfNeededImpl()
+	void GrowIfNeededImpl()
 	{
 		const SizeType reserved = _allocator.GetSize();
 		if(_num > reserved)

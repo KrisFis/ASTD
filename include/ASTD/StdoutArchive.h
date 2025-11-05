@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
+#include "ASTDMinimal.h"
 
 #include "ASTD/Misc.h"
 #include "ASTD/ArrayArchive.h"

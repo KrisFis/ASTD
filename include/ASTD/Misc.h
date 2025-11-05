@@ -2,13 +2,12 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
-#include "ASTD/CString.h"
+#include "ASTDMinimal.h"
 
+#include "ASTD/CString.h"
 #include PLATFORM_HEADER(Misc)
 
 typedef PLATFORM_PREFIXED_TYPE(S, PlatformMisc) SPlatformMisc;
-
 // TODO: Separate to IO (input/output) and STime
 struct SMisc : public SPlatformMisc
 {

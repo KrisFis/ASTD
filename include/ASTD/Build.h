@@ -100,11 +100,71 @@
 	#define PLATFORM_APPLE 0
 #endif
 
-// Other
-// * Order dependant
+// Optional
+// * Configuration
 /////////////////////////////////
 
-#include "ASTD/_internal/MacroInternals.h"
-#include "ASTD/_internal/BuildConfiguration.h"
+// Whether we should use unicode
+#ifndef ASTD_USE_UNICODE
+	#define ASTD_USE_UNICODE PLATFORM_WINDOWS
+#endif
+
+// Whether we should allow checks in build. See Check.h
+#ifndef ASTD_DO_CHECKS
+	#define ASTD_DO_CHECKS BUILD_DEBUG
+#endif
+
+// Whether we want to track SMemory allocations, See Memory.h
+#ifndef ASTD_TRACK_MEMORY
+	#define ASTD_TRACK_MEMORY BUILD_DEBUG
+#endif
+
+// Whether we want ASTD to suppress default build warnings defined by platform. See <Platform>Build.h
+#ifndef ASTD_DEFAULT_WARNING_SUPPRESS
+	#define ASTD_DEFAULT_WARNING_SUPPRESS 1
+#endif
+
+// Whether we want "new" and "delete" to use ASTD memory alloc. See Memory.h
+#ifndef ASTD_NEW_DELETE
+	#define ASTD_NEW_DELETE 0
+#endif
+
+// Platform
+/////////////////////////////////
+
 #include "ASTD/_internal/BuildPlatform.h"
-#include "ASTD/_internal/BuildTypes.h"
+
+// Other
+// * Post platform types/forwards and helpers
+/////////////////////////////////
+
+#define PTR_DIFF(Ptr1, Ptr2) static_cast<int64>(Ptr1 - Ptr2)
+#define PTR_DIFF_TYPED(RetType, Ptr1, Ptr2) static_cast<RetType>(Ptr1 -Ptr2)
+
+#ifdef TEXT
+	#undef TEXT
+#endif
+
+#define ANSITEXT(text) text
+#define WIDETEXT(text) L ## text
+
+#if ASTD_USE_UNICODE
+	#define TEXT(text) WIDETEXT(text)
+	typedef wchar tchar;
+#else
+	#define TEXT(text) ANSITEXT(text)
+	typedef char tchar;
+#endif
+
+#define INDEX_NONE -1
+#define CHAR_TERM '\0'
+#define CHAR_SLASH '/'
+#define CHAR_NEWLINE '\n'
+
+#define STRINGIFY(x) #x
+#define EXPAND(x) x
+
+#define CONCAT(x, y) x##y
+#define CONCAT_EXPAND(x, y) CONCAT(x,y)
+
+#define DOUBLE_CONCAT(x, y, z) CONCAT_EXPAND(CONCAT_EXPAND(x, y), z)

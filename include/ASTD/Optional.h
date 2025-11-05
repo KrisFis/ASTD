@@ -2,9 +2,8 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
+#include "ASTDMinimal.h"
 
-#include "ASTD/Archive.h"
 #include "ASTD/Memory.h"
 #include "ASTD/TypeTraits.h"
 

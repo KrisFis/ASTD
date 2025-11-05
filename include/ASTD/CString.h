@@ -2,13 +2,12 @@
 
 #pragma once
 
-#include "ASTD/Build.h"
-#include PLATFORM_HEADER(CString)
+#include "ASTDMinimal.h"
 
 #include "ASTD/Memory.h"
+#include PLATFORM_HEADER(CString)
 
 typedef PLATFORM_PREFIXED_TYPE(S, PlatformCString) SPlatformCString;
-
 struct SCString : public SPlatformCString
 {
 	static constexpr uint16 SMALL_BUFFER_SIZE = 1024;
