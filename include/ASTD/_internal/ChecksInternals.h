@@ -27,9 +27,9 @@
 	}
 
 	#define CHECK_IMPL(expression)												\
-		((!!(expression)) || []()												\
+		(LIKELY(!!(expression)) || []()											\
 		{ 																		\
-			NValidationInternals::LogFailed(#expression, __FILE__, __LINE__);		\
+			NValidationInternals::LogFailed(#expression, __FILE__, __LINE__);	\
 			static bool didBreak = false; 										\
 			if(!didBreak) 														\
 			{ 																	\
@@ -39,7 +39,7 @@
 		}())
 
 	#define CHECKF_IMPL(expression)												\
-		((!!(expression)) || []()												\
+		(LIKELY(!!(expression)) || []()											\
 		{ 																		\
 			NValidationInternals::LogFailed(#expression, __FILE__, __LINE__);	\
 			DEBUG_BREAK();														\
