@@ -68,7 +68,7 @@ struct SMemory : public SPlatformMemory
 	template<typename T>
 	FORCEINLINE static void MoveTyped(T* to, T* from)
 	{
-		if constexpr(!TTypeTraits<T>::IsBitwiseMovable)
+		if constexpr (!TTypeTraits<T>::IsBitwiseMovable)
 		{
 			::new((void*)to) T(*from);
 		}
@@ -78,6 +78,27 @@ struct SMemory : public SPlatformMemory
 				to,
 				from,
 				sizeof(T)
+			);
+		}
+	}
+
+	template<typename T>
+	FORCEINLINE static void FillTyped(const T* dst, T val, int64 num = 1)
+	{
+		if constexpr (!TTypeTraits<T>::IsBitwiseCopyable)
+		{
+			while(num-- > 0)
+			{
+				::new((void*)dst) T(val);
+				++dst;
+			}
+		}
+		else
+		{
+			SPlatformMemory::Fill(
+				dst,
+				val,
+				sizeof(T) * num
 			);
 		}
 	}

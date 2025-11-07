@@ -301,7 +301,7 @@ inline static typename TEnableIf<ContainerTT::IsContainer, SArchive&>::Type oper
 
 	if constexpr (ContainerTT::InlineMemory)
 	{
-		ar.Read(container.Begin(), container.GetNum());
+		ar.Read(container.begin(), container.GetNum());
 	}
 	else
 	{

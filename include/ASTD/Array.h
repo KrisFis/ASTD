@@ -377,17 +377,10 @@ public:
 	// Iterators
 	/////////////////////////////////
 
-	FORCEINLINE ArrayIteratorType Begin() { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
-	FORCEINLINE ArrayIteratorType begin() { return Begin(); }
-
-	FORCEINLINE ConstArrayIteratorType Begin() const { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
-	FORCEINLINE ConstArrayIteratorType begin() const { return Begin(); }
-
-	FORCEINLINE ArrayIteratorType End() { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
-	FORCEINLINE ArrayIteratorType end() { return End(); }
-
-	FORCEINLINE ConstArrayIteratorType End() const { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
-	FORCEINLINE ConstArrayIteratorType end() const { return End(); }
+	FORCEINLINE ArrayIteratorType begin() { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ConstArrayIteratorType begin() const { return _num > 0 ? GetElementAtImpl(0) : nullptr; }
+	FORCEINLINE ArrayIteratorType end() { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
+	FORCEINLINE ConstArrayIteratorType end() const { return _num > 0 ? GetElementAtImpl(_num) : nullptr; }
 
 private:
 

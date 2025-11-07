@@ -28,6 +28,9 @@ struct SLinuxPlatformMemory
 
 	// Copies block of memory from destionation to source (handles overlapping)
 	FORCEINLINE static void* Move(void* dest, const void* src, int64 size) { return memmove(dest, src, size); }
+	
+	// Fills block of memory with specific value
+	FORCEINLINE static void* Fill(void* dest, int32 val, int64 size) { return memset(dest, val, size); }
 
 	// Compares two blocks of memory
 	FORCEINLINE static int32 Compare(const void* lhs, const void* rhs, int64 num) { return memcmp(lhs, rhs, num); }

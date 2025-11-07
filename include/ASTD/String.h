@@ -32,6 +32,9 @@ struct SString
 	FORCEINLINE SString(const CharType* text) { AppendCharsImpl(text); }
 	FORCEINLINE SString(const CharType* text, SizeType length) { AppendCharsImpl(text, length); }
 
+	// fill constructor
+	FORCEINLINE SString(SizeType length, CharType val = CHAR_TERM) { InitToFill(length, val); }
+
 	FORCEINLINE explicit SString(const DataType& data) { AppendDataImpl(data); }
 	FORCEINLINE explicit SString(DataType&& data) noexcept { AppendDataImpl(Move(data)); }
 
@@ -450,6 +453,7 @@ struct SString
 	// Other
 	/////////////////////////////////
 
+	FORCEINLINE void Fill(SizeType length, CharType val = CHAR_TERM) { InitToFill(length, val); }
 	FORCEINLINE void Reserve(SizeType num) { _data.Reserve(num + 1); } // termination character
 	FORCEINLINE void ShrinkToFit() { _data.ShrinkToFit(); }
 
@@ -458,6 +462,12 @@ private:
 	{
 		_data.Empty(1);
 		AddTermChecked(_data);
+	}
+
+	FORCEINLINE void InitToFill(SizeType length, CharType val)
+	{
+		_data.Resize(length);
+		SMemory::FillTyped(_data.GetData(), val, length);
 	}
 	
 	template<
