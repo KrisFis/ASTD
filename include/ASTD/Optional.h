@@ -46,7 +46,7 @@ public:
 	/////////////////////////////////
 
 	FORCEINLINE TOptional& operator=(const TOptional& other) { Reset(); FillToEmpty(other); return *this; }
-	FORCEINLINE TOptional& operator=(TOptional&& other) { Reset(); FillToEmpty(Move(other)); return *this; }
+	FORCEINLINE TOptional& operator=(TOptional&& other) noexcept { Reset(); FillToEmpty(Move(other)); return *this; }
 
 	FORCEINLINE TOptional& operator=(const ElementType& InValue) { Reset(); FillToEmpty(InValue); return *this; }
 	FORCEINLINE TOptional& operator=(ElementType&& InValue) { Reset(); FillToEmpty(Move(InValue)); return *this; }
