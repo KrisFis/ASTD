@@ -154,6 +154,28 @@ public:
 	FORCEINLINE void Push(const ElementT& val) { AddImpl(val); }
 	FORCEINLINE void Push(ElementT&& val) { AddImpl(Move(val)); }
 
+	// Add
+	/////////////////////////////////
+
+	template<typename... ArgTypes>
+	FORCEINLINE SizeType Emplace(ArgTypes&&... args)
+	{
+		AddUninitializedImpl();
+
+		SMemory::Construct(GetElementAtImpl(_num - 1), Forward<ArgTypes>(args)...);
+		return _num - 1;
+	}
+
+	template<typename... ArgTypes>
+	FORCEINLINE ElementT& Emplace_GetRef(ArgTypes&&... args)
+	{
+		AddUninitializedImpl();
+
+		ElementT* newEl = GetElementAtImpl(_num - 1);
+		SMemory::Construct(newEl, Forward<ArgTypes>(args)...);
+		return *newEl;
+	}
+
 	// Remove
 	/////////////////////////////////
 	// * Swap is faster version of Remove
@@ -358,7 +380,7 @@ public:
 	FORCEINLINE bool Contains(const ElementT& val) const { return FindIndex(val) != INDEX_NONE; }
 
 	template<typename Functor>
-	FORCEINLINE bool ContainsByFunc(Functor&& func) const { return FindByFunc(Move(func)) != INDEX_NONE; }
+	FORCEINLINE bool ContainsByFunc(Functor&& func) const { return !!FindByFunc(Move(func)); }
 
 	template<typename KeyType>
 	FORCEINLINE bool ContainsByKey(KeyType key) const { return FindByKey(key) != INDEX_NONE; }
