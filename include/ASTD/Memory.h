@@ -104,6 +104,26 @@ struct SMemory : public SPlatformMemory
 	}
 
 	template<typename T>
+	FORCEINLINE static void ZeroTyped(const T* dst, int64 num = 1)
+	{
+		if constexpr (!TTypeTraits<T>::IsBitwiseCopyable)
+		{
+			while(num-- > 0)
+			{
+				::new((void*)dst) T();
+				++dst;
+			}
+		}
+		else
+		{
+			SPlatformMemory::Zero(
+				dst,
+				sizeof(T) * num
+			);
+		}
+	}
+
+	template<typename T>
 	FORCEINLINE static bool IsEqual(const T* lhs, const T* rhs, int64 num = 1)
 	{
 		if constexpr (!TTypeTraits<T>::IsBitwiseComparable)
@@ -134,6 +154,10 @@ struct SMemory : public SPlatformMemory
 		if constexpr (!TIsTriviallyConstructible<T, ArgTypes...>::Value)
 		{
 			::new((void*)ptr) T(Forward<ArgTypes>(Args)...);
+		}
+		else
+		{
+			SPlatformMemory::Zero(ptr, sizeof(T));
 		}
 	}
 

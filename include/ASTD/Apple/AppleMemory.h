@@ -32,6 +32,9 @@ struct SApplePlatformMemory
 	// Fills block of memory with specific value
 	FORCEINLINE static void* Fill(void* dest, int32 val, int64 size) { return memset(dest, val, size); }
 
+	// Fills block of memory with zero value
+	FORCEINLINE static void* Zero(void* dest, int64 size) { return memset(dest, 0, size); }
+
 	// Compares two blocks of memory
 	FORCEINLINE static int32 Compare(const void* lhs, const void* rhs, int64 num) { return memcmp(lhs, rhs, num); }
 };

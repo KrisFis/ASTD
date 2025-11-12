@@ -127,6 +127,8 @@ public:
 		return _num - 1;
 	}
 
+	FORCEINLINE SizeType AddDefaulted() { return Emplace(); }
+
 	FORCEINLINE SizeType AddUninitialized()
 	{
 		AddUninitializedImpl();
@@ -144,6 +146,8 @@ public:
 		AppendImpl(&val, 1, true);
 		return *GetElementAtImpl(_num - 1);
 	}
+
+	FORCEINLINE ElementT& AddDefaulted_GetRef() { return Emplace_GetRef(); }
 
 	FORCEINLINE ElementT& AddUninitialized_GetRef()
 	{

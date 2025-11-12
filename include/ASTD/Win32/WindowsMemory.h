@@ -29,6 +29,9 @@ struct SWindowsPlatformMemory
 	// Fills block of memory with specific value
 	FORCEINLINE static void* Fill(void* dest, int32 val, int64 size) { return FillMemory(dest, size, val); }
 
+	// Fills block of memory with zero value
+	FORCEINLINE static void* Zero(void* dest, int64 size) { return ZeroMemory(dest, size); }
+
 	// Compares two blocks of memory
 	FORCEINLINE static int32 Compare(const void* lhs, const void* rhs, int64 num) { return RtlEqualMemory(lhs, rhs, num); }
 };
