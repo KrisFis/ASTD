@@ -49,6 +49,8 @@ public:
 	// @return - array of new elements
 	ElementType* Allocate(SizeType num)
 	{
+		if (num <= 0) return nullptr;
+
 		ElementType* newData = _data
 			? SMemory::ReallocTyped<ElementType>(_data, _size + num)
 			: SMemory::MallocTyped<ElementType>(_size + num);

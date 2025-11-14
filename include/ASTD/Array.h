@@ -115,24 +115,24 @@ public:
 	// Add
 	/////////////////////////////////
 
-	FORCEINLINE SizeType Add(const ElementT& val)
+	FORCEINLINE void Add(const ElementT& val)
 	{
 		AppendImpl(&val, 1);
-		return _num - 1;
 	}
 
-	FORCEINLINE SizeType Add(ElementT&& val)
+	FORCEINLINE void Add(ElementT&& val)
 	{
 		AppendImpl(&val, 1, true);
-		return _num - 1;
 	}
 
-	FORCEINLINE SizeType AddDefaulted() { return Emplace(); }
-
-	FORCEINLINE SizeType AddUninitialized()
+	FORCEINLINE void AddDefaulted(SizeType num = 1)
 	{
-		AddUninitializedImpl();
-		return _num - 1;
+		AddDefaultedImpl(num);
+	}
+
+	FORCEINLINE void AddUninitialized(SizeType num = 1)
+	{
+		AddUninitializedImpl(num);
 	}
 
 	FORCEINLINE ElementT& Add_GetRef(const ElementT& val)
@@ -147,7 +147,11 @@ public:
 		return *GetElementAtImpl(_num - 1);
 	}
 
-	FORCEINLINE ElementT& AddDefaulted_GetRef() { return Emplace_GetRef(); }
+	FORCEINLINE ElementT& AddDefaulted_GetRef()
+	{
+		AddDefaultedImpl();
+		return *GetElementAtImpl(_num - 1);
+	}
 
 	FORCEINLINE ElementT& AddUninitialized_GetRef()
 	{
@@ -395,9 +399,9 @@ public:
 	FORCEINLINE void ShrinkToFit() { if(_num < _allocator.GetSize()) ShrinkImpl(_num); }
 
 	FORCEINLINE void Resize(SizeType num) { ResizeImpl(num); }
-	FORCEINLINE void Reserve(SizeType num) { if(num > _num) ReserveImpl(num); }
+	FORCEINLINE void Reserve(SizeType num) { if (num > _num) { ReserveImpl(num); } else { ShrinkImpl(num); }; }
 
-	FORCEINLINE void Reset() { EmptyImpl(true); }
+	FORCEINLINE void Reset() { EmptyImpl(_allocator.GetSize()); }
 	FORCEINLINE void Empty(SizeType newNum = 0) { EmptyImpl(newNum); }
 
 	// Iterators
@@ -411,6 +415,16 @@ public:
 private:
 
 	FORCEINLINE ElementT* GetElementAtImpl(SizeType idx) const { return _allocator.GetData() + idx; }
+
+	void AddDefaultedImpl(SizeType num = 1)
+	{
+		if(num <= 0) return;
+
+		_num += num;
+		GrowIfNeededImpl();
+
+		SMemory::ZeroTyped(GetElementAtImpl(_num - num), num);
+	}
 
 	FORCEINLINE void AddUninitializedImpl(SizeType num = 1)
 	{
