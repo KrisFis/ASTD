@@ -57,10 +57,10 @@
 // * Example: ARCHITECTURE_64
 /////////////////////////////////
 
-#if defined(_WIN32) || defined(__i386__)
-	#define ARCHITECTURE_32 1
-#elif defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__)
+#if defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__)
 	#define ARCHITECTURE_64 1
+#elif defined(_WIN32) || defined(__i386__)
+	#define ARCHITECTURE_32 1
 #else
 	#error "Unsupported architecture"
 #endif
