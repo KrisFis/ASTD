@@ -3,8 +3,9 @@
 #pragma once
 
 #include "ASTDMinimal.h"
-
+#include "ASTD/Math.h"
 #include "ASTD/Memory.h"
+
 #include PLATFORM_HEADER(CString)
 
 typedef PLATFORM_PREFIXED_TYPE(S, PlatformCString) SPlatformCString;
