@@ -105,6 +105,7 @@ struct SString
 		typename... VarTypes>
 	static SString Printf(StringT&& fmt, VarTypes&&... args)
 	{
+		static_assert(sizeof...(VarTypes) > 0, "No arguments provided. Use construction from fmt directly instead");
 		static_assert(TIsSame<typename TPure<StringT>::Type, CharType*>::Value || TIsSame<typename TPure<StringT>::Type, SString>::Value, "Format variable has to be string type");
 		thread_local CharType buffer[SCString::LARGE_BUFFER_SIZE];
 
