@@ -5,9 +5,6 @@
 #include "ASTD/Build.h"
 #include "ASTD/Check.h"
 
-// TODO(jkfisera): REIMPLEMENT Invoke
-#include <type_traits>
-
 namespace _NShared
 {
 	struct SNullType {};
@@ -105,7 +102,8 @@ namespace _NShared
 		{
 			if(_object)
 			{
-				std::invoke(_deleter, _object);
+				// TODO: Implement std::invoke
+				_deleter(_object);
 				_object = nullptr;
 			}
 		}

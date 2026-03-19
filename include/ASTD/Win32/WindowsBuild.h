@@ -104,4 +104,28 @@ typedef unsigned __int64 uint64;
 // Characters
 ////////////////////////////////////////////////
 
-typedef __wchar_t wchar;
+#define UTF16_WCHAR 1
+
+#ifdef __cpp_char8_t
+#define HAS_NATIVE_CHAR8 1
+#else
+#define HAS_NATIVE_CHAR8 0
+#endif
+
+#if HAS_NATIVE_CHAR8
+typedef char8_t char8;
+#else
+typedef char char8;
+#endif
+
+typedef char16_t char16;
+typedef char32_t char32;
+typedef wchar_t wchar;
+typedef char achar;
+
+#ifdef UNICODE
+typedef wchar tchar;
+#else
+typedef achar tchar;
+#endif
+

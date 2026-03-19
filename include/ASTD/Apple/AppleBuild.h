@@ -86,4 +86,31 @@ typedef uint64_t uint64;
 // Characters
 ////////////////////////////////////////////////
 
+#if __SIZEOF_WCHAR_T__ == 2
+#define UTF16_WCHAR 1
+#else
+#define UTF16_WCHAR 0
+#endif
+
+#ifdef __cpp_char8_t
+#define HAS_NATIVE_CHAR8 1
+#else
+#define HAS_NATIVE_CHAR8 0
+#endif
+
+#if HAS_NATIVE_CHAR8
+typedef char8_t char8;
+#else
+typedef char char8;
+#endif
+
+typedef char16_t char16;
+typedef char32_t char32;
 typedef wchar_t wchar;
+typedef char achar;
+
+#ifdef UNICODE
+typedef wchar tchar;
+#else
+typedef achar tchar;
+#endif

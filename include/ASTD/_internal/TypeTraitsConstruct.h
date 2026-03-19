@@ -51,10 +51,10 @@ struct TIsTriviallyDestructible
 {
 	enum
 	{
-#if PLATFORM_WINDOWS || PLATFORM_APPLE
-		Value = __is_trivially_destructible(T)
-#elif PLATFORM_LINUX
+#if COMPILER_GCC
 		Value = __has_trivial_destructor(T)
+#else
+		Value = __is_trivially_destructible(T)
 #endif
 	};
 };

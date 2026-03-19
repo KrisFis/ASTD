@@ -120,11 +120,17 @@ template<> struct TIsFloating<long double> { enum { Value = true }; };
 
 // [Is Character Type]
 // * Checks whether specific type is character type
-// * Character types are: char, wchar
+// * Character types are: char, wchar, char8, char16, char32
 
 template<typename T> struct TIsCharacter { enum { Value = false }; };
 template<> struct TIsCharacter<char> { enum { Value = true }; };
 template<> struct TIsCharacter<wchar> { enum { Value = true }; };
+template<> struct TIsCharacter<char16> { enum { Value = true }; };
+template<> struct TIsCharacter<char32> { enum { Value = true }; };
+
+#if HAS_NATIVE_CHAR8
+template<> struct TIsCharacter<char8> { enum { Value = true }; };
+#endif
 
 // [Is Integer Type]
 // * Checks whether specific type is integer type
